@@ -12,8 +12,8 @@ import { supabase } from "./supabase.js";
 const COURIERS = [
   { name: "FAN Courier",  url: (a) => `https://www.fancourier.ro/awb-tracking/?awb=${a}` },
   { name: "Cargus",       url: (a) => `https://www.cargus.ro/tracking-colet/?Awb=${a}` },
-  { name: "Sameday",      url: (a) => `https://sameday.ro/tracking?awb=${a}` },
-  { name: "DPD",          url: (a) => `https://tracking.dpd.de/status/en_US/parcel/${a}` },
+  { name: "Sameday",      url: (a) => `https://sameday.ro/status-colet/?awb=${a}` },
+  { name: "DPD",          url: (a) => `https://tracking.dpd.ro/?parcelNumber=${a}` },
   { name: "GLS",          url: (a) => `https://gls-group.eu/RO/ro/track-trace.html?match=${a}` },
   { name: "Posta Romana", url: (a) => `https://tracking.posta.ro/?awb=${a}` },
   { name: "Alta",         url: null },
