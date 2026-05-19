@@ -10,13 +10,13 @@ import { supabase } from "./supabase.js";
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const COURIERS = [
-  { name: "FAN Courier",  url: (a) => `https://www.fancourier.ro/awb-tracking/?awb=${a}` },
-  { name: "Cargus",       url: (a) => `https://www.cargus.ro/tracking-colet/?Awb=${a}` },
-  { name: "Sameday",      url: (a) => `https://sameday.ro/status-colet/?awb=${a}` },
-  { name: "DPD",          url: (a) => `https://tracking.dpd.ro/?parcelNumber=${a}` },
-  { name: "GLS",          url: (a) => `https://gls-group.eu/RO/ro/track-trace.html?match=${a}` },
-  { name: "Posta Romana", url: (a) => `https://tracking.posta.ro/?awb=${a}` },
-  { name: "Alta",         url: null },
+  { name: "FAN Courier",  url: (a) => `https://t.17track.net/en#nums=${a}` },
+  { name: "Cargus",       url: (a) => `https://t.17track.net/en#nums=${a}` },
+  { name: "Sameday",      url: (a) => `https://t.17track.net/en#nums=${a}` },
+  { name: "DPD",          url: (a) => `https://t.17track.net/en#nums=${a}` },
+  { name: "GLS",          url: (a) => `https://t.17track.net/en#nums=${a}` },
+  { name: "Posta Romana", url: (a) => `https://t.17track.net/en#nums=${a}` },
+  { name: "Alta",         url: (a) => `https://t.17track.net/en#nums=${a}` },
 ];
 
 const STATUSES = ["Comandat", "In procesare", "In tranzit", "La livrare", "Livrat", "Retur"];
