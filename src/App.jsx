@@ -44,7 +44,7 @@ const emptyForm = () => ({
 
 const STYLES = `
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#16033a}
+  body{font-family:'DM Sans',sans-serif;background:#16033a;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
   @keyframes b1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.07)}66%{transform:translate(-18px,22px) scale(0.94)}}
   @keyframes b2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-35px,28px) scale(1.05)}66%{transform:translate(28px,-18px) scale(0.96)}}
   @keyframes b3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(22px,-42px) scale(1.06)}}
@@ -54,28 +54,28 @@ const STYLES = `
   .gc-strong{background:rgba(255,255,255,0.11);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border:1px solid rgba(255,255,255,0.2);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.32),0 20px 48px rgba(0,0,0,0.28)}
   .pkg{background:rgba(255,255,255,0.055);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.09);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12),0 4px 16px rgba(0,0,0,0.1);padding:1rem 1.25rem;transition:border-color .2s}
   .pkg:hover{border-color:rgba(255,255,255,0.17)}
-  .gi{background:rgba(0,0,0,0.28);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.11);border-radius:12px;color:white;font-size:13px;padding:10px 14px;outline:none;font-family:inherit;transition:border-color .2s;width:100%}
+  .gi{background:rgba(0,0,0,0.28);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.11);border-radius:12px;color:white;font-size:14px;padding:10px 14px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .2s;width:100%}
   .gi::placeholder{color:rgba(255,255,255,0.3)}
   .gi:focus{border-color:rgba(255,255,255,0.32)}
   .gi option{background:#1e293b;color:white}
-  .gb{background:rgba(255,255,255,0.09);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.18);border-radius:12px;color:rgba(255,255,255,0.88);cursor:pointer;font-size:13px;font-family:inherit;padding:8px 14px;transition:background .18s,transform .1s;display:inline-flex;align-items:center;gap:6px}
+  .gb{background:rgba(255,255,255,0.09);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.18);border-radius:12px;color:rgba(255,255,255,0.88);cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;padding:8px 14px;transition:background .18s,transform .1s;display:inline-flex;align-items:center;gap:6px}
   .gb:hover{background:rgba(255,255,255,0.15)}
   .gb:active{transform:scale(0.97)}
   .gb:disabled{opacity:0.4;cursor:not-allowed}
   .gbp{background:rgba(167,139,250,0.28);border-color:rgba(167,139,250,0.5)}
   .gbp:hover{background:rgba(167,139,250,0.38)}
-  .ib{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:rgba(255,255,255,0.65);cursor:pointer;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;font-family:inherit;font-size:12px}
+  .ib{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:rgba(255,255,255,0.65);cursor:pointer;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;font-family:'DM Sans',sans-serif;font-size:13px}
   .ib:hover{background:rgba(255,255,255,0.14);color:white}
   .ib:disabled{opacity:0.35;cursor:not-allowed}
   .ibx:hover{background:rgba(248,113,113,0.18);border-color:rgba(248,113,113,0.4);color:#f87171}
-  .fp{font-size:12px;padding:5px 14px;border-radius:100px;cursor:pointer;border:1px solid rgba(255,255,255,0.13);background:rgba(255,255,255,0.055);color:rgba(255,255,255,0.65);transition:all .18s;font-family:inherit}
+  .fp{font-size:13px;padding:5px 14px;border-radius:100px;cursor:pointer;border:1px solid rgba(255,255,255,0.13);background:rgba(255,255,255,0.055);color:rgba(255,255,255,0.65);transition:all .18s;font-family:'DM Sans',sans-serif}
   .fp:hover{background:rgba(255,255,255,0.11);color:white}
   .fp.act{background:rgba(255,255,255,0.17);border-color:rgba(255,255,255,0.28);color:white}
-  .sp{font-size:11px;padding:3px 10px;border-radius:100px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:inherit}
+  .sp{font-size:12px;padding:3px 10px;border-radius:100px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:'DM Sans',sans-serif}
   .sp:hover{opacity:0.8}
   .sp:active{transform:scale(0.95)}
   .em{position:absolute;top:calc(100% + 8px);right:0;background:rgba(12,18,35,0.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.14);border-radius:14px;padding:6px;min-width:165px;z-index:200;box-shadow:0 20px 40px rgba(0,0,0,0.45)}
-  .ei{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;cursor:pointer;color:rgba(255,255,255,0.78);font-size:13px;transition:background .15s;font-family:inherit;background:none;border:none;width:100%;text-align:left}
+  .ei{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;cursor:pointer;color:rgba(255,255,255,0.78);font-size:14px;transition:background .15s;font-family:'DM Sans',sans-serif;background:none;border:none;width:100%;text-align:left}
   .ei:hover{background:rgba(255,255,255,0.08);color:white}
   .ti{background:rgba(0,0,0,0.22);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px;margin-top:8px}
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem}
@@ -535,29 +535,29 @@ Dacă nu găsești informații: {"status":"unknown","lastEvent":"Nu s-au găsit 
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:5}}>
-                        <span style={{fontWeight:500,fontSize:14,color:"white"}}>{p.name}</span>
+                        <span style={{fontWeight:500,fontSize:15,color:"white"}}>{p.name}</span>
                         <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{p.status}</span>
-                        {p.category && <span className="sp" style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.42)",borderColor:"rgba(255,255,255,0.1)",fontSize:10}}>{p.category}</span>}
+                        {p.category && <span className="sp" style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.42)",borderColor:"rgba(255,255,255,0.1)",fontSize:11}}>{p.category}</span>}
                       </div>
                       <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
-                        <span style={{fontFamily:"monospace",fontSize:12,color:"rgba(255,255,255,0.42)"}}>{p.awb}</span>
-                        <span style={{fontSize:12,color:"rgba(255,255,255,0.42)"}}>{p.courier}</span>
-                        {p.shop && <span style={{fontSize:12,color:"rgba(255,255,255,0.42)"}}>{p.shop}</span>}
-                        <span style={{fontSize:12,color:"rgba(255,255,255,0.3)"}}>
+                        <span style={{fontFamily:"monospace",fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.awb}</span>
+                        <span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.courier}</span>
+                        {p.shop && <span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.shop}</span>}
+                        <span style={{fontSize:13,color:"rgba(255,255,255,0.3)"}}>
                           {new Date(p.date+"T12:00:00").toLocaleDateString("ro-RO",{day:"numeric",month:"short",year:"numeric"})}
                         </span>
                       </div>
-                      {p.notes && <div style={{fontSize:12,color:"rgba(255,255,255,0.3)",marginTop:4}}>{p.notes}</div>}
+                      {p.notes && <div style={{fontSize:13,color:"rgba(255,255,255,0.3)",marginTop:4}}>{p.notes}</div>}
                       {(p.last_event || chk) && (
                         <div className="ti">
                           {chk ? (
-                            <span style={{fontSize:12,color:"rgba(255,255,255,0.42)",display:"flex",alignItems:"center",gap:6}}>
+                            <span style={{fontSize:13,color:"rgba(255,255,255,0.42)",display:"flex",alignItems:"center",gap:6}}>
                               <Loader size={11} className="spin" aria-hidden /> Se caută statusul online...
                             </span>
                           ) : (
                             <div>
-                              <span style={{fontSize:12,color:"rgba(255,255,255,0.75)"}}>{p.last_event}</span>
-                              {p.last_location && <span style={{fontSize:12,color:"rgba(255,255,255,0.38)",marginLeft:6}}>· {p.last_location}</span>}
+                              <span style={{fontSize:13,color:"rgba(255,255,255,0.75)"}}>{p.last_event}</span>
+                              {p.last_location && <span style={{fontSize:13,color:"rgba(255,255,255,0.38)",marginLeft:6}}>· {p.last_location}</span>}
                               {p.last_checked && <div style={{fontSize:10,color:"rgba(255,255,255,0.22)",marginTop:3}}>Verificat {new Date(p.last_checked).toLocaleString("ro-RO",{hour:"2-digit",minute:"2-digit",day:"numeric",month:"short"})}</div>}
                             </div>
                           )}
