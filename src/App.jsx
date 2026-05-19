@@ -30,14 +30,11 @@ const SC = {
   "Retur":        { color: "#f87171", bg: "rgba(248,113,113,0.18)", border: "rgba(248,113,113,0.45)" },
 };
 
-const CATEGORIES = ["Electronice", "Componente PC", "Gaming", "Cărți", "Îmbrăcăminte",
-                    "Accesorii", "Sport", "Casă", "Altele"];
-
 const API_KEY_STORAGE = "tracker-anthropic-key";
 
 const emptyForm = () => ({
   name: "", awb: "", courier: "FAN Courier", status: "Comandat",
-  date: new Date().toISOString().split("T")[0], notes: "", shop: "", category: "Electronice",
+  date: new Date().toISOString().split("T")[0], notes: "", shop: "", amount: "",
 });
 
 // ── Shared CSS ────────────────────────────────────────────────────────────────
@@ -256,7 +253,7 @@ function MainApp({ user }) {
   function openForm(p = null) {
     setForm(p
       ? { name:p.name, awb:p.awb, courier:p.courier, status:p.status, date:p.date,
-          notes:p.notes||"", shop:p.shop||"", category:p.category||"Altele" }
+          notes:p.notes||"", shop:p.shop||"", amount:p.amount||"" }
       : emptyForm());
     setEditId(p ? p.id : null);
     setFormErr("");
@@ -348,8 +345,8 @@ Dacă nu găsești informații: {"status":"unknown","lastEvent":"Nu s-au găsit 
   // ── Export ───────────────────────────────────────────────────────────────────
 
   function exportCSV() {
-    const h = ["Descriere","AWB","Curier","Status","Data","Magazin","Categorie","Note","Ultimul eveniment","Locatie"];
-    const rows = pkgs.map(p => [p.name,p.awb,p.courier,p.status,p.date,p.shop||"",p.category||"",p.notes||"",p.last_event||"",p.last_location||""]);
+    const h = ["Descriere","AWB","Curier","Status","Data","Magazin","Suma","Note","Ultimul eveniment","Locatie"];
+    const rows = pkgs.map(p => [p.name,p.awb,p.courier,p.status,p.date,p.shop||"",p.amount||"",p.notes||"",p.last_event||"",p.last_location||""]);
     const csv = [h,...rows].map(r => r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob = new Blob(["\ufeff"+csv], {type:"text/csv;charset=utf-8;"});
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download="colete.csv"; a.click();
@@ -359,7 +356,7 @@ Dacă nu găsești informații: {"status":"unknown","lastEvent":"Nu s-au găsit 
   function exportXLSX() {
     const data = pkgs.map(p => ({
       "Descriere":p.name, "AWB":p.awb, "Curier":p.courier, "Status":p.status, "Data":p.date,
-      "Magazin":p.shop||"", "Categorie":p.category||"", "Note":p.notes||"",
+      "Magazin":p.shop||"", "Suma":p.amount||"", "Note":p.notes||"",
       "Ultimul eveniment":p.last_event||"", "Locatie":p.last_location||"",
       "Ultima verificare":p.last_checked ? new Date(p.last_checked).toLocaleString("ro-RO") : "",
     }));
@@ -401,7 +398,7 @@ Dacă nu găsești informații: {"status":"unknown","lastEvent":"Nu s-au găsit 
               <Package size={20} style={{color:"#a78bfa"}} aria-hidden />
             </div>
             <div>
-              <h1 style={{fontSize:18,fontWeight:600,color:"white",letterSpacing:"-0.01em"}}>Tracker colete</h1>
+              <h1 style={{fontSize:18,fontWeight:600,color:"white",letterSpacing:"-0.01em"}}>Parcel tracking</h1>
               <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:1}}>
                 {loading ? "Se încarcă..." : `${pkgs.length} ${pkgs.length===1?"colet":"colete"}`}
               </p>
@@ -483,10 +480,8 @@ Dacă nu găsești informații: {"status":"unknown","lastEvent":"Nu s-au găsit 
                 <input className="gi" value={form.shop} onChange={e=>setForm({...form,shop:e.target.value})} placeholder="ex. eMag, Altex, PC Garage..." />
               </div>
               <div>
-                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Categorie</label>
-                <select className="gi" value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>
-                  {CATEGORIES.map(c=><option key={c}>{c}</option>)}
-                </select>
+                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Sumă (RON)</label>
+                <input className="gi" type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="ex. 349.99" />
               </div>
               <div>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Status</label>
@@ -537,7 +532,7 @@ Dacă nu găsești informații: {"status":"unknown","lastEvent":"Nu s-au găsit 
                       <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:5}}>
                         <span style={{fontWeight:500,fontSize:15,color:"white"}}>{p.name}</span>
                         <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{p.status}</span>
-                        {p.category && <span className="sp" style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.42)",borderColor:"rgba(255,255,255,0.1)",fontSize:11}}>{p.category}</span>}
+                        {p.amount && <span className="sp" style={{background:"rgba(52,211,153,0.12)",color:"#34d399",borderColor:"rgba(52,211,153,0.35)",fontSize:11}}>{Number(p.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
                       </div>
                       <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
                         <span style={{fontFamily:"monospace",fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.awb}</span>
