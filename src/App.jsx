@@ -460,38 +460,38 @@ Dacă nu găsești informații: {"status":"unknown","lastEvent":"Nu s-au găsit 
               <h2 style={{fontSize:15,fontWeight:600,color:"white"}}>{editId?"Editează colet":"Colet nou"}</h2>
               <button className="ib" onClick={()=>{setShowForm(false);setEditId(null)}}><X size={14} aria-label="Închide" /></button>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,overflow:"hidden"}}>
               <div style={{gridColumn:"span 2"}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Descriere / comandă *</label>
                 <input className="gi" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="ex. Tastatură mecanică, Monitor 27 inch..." />
               </div>
-              <div>
+              <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Număr AWB *</label>
                 <input className="gi" value={form.awb} onChange={e=>setForm({...form,awb:e.target.value})} placeholder="ex. 12345678" style={{fontFamily:"monospace"}} />
               </div>
-              <div>
+              <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Curier</label>
                 <select className="gi" value={form.courier} onChange={e=>setForm({...form,courier:e.target.value})}>
                   {COURIERS.map(c=><option key={c.name}>{c.name}</option>)}
                 </select>
               </div>
-              <div>
+              <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Magazin</label>
                 <input className="gi" value={form.shop} onChange={e=>setForm({...form,shop:e.target.value})} placeholder="ex. eMag, Altex, PC Garage..." />
               </div>
-              <div>
+              <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Sumă (RON)</label>
                 <input className="gi" type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="ex. 349.99" />
               </div>
-              <div>
+              <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Status</label>
                 <select className="gi" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
                   {STATUSES.map(s=><option key={s}>{s}</option>)}
                 </select>
               </div>
-              <div style={{gridColumn:"span 2"}}>
+              <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Data comenzii</label>
-                <input type="date" className="gi" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} style={{colorScheme:"dark",width:"100%",minWidth:0}} />
+                <input type="date" className="gi" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} style={{colorScheme:"dark",maxWidth:"100%",minWidth:0}} />
               </div>
               <div style={{gridColumn:"span 2"}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Note (opțional)</label>
