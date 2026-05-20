@@ -489,9 +489,9 @@ Dacă nu găsești informații: {"status":"unknown","lastEvent":"Nu s-au găsit 
                   {STATUSES.map(s=><option key={s}>{s}</option>)}
                 </select>
               </div>
-              <div>
+              <div style={{gridColumn:"span 2"}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Data comenzii</label>
-                <input type="date" className="gi" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} style={{colorScheme:"dark"}} />
+                <input type="date" className="gi" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} style={{colorScheme:"dark",width:"100%",minWidth:0}} />
               </div>
               <div style={{gridColumn:"span 2"}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>Note (opțional)</label>
