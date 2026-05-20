@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   Plus, Trash2, ExternalLink, X, Search, Package, Download,
   RefreshCw, FileText, Loader, ChevronDown, KeyRound, Eye,
-  EyeOff, LogOut, Mail, CheckCircle,
+  EyeOff, LogOut,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { supabase } from "./supabase.js";
@@ -97,51 +97,23 @@ function Background() {
 // ── Login screen ─────────────────────────────────────────────────────────────
 
 function LoginScreen() {
-  const [email, setEmail]     = useState("");
-  const [code, setCode]       = useState("");
-  const [step, setStep]       = useState("main"); // "main" | "otp-email" | "otp-code"
-  const [busy, setBusy]       = useState(false);
-  const [busyGoogle, setBusyGoogle] = useState(false);
-  const [err, setErr]         = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr]   = useState("");
 
   async function loginWithGoogle() {
-    setBusyGoogle(true); setErr("");
+    setBusy(true); setErr("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.href },
     });
-    if (error) { setErr(error.message); setBusyGoogle(false); }
-  }
-
-  async function sendCode() {
-    if (!email.trim()) return;
-    setBusy(true); setErr("");
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { shouldCreateUser: true },
-    });
-    setBusy(false);
-    if (error) setErr(error.message);
-    else setStep("otp-code");
-  }
-
-  async function verifyCode() {
-    if (code.length !== 8) return;
-    setBusy(true); setErr("");
-    const { error } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: code.trim(),
-      type: "email",
-    });
-    setBusy(false);
-    if (error) setErr("Cod incorect sau expirat. Încearcă din nou.");
+    if (error) { setErr(error.message); setBusy(false); }
   }
 
   return (
     <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#16033a 0%,#0b1735 45%,#07121f 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem",position:"relative"}}>
       <Background />
       <div className="gc-strong" style={{maxWidth:400,width:"100%",padding:"2rem",position:"relative",zIndex:1}}>
-        <div style={{textAlign:"center",marginBottom:"1.75rem"}}>
+        <div style={{textAlign:"center",marginBottom:"2rem"}}>
           <div className="gc" style={{display:"inline-flex",padding:"12px",borderRadius:20,marginBottom:16}}>
             <Package size={28} style={{color:"#a78bfa"}} aria-hidden />
           </div>
@@ -149,97 +121,28 @@ function LoginScreen() {
           <p style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginTop:6}}>Urmărește-ți coletele de pe orice device</p>
         </div>
 
-        {step === "main" && (
-          <>
-            {/* Google Sign In */}
-            <button
-              onClick={loginWithGoogle}
-              disabled={busyGoogle}
-              style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"12px 16px",background:"white",border:"none",borderRadius:14,cursor:"pointer",fontSize:14,fontWeight:500,color:"#1f1f1f",fontFamily:"'DM Sans',sans-serif",marginBottom:16,opacity:busyGoogle?0.7:1,transition:"opacity .15s"}}>
-              {busyGoogle ? (
-                <Loader size={18} style={{animation:"spin 1s linear infinite",color:"#4285f4"}} />
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
-              )}
-              {busyGoogle ? "Se conectează..." : "Continuă cu Google"}
-            </button>
+        <button
+          onClick={loginWithGoogle}
+          disabled={busy}
+          style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"13px 16px",background:"white",border:"none",borderRadius:14,cursor:"pointer",fontSize:15,fontWeight:500,color:"#1f1f1f",fontFamily:"'DM Sans',sans-serif",opacity:busy?0.7:1,transition:"opacity .15s"}}>
+          {busy ? (
+            <Loader size={18} style={{animation:"spin 1s linear infinite",color:"#4285f4"}} />
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+          )}
+          {busy ? "Se conectează..." : "Continuă cu Google"}
+        </button>
 
-            {/* Separator */}
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-              <div style={{flex:1,height:1,background:"rgba(255,255,255,0.1)"}} />
-              <span style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>sau</span>
-              <div style={{flex:1,height:1,background:"rgba(255,255,255,0.1)"}} />
-            </div>
+        {err && <p style={{fontSize:12,color:"#f87171",marginTop:12,textAlign:"center"}}>{err}</p>}
 
-            {/* Email OTP */}
-            <button className="gb" style={{width:"100%",justifyContent:"center",padding:"11px 14px"}} onClick={()=>setStep("otp-email")}>
-              <Mail size={14} aria-hidden /> Continuă cu email
-            </button>
-
-            {err && <p style={{fontSize:12,color:"#f87171",marginTop:10,textAlign:"center"}}>{err}</p>}
-
-            <p style={{fontSize:11,color:"rgba(255,255,255,0.2)",textAlign:"center",marginTop:16,lineHeight:1.6}}>
-              Fiecare utilizator vede doar propriile colete.
-            </p>
-          </>
-        )}
-
-        {step === "otp-email" && (
-          <>
-            <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>
-              Adresa de email
-            </label>
-            <div style={{position:"relative",marginBottom:12}}>
-              <Mail size={14} aria-hidden style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",color:"rgba(255,255,255,0.3)"}} />
-              <input className="gi" type="email" value={email} onChange={e=>setEmail(e.target.value)}
-                onKeyDown={e=>e.key==="Enter"&&sendCode()} placeholder="nume@exemplu.com"
-                style={{paddingLeft:36}} autoFocus />
-            </div>
-            {err && <p style={{fontSize:12,color:"#f87171",marginBottom:10}}>{err}</p>}
-            <button className="gb gbp" style={{width:"100%",justifyContent:"center",padding:"11px 14px"}} onClick={sendCode} disabled={busy||!email.trim()}>
-              {busy ? <Loader size={14} className="spin" aria-hidden /> : <Mail size={14} aria-hidden />}
-              {busy ? "Se trimite..." : "Trimite cod de verificare"}
-            </button>
-            <button className="gb" style={{width:"100%",justifyContent:"center",marginTop:8}} onClick={()=>{setStep("main");setErr("")}}>
-              Înapoi
-            </button>
-          </>
-        )}
-
-        {step === "otp-code" && (
-          <>
-            <div style={{textAlign:"center",marginBottom:"1.25rem"}}>
-              <CheckCircle size={32} style={{color:"#34d399",marginBottom:8}} aria-hidden />
-              <p style={{color:"white",fontSize:14,fontWeight:500}}>Cod trimis la</p>
-              <p style={{color:"rgba(255,255,255,0.55)",fontSize:13,marginTop:2}}>{email}</p>
-            </div>
-            <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>
-              Cod de verificare (8 cifre)
-            </label>
-            <input className="gi" type="number" inputMode="numeric" value={code}
-              onChange={e=>setCode(e.target.value.slice(0,8))}
-              onKeyDown={e=>e.key==="Enter"&&verifyCode()}
-              placeholder="12345678"
-              style={{textAlign:"center",fontSize:22,letterSpacing:"0.25em",marginBottom:12,fontFamily:"monospace"}}
-              autoFocus />
-            {err && <p style={{fontSize:12,color:"#f87171",marginBottom:10}}>{err}</p>}
-            <button className="gb gbp" style={{width:"100%",justifyContent:"center",padding:"11px 14px"}} onClick={verifyCode} disabled={busy||code.length!==8}>
-              {busy ? <Loader size={14} className="spin" aria-hidden /> : null}
-              {busy ? "Se verifică..." : "Intră în aplicație"}
-            </button>
-            <button className="gb" style={{width:"100%",justifyContent:"center",marginTop:8}} onClick={()=>{setStep("otp-email");setCode("");setErr("")}}>
-              Înapoi
-            </button>
-            <p style={{fontSize:11,color:"rgba(255,255,255,0.25)",textAlign:"center",marginTop:12,lineHeight:1.6}}>
-              Codul este valabil 10 minute. Verifică și folderul Spam dacă nu apare.
-            </p>
-          </>
-        )}
+        <p style={{fontSize:11,color:"rgba(255,255,255,0.2)",textAlign:"center",marginTop:20,lineHeight:1.6}}>
+          Fiecare utilizator vede doar propriile colete.
+        </p>
       </div>
     </div>
   );
