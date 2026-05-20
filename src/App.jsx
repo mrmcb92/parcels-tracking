@@ -98,20 +98,33 @@ function Background() {
 
 function LoginScreen() {
   const [email, setEmail]   = useState("");
-  const [sent, setSent]     = useState(false);
+  const [code, setCode]     = useState("");
+  const [step, setStep]     = useState("email"); // "email" | "code"
   const [busy, setBusy]     = useState(false);
   const [err, setErr]       = useState("");
 
-  async function handleLogin() {
+  async function sendCode() {
     if (!email.trim()) return;
     setBusy(true); setErr("");
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: window.location.href },
+      options: { shouldCreateUser: true },
     });
     setBusy(false);
     if (error) setErr(error.message);
-    else setSent(true);
+    else setStep("code");
+  }
+
+  async function verifyCode() {
+    if (code.length !== 6) return;
+    setBusy(true); setErr("");
+    const { error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: code.trim(),
+      type: "email",
+    });
+    setBusy(false);
+    if (error) setErr("Cod incorect sau expirat. Încearcă din nou.");
   }
 
   return (
@@ -122,22 +135,11 @@ function LoginScreen() {
           <div className="gc" style={{display:"inline-flex",padding:"12px",borderRadius:20,marginBottom:16}}>
             <Package size={28} style={{color:"#a78bfa"}} aria-hidden />
           </div>
-          <h1 style={{fontSize:22,fontWeight:700,color:"white",letterSpacing:"-0.02em"}}>Tracker Colete</h1>
+          <h1 style={{fontSize:22,fontWeight:700,color:"white",letterSpacing:"-0.02em"}}>Parcel Tracking</h1>
           <p style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginTop:6}}>Urmărește-ți coletele de pe orice device</p>
         </div>
 
-        {sent ? (
-          <div style={{textAlign:"center"}}>
-            <CheckCircle size={40} style={{color:"#34d399",marginBottom:12}} aria-hidden />
-            <p style={{color:"white",fontSize:15,fontWeight:500,marginBottom:8}}>Verifică-ți email-ul</p>
-            <p style={{color:"rgba(255,255,255,0.45)",fontSize:13,lineHeight:1.6}}>
-              Am trimis un link de autentificare la <strong style={{color:"rgba(255,255,255,0.75)"}}>{email}</strong>. Apasă linkul din email pentru a intra în aplicație.
-            </p>
-            <button className="gb" style={{marginTop:"1.25rem",width:"100%",justifyContent:"center"}} onClick={()=>setSent(false)}>
-              Încearcă cu alt email
-            </button>
-          </div>
-        ) : (
+        {step === "email" ? (
           <>
             <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>
               Adresa de email
@@ -149,19 +151,52 @@ function LoginScreen() {
                 type="email"
                 value={email}
                 onChange={e=>setEmail(e.target.value)}
-                onKeyDown={e=>e.key==="Enter"&&handleLogin()}
+                onKeyDown={e=>e.key==="Enter"&&sendCode()}
                 placeholder="nume@exemplu.com"
                 style={{paddingLeft:36}}
                 autoFocus
               />
             </div>
             {err && <p style={{fontSize:12,color:"#f87171",marginBottom:10}}>{err}</p>}
-            <button className="gb gbp" style={{width:"100%",justifyContent:"center",padding:"11px 14px"}} onClick={handleLogin} disabled={busy||!email.trim()}>
+            <button className="gb gbp" style={{width:"100%",justifyContent:"center",padding:"11px 14px"}} onClick={sendCode} disabled={busy||!email.trim()}>
               {busy ? <Loader size={14} className="spin" aria-hidden /> : <Mail size={14} aria-hidden />}
-              {busy ? "Se trimite..." : "Trimite link de autentificare"}
+              {busy ? "Se trimite..." : "Trimite cod de verificare"}
             </button>
             <p style={{fontSize:11,color:"rgba(255,255,255,0.25)",textAlign:"center",marginTop:14,lineHeight:1.6}}>
-              Fără parolă. Primești un link pe email, apesi și ești autentificat pe orice device.
+              Primești un cod de 6 cifre pe email pe care îl introduci direct în aplicație.
+            </p>
+          </>
+        ) : (
+          <>
+            <div style={{textAlign:"center",marginBottom:"1.25rem"}}>
+              <CheckCircle size={32} style={{color:"#34d399",marginBottom:8}} aria-hidden />
+              <p style={{color:"white",fontSize:14,fontWeight:500}}>Cod trimis la</p>
+              <p style={{color:"rgba(255,255,255,0.55)",fontSize:13,marginTop:2}}>{email}</p>
+            </div>
+            <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>
+              Cod de verificare (6 cifre)
+            </label>
+            <input
+              className="gi"
+              type="number"
+              inputMode="numeric"
+              value={code}
+              onChange={e=>setCode(e.target.value.slice(0,6))}
+              onKeyDown={e=>e.key==="Enter"&&verifyCode()}
+              placeholder="123456"
+              style={{textAlign:"center",fontSize:22,letterSpacing:"0.25em",marginBottom:12,fontFamily:"monospace"}}
+              autoFocus
+            />
+            {err && <p style={{fontSize:12,color:"#f87171",marginBottom:10}}>{err}</p>}
+            <button className="gb gbp" style={{width:"100%",justifyContent:"center",padding:"11px 14px"}} onClick={verifyCode} disabled={busy||code.length!==6}>
+              {busy ? <Loader size={14} className="spin" aria-hidden /> : null}
+              {busy ? "Se verifică..." : "Intră în aplicație"}
+            </button>
+            <button className="gb" style={{width:"100%",justifyContent:"center",marginTop:8}} onClick={()=>{setStep("email");setCode("");setErr("")}}>
+              Înapoi
+            </button>
+            <p style={{fontSize:11,color:"rgba(255,255,255,0.25)",textAlign:"center",marginTop:12,lineHeight:1.6}}>
+              Codul este valabil 10 minute. Verifică și folderul Spam dacă nu apare.
             </p>
           </>
         )}
