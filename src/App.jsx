@@ -244,11 +244,13 @@ function MainApp({ user }) {
 
     if (editId) {
       const { error } = await supabase.from("packages").update(entry).eq("id", editId);
-      if (!error) setPkgs(prev => prev.map(p => p.id === editId ? { ...p, ...entry } : p));
+      if (error) { setFormErr("Eroare la salvare: " + error.message); return; }
+      setPkgs(prev => prev.map(p => p.id === editId ? { ...p, ...entry } : p));
     } else {
       const newPkg = { ...entry, id: Date.now().toString(), user_id: user.id };
       const { error } = await supabase.from("packages").insert(newPkg);
-      if (!error) setPkgs(prev => [newPkg, ...prev]);
+      if (error) { setFormErr("Eroare la salvare: " + error.message); return; }
+      setPkgs(prev => [newPkg, ...prev]);
     }
     setShowForm(false); setEditId(null);
   }
