@@ -163,7 +163,7 @@ function LoginScreen() {
               {busy ? "Se trimite..." : "Trimite cod de verificare"}
             </button>
             <p style={{fontSize:11,color:"rgba(255,255,255,0.25)",textAlign:"center",marginTop:14,lineHeight:1.6}}>
-              Primești un cod de 6 cifre pe email pe care îl introduci direct în aplicație.
+              Primești un cod de 8 cifre pe email pe care îl introduci direct în aplicație.
             </p>
           </>
         ) : (
@@ -174,21 +174,21 @@ function LoginScreen() {
               <p style={{color:"rgba(255,255,255,0.55)",fontSize:13,marginTop:2}}>{email}</p>
             </div>
             <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>
-              Cod de verificare (6 cifre)
+              Cod de verificare (8 cifre)
             </label>
             <input
               className="gi"
               type="number"
               inputMode="numeric"
               value={code}
-              onChange={e=>setCode(e.target.value.slice(0,6))}
+              onChange={e=>setCode(e.target.value.slice(0,8))}
               onKeyDown={e=>e.key==="Enter"&&verifyCode()}
               placeholder="123456"
               style={{textAlign:"center",fontSize:22,letterSpacing:"0.25em",marginBottom:12,fontFamily:"monospace"}}
               autoFocus
             />
             {err && <p style={{fontSize:12,color:"#f87171",marginBottom:10}}>{err}</p>}
-            <button className="gb gbp" style={{width:"100%",justifyContent:"center",padding:"11px 14px"}} onClick={verifyCode} disabled={busy||code.length!==6}>
+            <button className="gb gbp" style={{width:"100%",justifyContent:"center",padding:"11px 14px"}} onClick={verifyCode} disabled={busy||code.length!==8}>
               {busy ? <Loader size={14} className="spin" aria-hidden /> : null}
               {busy ? "Se verifică..." : "Intră în aplicație"}
             </button>
