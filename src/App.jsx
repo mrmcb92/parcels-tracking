@@ -112,7 +112,7 @@ const T = {
     formErr: "Completează descrierea și AWB-ul.",
     saveErr: "Eroare la salvare: ",
     noParcelAdded: "Niciun colet adăugat",
-    noParcelSub: "Apasă „Adaugă" pentru a începe",
+    noParcelSub: 'Apasă „Adaugă" pentru a începe',
     noMatch: "Niciun colet nu corespunde filtrelor.",
     quickStatus: "Status rapid:",
     checkStatus: "Verifică status online",
