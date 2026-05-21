@@ -1,4 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
+import { WebSocket } from "ws";
+
+// Polyfill WebSocket for Node.js < 22
+if (!globalThis.WebSocket) {
+  globalThis.WebSocket = WebSocket;
+}
 
 const SUPABASE_URL     = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY     = process.env.SUPABASE_SERVICE_ROLE_KEY; // service role bypasses RLS
