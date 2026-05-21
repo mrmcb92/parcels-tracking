@@ -99,11 +99,11 @@ Also go to **Settings → API Keys → Legacy anon, service_role API keys**:
 
 In Supabase → **Authentication → URL Configuration**:
 - **Site URL**: `https://YOUR_GITHUB_USERNAME.github.io`
-- **Redirect URLs** → Add URL: `https://YOUR_GITHUB_USERNAME.github.io/tracker-colete/`
+- **Redirect URLs** → Add URL: `https://YOUR_GITHUB_USERNAME.github.io/parcels-tracking/`
 
 ### Step 6 — Create GitHub repository
 
-Go to [github.com](https://github.com) → New repository → name: `tracker-colete` → Create
+Go to [github.com](https://github.com) → New repository → name: `parcels-tracking` → Create
 
 ### Step 7 — Add GitHub Secrets
 
@@ -122,7 +122,7 @@ Push the code to GitHub, then go to repo → **Settings → Pages** → Source: 
 
 After ~2 minutes the app is live at:
 ```
-https://YOUR_GITHUB_USERNAME.github.io/tracker-colete/
+https://YOUR_GITHUB_USERNAME.github.io/parcels-tracking/
 ```
 
 ### Step 9 — Deploy Supabase Edge Function
@@ -150,7 +150,7 @@ You can also trigger it manually: **Actions tab → Auto Tracking Check → Run 
 
 ## Installing as a mobile app (PWA)
 
-Open `https://YOUR_GITHUB_USERNAME.github.io/tracker-colete/` in your browser:
+Open `https://YOUR_GITHUB_USERNAME.github.io/parcels-tracking/` in your browser:
 - **Android (Chrome)**: tap the three-dot menu → Add to Home Screen
 - **iPhone (Safari)**: tap Share → Add to Home Screen
 
@@ -260,11 +260,11 @@ Mergi și la **Settings → API Keys → Legacy anon, service_role API keys**:
 
 În Supabase → **Authentication → URL Configuration**:
 - **Site URL**: `https://USERNAME_GITHUB.github.io`
-- **Redirect URLs** → Add URL: `https://USERNAME_GITHUB.github.io/tracker-colete/`
+- **Redirect URLs** → Add URL: `https://USERNAME_GITHUB.github.io/parcels-tracking/`
 
 ### Pasul 6 — Creezi repo-ul GitHub
 
-Mergi pe [github.com](https://github.com) → New repository → nume: `tracker-colete` → Create
+Mergi pe [github.com](https://github.com) → New repository → nume: `parcels-tracking` → Create
 
 ### Pasul 7 — Adaugi secretele GitHub
 
@@ -283,7 +283,7 @@ Uploadezi codul pe GitHub, apoi mergi la repo → **Settings → Pages** → Sou
 
 După ~2 minute aplicația e live la:
 ```
-https://USERNAME_GITHUB.github.io/tracker-colete/
+https://USERNAME_GITHUB.github.io/parcels-tracking/
 ```
 
 ### Pasul 9 — Deployezi Supabase Edge Function
@@ -311,7 +311,7 @@ Poți declanșa și manual: **tab Actions → Auto Tracking Check → Run workfl
 
 ## Instalare ca aplicație mobilă (PWA)
 
-Deschizi `https://USERNAME_GITHUB.github.io/tracker-colete/` în browser:
+Deschizi `https://USERNAME_GITHUB.github.io/parcels-tracking/` în browser:
 - **Android (Chrome)**: meniu trei puncte → Adaugă pe ecranul principal
 - **iPhone (Safari)**: butonul Share → Adaugă pe ecranul principal
 
