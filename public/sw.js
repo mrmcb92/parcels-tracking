@@ -1,5 +1,5 @@
 const CACHE = "parcel-tracking-v1";
-const ASSETS = ["/tracker-colete/", "/tracker-colete/index.html"];
+const ASSETS = ["/parcels-tracking/", "/parcels-tracking/index.html"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(

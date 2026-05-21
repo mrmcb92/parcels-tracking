@@ -2,21 +2,21 @@
   "name": "Parcel Tracking",
   "short_name": "Parcels",
   "description": "Tracker personal pentru colete și AWB-uri",
-  "start_url": "/tracker-colete/",
-  "scope": "/tracker-colete/",
+  "start_url": "/parcels-tracking/",
+  "scope": "/parcels-tracking/",
   "display": "standalone",
   "background_color": "#16033a",
   "theme_color": "#16033a",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/tracker-colete/icon-192.png",
+      "src": "/parcels-tracking/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/tracker-colete/icon-512.png",
+      "src": "/parcels-tracking/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
