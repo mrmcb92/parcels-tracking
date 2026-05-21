@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Plus, Trash2, ExternalLink, X, Search, Package, Download,
-  RefreshCw, FileText, Loader, ChevronDown, KeyRound, Eye,
-  EyeOff, LogOut,
+  RefreshCw, FileText, Loader, ChevronDown, LogOut,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { supabase } from "./supabase.js";
@@ -112,7 +111,7 @@ const T = {
     formErr: "Completează descrierea și AWB-ul.",
     saveErr: "Eroare la salvare: ",
     noParcelAdded: "Niciun colet adăugat",
-    noParcelSub: 'Apasă „Adaugă" pentru a începe',
+    noParcelSub: "Apasă „Adaugă" pentru a începe",
     noMatch: "Niciun colet nu corespunde filtrelor.",
     quickStatus: "Status rapid:",
     checkStatus: "Verifică status online",
@@ -166,7 +165,7 @@ const SC = {
   "Retur":        { color: "#f87171", bg: "rgba(248,113,113,0.18)", border: "rgba(248,113,113,0.45)" },
 };
 
-const API_KEY_STORAGE = "tracker-anthropic-key";
+const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-tracking`;
 
 const emptyForm = () => ({
   name: "", awb: "", courier: "FAN Courier", status: "Comandat",
@@ -299,44 +298,6 @@ function LoginScreen({ lang, setLang }) {
   );
 }
 
-// ── Settings modal ────────────────────────────────────────────────────────────
-
-function SettingsModal({ apiKey, onSave, onClose, t }) {
-  const [val, setVal]         = useState(apiKey);
-  const [showKey, setShowKey] = useState(false);
-
-  return (
-    <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
-      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:460,width:"100%"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
-          <h2 style={{fontSize:15,fontWeight:600,color:"white",display:"flex",alignItems:"center",gap:8}}>
-            <KeyRound size={15} aria-hidden style={{color:"#a78bfa"}} /> {t.settingsTitle}
-          </h2>
-          <button className="ib" onClick={onClose}><X size={14} aria-label="Close" /></button>
-        </div>
-        <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>
-          {t.apiKeyLabel}
-        </label>
-        <div style={{position:"relative",marginBottom:10}}>
-          <input className="gi" type={showKey?"text":"password"} value={val} onChange={e=>setVal(e.target.value)}
-            placeholder="sk-ant-api03-..." style={{paddingRight:40,fontFamily:"monospace",fontSize:12}} />
-          <button onClick={()=>setShowKey(v=>!v)} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.4)",display:"flex",padding:2}}>
-            {showKey ? <EyeOff size={13} /> : <Eye size={13} />}
-          </button>
-        </div>
-        <p style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginBottom:"1.25rem",lineHeight:1.6}}>
-          {t.apiKeyNote}{" "}
-          <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer" style={{color:"#a78bfa"}}>{t.generateKey}</a>
-        </p>
-        <div style={{display:"flex",justifyContent:"flex-end",gap:8}}>
-          <button className="gb" onClick={onClose}>{t.cancel}</button>
-          <button className="gb gbp" onClick={()=>onSave(val.trim())}>{t.saveKey}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Main app ──────────────────────────────────────────────────────────────────
 
 function MainApp({ user, lang, setLang }) {
@@ -352,7 +313,6 @@ function MainApp({ user, lang, setLang }) {
   const [formErr, setFormErr]         = useState("");
   const [checking, setChecking]       = useState(new Set());
   const [showExp, setShowExp]         = useState(false);
-  const [apiKey, setApiKey]           = useState(() => localStorage.getItem(API_KEY_STORAGE) || "");
   const exportRef                     = useRef(null);
 
   useEffect(() => { loadPkgs(); }, []);
@@ -407,27 +367,19 @@ function MainApp({ user, lang, setLang }) {
   function getUrl(p) { const c = COURIERS.find(c => c.name === p.courier); return c?.url ? c.url(p.awb) : null; }
 
   async function checkOne(p) {
-    if (checking.has(p.id) || !apiKey) return;
+    if (checking.has(p.id)) return;
     setChecking(prev => new Set([...prev, p.id]));
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(EDGE_FUNCTION_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514", max_tokens: 1000,
-          tools: [{ type: "web_search_20250305", name: "web_search" }],
-          system: `You are a parcel tracking assistant for Romania. Search the web for the current status of the given AWB number.
-Return ONLY a valid JSON object (no markdown, no code, no explanations) with:
-- status: exactly one of: "Comandat","In procesare","In tranzit","La livrare","Livrat","Retur"
-- lastEvent: last event in Romanian, max 80 chars
-- lastLocation: city/location or empty string
-If no info found: {"status":"unknown","lastEvent":"Nu s-au găsit informații de tracking","lastLocation":""}`,
-          messages: [{ role: "user", content: `Track AWB: ${p.awb}, courier: ${p.courier}, Romania. JSON only.` }],
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ awb: p.awb, courier: p.courier }),
       });
-      const data = await res.json();
-      const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
-      const result = JSON.parse(text.replace(/```json|```/g, "").trim());
+      const result = await res.json();
       const updates = { last_event: result.lastEvent || "", last_location: result.lastLocation || "", last_checked: new Date().toISOString(), ...(result.status && result.status !== "unknown" ? { status: result.status } : {}) };
       await supabase.from("packages").update(updates).eq("id", p.id);
       setPkgs(prev => prev.map(x => x.id !== p.id ? x : { ...x, ...updates }));
@@ -469,8 +421,6 @@ If no info found: {"status":"unknown","lastEvent":"Nu s-au găsit informații de
     setShowExp(false);
   }
 
-  function saveApiKey(key) { localStorage.setItem(API_KEY_STORAGE, key); setApiKey(key); setShowSettings(false); }
-
   const counts = STATUSES.reduce((a, s) => ({ ...a, [s]: pkgs.filter(p => p.status === s).length }), {});
   const anyChecking = checking.size > 0;
   const filtered = pkgs.filter(p => {
@@ -502,10 +452,7 @@ If no info found: {"status":"unknown","lastEvent":"Nu s-au găsit informații de
           </div>
           <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
             <LangToggle lang={lang} setLang={setLang} />
-            <button className="ib" onClick={()=>setShowSettings(true)} style={apiKey?{borderColor:"rgba(52,211,153,0.4)",color:"#34d399"}:{}}>
-              <KeyRound size={13} aria-hidden />
-            </button>
-            <button className="gb" onClick={checkAll} disabled={anyChecking||!apiKey||pkgs.filter(p=>p.status!=="Livrat"&&p.status!=="Retur").length===0}>
+            <button className="gb" onClick={checkAll} disabled={anyChecking||pkgs.filter(p=>p.status!=="Livrat"&&p.status!=="Retur").length===0}>
               <RefreshCw size={14} className={anyChecking?"spin":""} aria-hidden />
               {anyChecking ? t.checking : t.checkAll}
             </button>
@@ -656,7 +603,7 @@ If no info found: {"status":"unknown","lastEvent":"Nu s-au găsit informații de
                       )}
                     </div>
                     <div style={{display:"flex",gap:4,flexShrink:0,alignItems:"flex-start"}}>
-                      {apiKey && <button className="ib" onClick={()=>checkOne(p)} disabled={chk} title={t.checkStatus}><RefreshCw size={13} className={chk?"spin":""} aria-hidden /></button>}
+                      {<button className="ib" onClick={()=>checkOne(p)} disabled={chk} title={t.checkStatus}><RefreshCw size={13} className={chk?"spin":""} aria-hidden /></button>}
                       {url && <a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={13} /></a>}
                       <button className="ib" onClick={()=>openForm(p)} style={{padding:"6px 10px"}}>Edit</button>
                       <button className="ib ibx" onClick={()=>del(p.id)} aria-label={t.delete}><Trash2 size={13} /></button>
@@ -678,7 +625,7 @@ If no info found: {"status":"unknown","lastEvent":"Nu s-au găsit informații de
         <div style={{height:"2rem"}} />
       </div>
 
-      {showSettings && <SettingsModal apiKey={apiKey} onSave={saveApiKey} onClose={()=>setShowSettings(false)} t={t} />}
+      {showSettings && <div/>}
     </div>
   );
 }
