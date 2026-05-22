@@ -68,12 +68,9 @@ const T = {
     loginConnecting: "Connecting...",
     loginNote: "Each user sees only their own parcels.",
     statuses: {
-      "Comandat": "Ordered",
-      "In procesare": "Processing",
-      "In tranzit": "In transit",
-      "La livrare": "Out for delivery",
-      "Livrat": "Delivered",
-      "Retur": "Return",
+      "Comandat":   "Ordered",
+      "In livrare": "In delivery",
+      "Livrat":     "Delivered",
     },
     filterLabel: (s, count) => `${s} (${count})`,
     exportHeaders: ["Description","Order No.","AWB","Courier","Status","Date","Shop","Amount","Notes","Last event","Location","Last checked"],
@@ -137,12 +134,9 @@ const T = {
     loginConnecting: "Se conectează...",
     loginNote: "Fiecare utilizator vede doar propriile colete.",
     statuses: {
-      "Comandat": "Comandat",
-      "In procesare": "In procesare",
-      "In tranzit": "In tranzit",
-      "La livrare": "La livrare",
-      "Livrat": "Livrat",
-      "Retur": "Retur",
+      "Comandat":   "Comandat",
+      "In livrare": "In livrare",
+      "Livrat":     "Livrat",
     },
     exportHeaders: ["Descriere","Nr. comandă","AWB","Curier","Status","Data","Magazin","Suma","Note","Ultimul eveniment","Locatie","Ultima verificare"],
   },
@@ -162,15 +156,12 @@ const COURIERS = [
   { name: "Alta",         url: (a) => `https://t.17track.net/en#nums=${a}` },
 ];
 
-const STATUSES = ["Comandat", "In procesare", "In tranzit", "La livrare", "Livrat", "Retur"];
+const STATUSES = ["Comandat", "In livrare", "Livrat"];
 
 const SC = {
-  "Comandat":     { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" },
-  "In procesare": { color: "#fbbf24", bg: "rgba(251,191,36,0.18)",  border: "rgba(251,191,36,0.45)" },
-  "In tranzit":   { color: "#60a5fa", bg: "rgba(96,165,250,0.18)",  border: "rgba(96,165,250,0.45)" },
-  "La livrare":   { color: "#a78bfa", bg: "rgba(167,139,250,0.18)", border: "rgba(167,139,250,0.45)" },
-  "Livrat":       { color: "#34d399", bg: "rgba(52,211,153,0.18)",  border: "rgba(52,211,153,0.45)" },
-  "Retur":        { color: "#f87171", bg: "rgba(248,113,113,0.18)", border: "rgba(248,113,113,0.45)" },
+  "Comandat":   { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" },
+  "In livrare": { color: "#a78bfa", bg: "rgba(167,139,250,0.18)", border: "rgba(167,139,250,0.45)" },
+  "Livrat":     { color: "#34d399", bg: "rgba(52,211,153,0.18)",  border: "rgba(52,211,153,0.45)" },
 };
 
 const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-tracking`;
@@ -401,7 +392,7 @@ function MainApp({ user, lang, setLang }) {
   }
 
   async function checkAll() {
-    const active = pkgs.filter(p => p.status !== "Livrat" && p.status !== "Retur");
+    const active = pkgs.filter(p => p.status !== "Livrat");
     for (const p of active) { await checkOne(p); await new Promise(r => setTimeout(r, 400)); }
   }
 
@@ -461,7 +452,7 @@ function MainApp({ user, lang, setLang }) {
           </div>
           <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
             <LangToggle lang={lang} setLang={setLang} />
-            <button className="gb" onClick={checkAll} disabled={anyChecking||pkgs.filter(p=>p.status!=="Livrat"&&p.status!=="Retur").length===0}>
+            <button className="gb" onClick={checkAll} disabled={anyChecking||pkgs.filter(p=>p.status!=="Livrat").length===0}>
               <RefreshCw size={14} className={anyChecking?"spin":""} aria-hidden />
               {anyChecking ? t.checking : t.checkAll}
             </button>
