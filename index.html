@@ -9,8 +9,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Parcels" />
-    <link rel="manifest" href="/tracker-colete/manifest.json" />
-    <link rel="apple-touch-icon" href="/tracker-colete/icon-192.png" />
+    <link rel="manifest" href="/parcels-tracking/manifest.json" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/parcels-tracking/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/parcels-tracking/icon-512.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/parcels-tracking/icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
@@ -21,7 +23,7 @@
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("/tracker-colete/sw.js");
+          navigator.serviceWorker.register("/parcels-tracking/sw.js");
         });
       }
     </script>

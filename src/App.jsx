@@ -29,8 +29,11 @@ const T = {
     editParcel: "Edit parcel",
     description: "Description / order *",
     descPlaceholder: "e.g. Mechanical keyboard, 27 inch monitor...",
-    awb: "AWB Number *",
+    awb: "AWB Number",
     awbPlaceholder: "e.g. 12345678",
+    awbRequired: "AWB Number *",
+    orderNumber: "Order number (optional)",
+    orderNumberPlaceholder: "e.g. #123456789",
     courier: "Courier",
     shop: "Shop",
     shopPlaceholder: "e.g. eMag, Altex, PC Garage...",
@@ -43,7 +46,8 @@ const T = {
     cancel: "Cancel",
     save: "Save changes",
     addParcel: "Add parcel",
-    formErr: "Fill in the description and AWB.",
+    formErr: "Fill in the description.",
+    formErrAwb: "Fill in the AWB number.",
     saveErr: "Save error: ",
     noParcelAdded: "No parcel added",
     noParcelSub: "Press \"Add\" to get started",
@@ -72,7 +76,7 @@ const T = {
       "Retur": "Return",
     },
     filterLabel: (s, count) => `${s} (${count})`,
-    exportHeaders: ["Description","AWB","Courier","Status","Date","Shop","Amount","Notes","Last event","Location","Last checked"],
+    exportHeaders: ["Description","Order No.","AWB","Courier","Status","Date","Shop","Amount","Notes","Last event","Location","Last checked"],
   },
   ro: {
     appName: "Parcel Tracking",
@@ -94,8 +98,11 @@ const T = {
     editParcel: "Editează colet",
     description: "Descriere / comandă *",
     descPlaceholder: "ex. Tastatură mecanică, Monitor 27 inch...",
-    awb: "Număr AWB *",
+    awb: "Număr AWB",
     awbPlaceholder: "ex. 12345678",
+    awbRequired: "Număr AWB *",
+    orderNumber: "Număr comandă (opțional)",
+    orderNumberPlaceholder: "ex. #123456789",
     courier: "Curier",
     shop: "Magazin",
     shopPlaceholder: "ex. eMag, Altex, PC Garage...",
@@ -108,7 +115,8 @@ const T = {
     cancel: "Anulează",
     save: "Salvează modificările",
     addParcel: "Adaugă colet",
-    formErr: "Completează descrierea și AWB-ul.",
+    formErr: "Completează descrierea.",
+    formErrAwb: "Completează numărul AWB.",
     saveErr: "Eroare la salvare: ",
     noParcelAdded: "Niciun colet adăugat",
     noParcelSub: 'Apasă „Adaugă" pentru a începe',
@@ -136,7 +144,7 @@ const T = {
       "Livrat": "Livrat",
       "Retur": "Retur",
     },
-    exportHeaders: ["Descriere","AWB","Curier","Status","Data","Magazin","Suma","Note","Ultimul eveniment","Locatie","Ultima verificare"],
+    exportHeaders: ["Descriere","Nr. comandă","AWB","Curier","Status","Data","Magazin","Suma","Note","Ultimul eveniment","Locatie","Ultima verificare"],
   },
 };
 
@@ -169,7 +177,7 @@ const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/che
 
 const emptyForm = () => ({
   name: "", awb: "", courier: "FAN Courier", status: "Comandat",
-  date: new Date().toISOString().split("T")[0], notes: "", shop: "", amount: "",
+  date: new Date().toISOString().split("T")[0], notes: "", shop: "", amount: "", order_number: "",
 });
 
 // ── Shared CSS ────────────────────────────────────────────────────────────────
@@ -332,14 +340,15 @@ function MainApp({ user, lang, setLang }) {
   }
 
   function openForm(p = null) {
-    setForm(p ? { name:p.name, awb:p.awb, courier:p.courier, status:p.status, date:p.date, notes:p.notes||"", shop:p.shop||"", amount:p.amount||"" } : emptyForm());
+    setForm(p ? { name:p.name, awb:p.awb, courier:p.courier, status:p.status, date:p.date, notes:p.notes||"", shop:p.shop||"", amount:p.amount||"", order_number:p.order_number||"" } : emptyForm());
     setEditId(p ? p.id : null);
     setFormErr("");
     setShowForm(true);
   }
 
   async function submit() {
-    if (!form.name.trim() || !form.awb.trim()) { setFormErr(t.formErr); return; }
+    if (!form.name.trim()) { setFormErr(t.formErr); return; }
+    if (form.status !== "Comandat" && !form.awb.trim()) { setFormErr(t.formErrAwb); return; }
     const entry = { ...form, name: form.name.trim(), awb: form.awb.trim() };
     if (editId) {
       const { error } = await supabase.from("packages").update(entry).eq("id", editId);
@@ -398,7 +407,7 @@ function MainApp({ user, lang, setLang }) {
 
   function exportCSV() {
     const h = t.exportHeaders;
-    const rows = pkgs.map(p => [p.name,p.awb,p.courier,t.statuses[p.status]||p.status,p.date,p.shop||"",p.amount||"",p.notes||"",p.last_event||"",p.last_location||"",p.last_checked?new Date(p.last_checked).toLocaleString():"" ]);
+    const rows = pkgs.map(p => [p.name,p.order_number||"",p.awb,p.courier,t.statuses[p.status]||p.status,p.date,p.shop||"",p.amount||"",p.notes||"",p.last_event||"",p.last_location||"",p.last_checked?new Date(p.last_checked).toLocaleString():"" ]);
     const csv = [h,...rows].map(r => r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob = new Blob(["\ufeff"+csv], {type:"text/csv;charset=utf-8;"});
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download="parcels.csv"; a.click();
@@ -408,11 +417,11 @@ function MainApp({ user, lang, setLang }) {
   function exportXLSX() {
     const headers = t.exportHeaders;
     const data = pkgs.map(p => ({
-      [headers[0]]:p.name, [headers[1]]:p.awb, [headers[2]]:p.courier,
-      [headers[3]]:t.statuses[p.status]||p.status, [headers[4]]:p.date,
-      [headers[5]]:p.shop||"", [headers[6]]:p.amount||"", [headers[7]]:p.notes||"",
-      [headers[8]]:p.last_event||"", [headers[9]]:p.last_location||"",
-      [headers[10]]:p.last_checked?new Date(p.last_checked).toLocaleString():"",
+      [headers[0]]:p.name, [headers[1]]:p.order_number||"", [headers[2]]:p.awb, [headers[3]]:p.courier,
+      [headers[4]]:t.statuses[p.status]||p.status, [headers[5]]:p.date,
+      [headers[6]]:p.shop||"", [headers[7]]:p.amount||"", [headers[8]]:p.notes||"",
+      [headers[9]]:p.last_event||"", [headers[10]]:p.last_location||"",
+      [headers[11]]:p.last_checked?new Date(p.last_checked).toLocaleString():"",
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
@@ -509,7 +518,11 @@ function MainApp({ user, lang, setLang }) {
                 <input className="gi" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder={t.descPlaceholder} />
               </div>
               <div style={{minWidth:0}}>
-                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.awb}</label>
+                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.orderNumber}</label>
+                <input className="gi" value={form.order_number} onChange={e=>setForm({...form,order_number:e.target.value})} placeholder={t.orderNumberPlaceholder} />
+              </div>
+              <div style={{minWidth:0}}>
+                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{form.status === "Comandat" ? t.awb : t.awbRequired}</label>
                 <input className="gi" value={form.awb} onChange={e=>setForm({...form,awb:e.target.value})} placeholder={t.awbPlaceholder} style={{fontFamily:"monospace"}} />
               </div>
               <div style={{minWidth:0}}>
@@ -578,6 +591,7 @@ function MainApp({ user, lang, setLang }) {
                         {p.amount && <span className="sp" style={{background:"rgba(52,211,153,0.12)",color:"#34d399",borderColor:"rgba(52,211,153,0.35)",fontSize:11}}>{Number(p.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
                       </div>
                       <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
+                        {p.order_number && <span style={{fontSize:13,color:"rgba(255,255,255,0.55)",fontWeight:500}}>#{p.order_number.replace(/^#/,"")}</span>}
                         <span style={{fontFamily:"monospace",fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.awb}</span>
                         <span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.courier}</span>
                         {p.shop && <span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.shop}</span>}
