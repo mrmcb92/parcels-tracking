@@ -159,9 +159,14 @@ const COURIERS = [
 const STATUSES = ["Comandat", "In livrare", "Livrat"];
 
 const SC = {
-  "Comandat":   { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" },
-  "In livrare": { color: "#a78bfa", bg: "rgba(167,139,250,0.18)", border: "rgba(167,139,250,0.45)" },
-  "Livrat":     { color: "#34d399", bg: "rgba(52,211,153,0.18)",  border: "rgba(52,211,153,0.45)" },
+  "Comandat":     { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" },
+  "In livrare":   { color: "#a78bfa", bg: "rgba(167,139,250,0.18)", border: "rgba(167,139,250,0.45)" },
+  "Livrat":       { color: "#34d399", bg: "rgba(52,211,153,0.18)",  border: "rgba(52,211,153,0.45)" },
+  // fallback pentru statusuri vechi din baza de date
+  "In procesare": { color: "#a78bfa", bg: "rgba(167,139,250,0.18)", border: "rgba(167,139,250,0.45)" },
+  "In tranzit":   { color: "#a78bfa", bg: "rgba(167,139,250,0.18)", border: "rgba(167,139,250,0.45)" },
+  "La livrare":   { color: "#a78bfa", bg: "rgba(167,139,250,0.18)", border: "rgba(167,139,250,0.45)" },
+  "Retur":        { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" },
 };
 
 const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-tracking`;
@@ -569,7 +574,8 @@ function MainApp({ user, lang, setLang }) {
         ) : (
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {filtered.map(p => {
-              const cfg = SC[p.status];
+  const SC_FALLBACK = { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" };
+              const cfg = SC[p.status] || SC_FALLBACK;
               const url = getUrl(p);
               const chk = checking.has(p.id);
               return (
