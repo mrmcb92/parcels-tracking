@@ -147,13 +147,13 @@ const LANG_KEY = "parcel-lang";
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const COURIERS = [
-  { name: "FAN Courier",  url: (a) => `https://t.17track.net/en#nums=${a}` },
-  { name: "Cargus",       url: (a) => `https://t.17track.net/en#nums=${a}` },
-  { name: "Sameday",      url: (a) => `https://t.17track.net/en#nums=${a}` },
-  { name: "DPD",          url: (a) => `https://t.17track.net/en#nums=${a}` },
-  { name: "GLS",          url: (a) => `https://t.17track.net/en#nums=${a}` },
-  { name: "Posta Romana", url: (a) => `https://t.17track.net/en#nums=${a}` },
-  { name: "Alta",         url: (a) => `https://t.17track.net/en#nums=${a}` },
+  { name: "FAN Courier",  url: (a) => `https://www.fancourier.ro/awb-tracking/?awb=${a}` },
+  { name: "Cargus",       url: (a) => `https://www.cargus.ro/tracking-colet/?Awb=${a}` },
+  { name: "Sameday",      url: (a) => `https://sameday.ro/status-colet/?awb=${a}` },
+  { name: "DPD",          url: (a) => `https://xawb.ro/urmarire-colet-dpd?awb=${a}` },
+  { name: "GLS",          url: (a) => `https://xawb.ro/urmarire-colet-gls?awb=${a}` },
+  { name: "Posta Romana", url: (a) => `https://xawb.ro/urmarire-colet-posta?awb=${a}` },
+  { name: "Alta",         url: (a) => `https://xawb.ro/?awb=${a}` },
 ];
 
 const STATUSES = ["Comandat", "In livrare", "Livrat"];
