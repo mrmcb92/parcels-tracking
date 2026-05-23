@@ -57,7 +57,8 @@ const T = {
     trackExternal: "Open external tracking",
     delete: "Delete parcel",
     verifying: "Searching for status online...",
-    verified: "Verified",
+    verified: "Courier status",
+    noTrackingInfo: "No info found",
     settingsTitle: "Auto-tracking settings",
     apiKeyLabel: "Anthropic API Key",
     apiKeyNote: "Required for automatic status checking. Saved locally in your browser only.",
@@ -123,7 +124,8 @@ const T = {
     trackExternal: "Deschide tracking extern",
     delete: "Șterge coletul",
     verifying: "Se caută statusul online...",
-    verified: "Verificat",
+    verified: "Status curier",
+    noTrackingInfo: "Nu s-au găsit informații",
     settingsTitle: "Setări tracking automat",
     apiKeyLabel: "Anthropic API Key",
     apiKeyNote: "Necesar pentru verificarea automată a statusului. Se salvează doar în browser-ul curent.",
@@ -408,11 +410,14 @@ function MainApp({ user, lang, setLang }) {
         body: JSON.stringify({ awb: p.awb, courier: p.courier }),
       });
       const result = await res.json();
-      const updates = { last_event: result.lastEvent || "", last_location: result.lastLocation || "", last_checked: new Date().toISOString(), ...(result.status && result.status !== "unknown" ? { status: result.status } : {}) };
+      const updates = {
+        tracked_status: (result.status && result.status !== "unknown") ? result.status : "unknown",
+        last_checked: new Date().toISOString(),
+      };
       await supabase.from("packages").update(updates).eq("id", p.id);
       setPkgs(prev => prev.map(x => x.id !== p.id ? x : { ...x, ...updates }));
     } catch (_) {
-      const updates = { last_event: "Eroare la verificare", last_checked: new Date().toISOString() };
+      const updates = { tracked_status: "error", last_checked: new Date().toISOString() };
       await supabase.from("packages").update(updates).eq("id", p.id);
       setPkgs(prev => prev.map(x => x.id !== p.id ? x : { ...x, ...updates }));
     }
@@ -630,11 +635,15 @@ function MainApp({ user, lang, setLang }) {
                           ) : (
                             <>
                               <span style={{fontSize:11,color:"rgba(255,255,255,0.25)",letterSpacing:"0.06em",textTransform:"uppercase"}}>{t.verified}:</span>
-                              {(() => { const cfg = SC[p.status] || SC_FALLBACK; return (
-                                <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border,cursor:"default"}}>
-                                  {LBL(p.status)}
-                                </span>
-                              ); })()}
+                              {p.tracked_status && p.tracked_status !== "unknown" && p.tracked_status !== "error" ? (
+                                (() => { const tcfg = SC[p.tracked_status] || SC_FALLBACK; return (
+                                  <span className="sp" style={{background:tcfg.bg,color:tcfg.color,borderColor:tcfg.border,cursor:"default"}}>
+                                    {LBL(p.tracked_status)}
+                                  </span>
+                                ); })()
+                              ) : (
+                                <span style={{fontSize:12,color:"rgba(255,255,255,0.35)"}}>{t.noTrackingInfo}</span>
+                              )}
                               {p.last_checked && (
                                 <span style={{fontSize:11,color:"rgba(255,255,255,0.22)"}}>
                                   · {new Date(p.last_checked).toLocaleString(lang==="en"?"en-GB":"ro-RO",{hour:"2-digit",minute:"2-digit",day:"numeric",month:"short"})}
