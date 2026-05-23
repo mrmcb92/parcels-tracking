@@ -435,6 +435,7 @@ function MainApp({ user, lang, setLang }) {
     return okS && okQ;
   });
 
+  const SC_FALLBACK = { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" };
   const LBL = (s) => t.statuses[s] || s;
 
   return (
@@ -574,8 +575,8 @@ function MainApp({ user, lang, setLang }) {
         ) : (
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {filtered.map(p => {
-  const SC_FALLBACK = { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" };
-              const cfg = SC[p.status] || SC_FALLBACK;
+  const SC_FALLBACK_CARD = { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" };
+              const cfg = SC[p.status] || SC_FALLBACK_CARD;
               const url = getUrl(p);
               const chk = checking.has(p.id);
               return (
@@ -597,18 +598,26 @@ function MainApp({ user, lang, setLang }) {
                         </span>
                       </div>
                       {p.notes && <div style={{fontSize:13,color:"rgba(255,255,255,0.3)",marginTop:4}}>{p.notes}</div>}
-                      {(p.last_event || chk) && (
-                        <div className="ti">
+                      {(p.last_checked || chk) && (
+                        <div className="ti" style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
                           {chk ? (
-                            <span style={{fontSize:13,color:"rgba(255,255,255,0.42)",display:"flex",alignItems:"center",gap:6}}>
+                            <span style={{fontSize:12,color:"rgba(255,255,255,0.42)",display:"flex",alignItems:"center",gap:6}}>
                               <Loader size={11} className="spin" aria-hidden /> {t.verifying}
                             </span>
                           ) : (
-                            <div>
-                              <span style={{fontSize:13,color:"rgba(255,255,255,0.75)"}}>{p.last_event}</span>
-                              {p.last_location && <span style={{fontSize:13,color:"rgba(255,255,255,0.38)",marginLeft:6}}>· {p.last_location}</span>}
-                              {p.last_checked && <div style={{fontSize:10,color:"rgba(255,255,255,0.22)",marginTop:3}}>{t.verified} {new Date(p.last_checked).toLocaleString(lang==="en"?"en-GB":"ro-RO",{hour:"2-digit",minute:"2-digit",day:"numeric",month:"short"})}</div>}
-                            </div>
+                            <>
+                              <span style={{fontSize:11,color:"rgba(255,255,255,0.25)",letterSpacing:"0.06em",textTransform:"uppercase"}}>{t.verified}:</span>
+                              {(() => { const cfg = SC[p.status] || SC_FALLBACK; return (
+                                <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border,cursor:"default"}}>
+                                  {LBL(p.status)}
+                                </span>
+                              ); })()}
+                              {p.last_checked && (
+                                <span style={{fontSize:11,color:"rgba(255,255,255,0.22)"}}>
+                                  · {new Date(p.last_checked).toLocaleString(lang==="en"?"en-GB":"ro-RO",{hour:"2-digit",minute:"2-digit",day:"numeric",month:"short"})}
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       )}
