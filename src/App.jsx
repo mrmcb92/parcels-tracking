@@ -319,7 +319,30 @@ function MainApp({ user, lang, setLang }) {
   const [showExp, setShowExp]         = useState(false);
   const exportRef                     = useRef(null);
 
-  useEffect(() => { loadPkgs(); }, []);
+  useEffect(() => {
+    loadPkgs();
+
+    // Realtime subscription — actualizează automat când cron-ul modifică datele
+    const channel = supabase
+      .channel("packages-realtime")
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "packages",
+        filter: `user_id=eq.${user.id}`,
+      }, (payload) => {
+        if (payload.eventType === "UPDATE") {
+          setPkgs(prev => prev.map(p => p.id === payload.new.id ? { ...p, ...payload.new } : p));
+        } else if (payload.eventType === "INSERT") {
+          setPkgs(prev => [payload.new, ...prev]);
+        } else if (payload.eventType === "DELETE") {
+          setPkgs(prev => prev.filter(p => p.id !== payload.old.id));
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   useEffect(() => {
     if (!showExp) return;
