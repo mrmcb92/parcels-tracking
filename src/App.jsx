@@ -410,8 +410,10 @@ function MainApp({ user, lang, setLang }) {
         body: JSON.stringify({ awb: p.awb, courier: p.courier }),
       });
       const result = await res.json();
+      const trackedStatus = (result.status && result.status !== "unknown") ? result.status : "unknown";
       const updates = {
-        tracked_status: (result.status && result.status !== "unknown") ? result.status : "unknown",
+        tracked_status: trackedStatus,
+        last_event: result.detail || "",
         last_checked: new Date().toISOString(),
       };
       await supabase.from("packages").update(updates).eq("id", p.id);
@@ -643,6 +645,9 @@ function MainApp({ user, lang, setLang }) {
                                 ); })()
                               ) : (
                                 <span style={{fontSize:12,color:"rgba(255,255,255,0.35)"}}>{t.noTrackingInfo}</span>
+                              )}
+                              {p.last_event && p.tracked_status !== "unknown" && p.tracked_status !== "error" && (
+                                <span style={{fontSize:11,color:"rgba(255,255,255,0.35)"}}>· {p.last_event}</span>
                               )}
                               {p.last_checked && (
                                 <span style={{fontSize:11,color:"rgba(255,255,255,0.22)"}}>
