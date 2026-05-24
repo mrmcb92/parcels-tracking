@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Plus, Trash2, ExternalLink, X, Search, Package, Download,
-  RefreshCw, FileText, Loader, ChevronDown, LogOut,
+  FileText, Loader, ChevronDown, LogOut,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { supabase } from "./supabase.js";
@@ -171,7 +171,7 @@ const SC = {
   "Retur":        { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" },
 };
 
-const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-tracking`;
+const EDGE_FUNCTION_URL = ``;
 
 const emptyForm = () => ({
   name: "", awb: "", courier: "FAN Courier", status: "Comandat",
@@ -317,7 +317,6 @@ function MainApp({ user, lang, setLang }) {
   const [editId, setEditId]           = useState(null);
   const [form, setForm]               = useState(emptyForm());
   const [formErr, setFormErr]         = useState("");
-  const [checking, setChecking]       = useState(new Set());
   const [showExp, setShowExp]         = useState(false);
   const exportRef                     = useRef(null);
 
@@ -396,37 +395,6 @@ function MainApp({ user, lang, setLang }) {
 
   function getUrl(p) { const c = COURIERS.find(c => c.name === p.courier); return c?.url ? c.url(p.awb) : null; }
 
-  const COURIER_TRACK_URLS = {
-    "FAN Courier":  (a) => `https://www.fancourier.ro/awb-tracking/?awb=${a}`,
-    "Cargus":       (a) => `https://www.cargus.ro/tracking-colet/?Awb=${a}`,
-    "Sameday":      (a) => `https://sameday.ro/status-colet/?awb=${a}`,
-    "DPD":          (a) => `https://xawb.ro/urmarire-colet-dpd?awb=${a}`,
-    "GLS":          (a) => `https://xawb.ro/urmarire-colet-gls?awb=${a}`,
-    "Posta Romana": (a) => `https://xawb.ro/urmarire-colet-posta?awb=${a}`,
-    "Alta":         (a) => `https://xawb.ro/?awb=${a}`,
-  };
-
-  function checkOne(p) {
-    const urlFn = COURIER_TRACK_URLS[p.courier] || COURIER_TRACK_URLS["Alta"];
-    window.open(urlFn(p.awb), "_blank", "noopener,noreferrer");
-  }
-
-  async function checkAll() {
-    setChecking(new Set(["all"]));
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      await fetch(EDGE_FUNCTION_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ trigger: true }),
-      });
-    } catch (_) { /* ignorăm eroarea */ }
-    setTimeout(() => setChecking(new Set()), 3000);
-  }
-
   function exportCSV() {
     const h = t.exportHeaders;
     const rows = pkgs.map(p => [p.name,p.order_number||"",p.awb,p.courier,t.statuses[p.status]||p.status,p.date,p.shop||"",p.amount||"",p.notes||"",p.last_event||"",p.last_location||"",p.last_checked?new Date(p.last_checked).toLocaleString():"" ]);
@@ -453,7 +421,6 @@ function MainApp({ user, lang, setLang }) {
   }
 
   const counts = STATUSES.reduce((a, s) => ({ ...a, [s]: pkgs.filter(p => p.status === s).length }), {});
-  const anyChecking = checking.size > 0;
   const filtered = pkgs.filter(p => {
     const okS = filter === "Toate" || p.status === filter;
     const q = search.toLowerCase();
@@ -484,10 +451,6 @@ function MainApp({ user, lang, setLang }) {
           </div>
           <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
             <LangToggle lang={lang} setLang={setLang} />
-            <button className="gb" onClick={checkAll} disabled={anyChecking}>
-              <RefreshCw size={14} className={anyChecking?"spin":""} aria-hidden />
-              {anyChecking ? t.checking : t.checkAll}
-            </button>
             <div style={{position:"relative"}} ref={exportRef}>
               <button className="gb" onClick={()=>setShowExp(v=>!v)}>
                 <Download size={14} aria-hidden /> {t.export} <ChevronDown size={12} aria-hidden />
@@ -604,7 +567,7 @@ function MainApp({ user, lang, setLang }) {
   const SC_FALLBACK_CARD = { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" };
               const cfg = SC[p.status] || SC_FALLBACK_CARD;
               const url = getUrl(p);
-              const chk = checking.has(p.id);
+              
               return (
                 <div key={p.id} className="pkg">
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
@@ -624,9 +587,8 @@ function MainApp({ user, lang, setLang }) {
                         </span>
                       </div>
                       {p.notes && <div style={{fontSize:13,color:"rgba(255,255,255,0.3)",marginTop:4}}>{p.notes}</div>}
-                      {(p.last_checked || chk) && (
+                      {(p.last_checked) && (
                         <div className="ti" style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                          {chk ? (
                             <span style={{fontSize:12,color:"rgba(255,255,255,0.42)",display:"flex",alignItems:"center",gap:6}}>
                               <Loader size={11} className="spin" aria-hidden /> {t.verifying}
                             </span>
@@ -656,7 +618,6 @@ function MainApp({ user, lang, setLang }) {
                       )}
                     </div>
                     <div style={{display:"flex",gap:4,flexShrink:0,alignItems:"flex-start"}}>
-                      {<button className="ib" onClick={()=>checkOne(p)} disabled={chk} title={t.checkStatus}><RefreshCw size={13} className={chk?"spin":""} aria-hidden /></button>}
                       {url && <a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={13} /></a>}
                       <button className="ib" onClick={()=>openForm(p)} style={{padding:"6px 10px"}}>Edit</button>
                       <button className="ib ibx" onClick={()=>del(p.id)} aria-label={t.delete}><Trash2 size={13} /></button>
