@@ -171,7 +171,6 @@ const SC = {
   "Retur":        { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" },
 };
 
-const EDGE_FUNCTION_URL = ``;
 
 const emptyForm = () => ({
   name: "", awb: "", courier: "FAN Courier", status: "Comandat",
@@ -311,7 +310,6 @@ function MainApp({ user, lang, setLang }) {
   const [pkgs, setPkgs]               = useState([]);
   const [loading, setLoading]         = useState(true);
   const [showForm, setShowForm]       = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [filter, setFilter]           = useState("Toate");
   const [search, setSearch]           = useState("");
   const [editId, setEditId]           = useState(null);
@@ -609,7 +607,6 @@ function MainApp({ user, lang, setLang }) {
         <div style={{height:"2rem"}} />
       </div>
 
-      {showSettings && <div/>}
     </div>
   );
 }
