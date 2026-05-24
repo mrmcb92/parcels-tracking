@@ -410,16 +410,18 @@ function MainApp({ user, lang, setLang }) {
         body: JSON.stringify({ awb: p.awb, courier: p.courier }),
       });
       const result = await res.json();
-      const trackedStatus = (result.status && result.status !== "unknown") ? result.status : "unknown";
+      const hasRealStatus = result.status && result.status !== "unknown";
+      // Nu suprascrie un status bun cu "unknown" — păstrează statusul anterior
       const updates = {
-        tracked_status: trackedStatus,
         last_event: result.detail || "",
         last_checked: new Date().toISOString(),
+        ...(hasRealStatus ? { tracked_status: result.status } : {}),
       };
       await supabase.from("packages").update(updates).eq("id", p.id);
       setPkgs(prev => prev.map(x => x.id !== p.id ? x : { ...x, ...updates }));
     } catch (_) {
-      const updates = { tracked_status: "error", last_checked: new Date().toISOString() };
+      // Eroare de rețea — actualizează doar ora, nu atinge tracked_status
+      const updates = { last_checked: new Date().toISOString() };
       await supabase.from("packages").update(updates).eq("id", p.id);
       setPkgs(prev => prev.map(x => x.id !== p.id ? x : { ...x, ...updates }));
     }
