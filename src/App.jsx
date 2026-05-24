@@ -396,7 +396,7 @@ function MainApp({ user, lang, setLang }) {
 
   function getUrl(p) { const c = COURIERS.find(c => c.name === p.courier); return c?.url ? c.url(p.awb) : null; }
 
-  const COURIER_TRACK_URLS: Record<string, (awb: string) => string> = {
+  const COURIER_TRACK_URLS = {
     "FAN Courier":  (a) => `https://www.fancourier.ro/awb-tracking/?awb=${a}`,
     "Cargus":       (a) => `https://www.cargus.ro/tracking-colet/?Awb=${a}`,
     "Sameday":      (a) => `https://sameday.ro/status-colet/?awb=${a}`,
