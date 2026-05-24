@@ -429,8 +429,10 @@ function MainApp({ user, lang, setLang }) {
   }
 
   async function checkAll() {
-    const active = pkgs.filter(p => p.status !== "Livrat");
-    for (const p of active) { await checkOne(p); await new Promise(r => setTimeout(r, 400)); }
+    for (const p of pkgs) {
+      await checkOne(p);
+      await new Promise(r => setTimeout(r, 500));
+    }
   }
 
   function exportCSV() {
