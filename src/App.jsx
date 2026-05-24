@@ -263,9 +263,12 @@ function LoginScreen({ lang, setLang }) {
 
   async function loginWithGoogle() {
     setBusy(true); setErr("");
+    const redirectTo = window.location.hostname === "localhost"
+      ? "http://localhost:5173/parcels-tracking/"
+      : "https://mrmcb92.github.io/parcels-tracking/";
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.href },
+      options: { redirectTo },
     });
     if (error) { setErr(error.message); setBusy(false); }
   }
