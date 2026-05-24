@@ -504,10 +504,12 @@ function MainApp({ user, lang, setLang }) {
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.orderNumber}</label>
                 <input className="gi" value={form.order_number} onChange={e=>setForm({...form,order_number:e.target.value})} placeholder={t.orderNumberPlaceholder} />
               </div>
-              <div style={{minWidth:0}}>
-                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{form.status === "Comandat" ? t.awb : t.awbRequired}</label>
-                <input className="gi" value={form.awb} onChange={e=>setForm({...form,awb:e.target.value})} placeholder={t.awbPlaceholder} style={{fontFamily:"monospace"}} />
-              </div>
+              {form.status !== "Comandat" && (
+                <div style={{minWidth:0}}>
+                  <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.awbRequired}</label>
+                  <input className="gi" value={form.awb} onChange={e=>setForm({...form,awb:e.target.value})} placeholder={t.awbPlaceholder} style={{fontFamily:"monospace"}} autoFocus={form.status !== "Comandat"} />
+                </div>
+              )}
               <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.courier}</label>
                 <select className="gi" value={form.courier} onChange={e=>setForm({...form,courier:e.target.value})}>
