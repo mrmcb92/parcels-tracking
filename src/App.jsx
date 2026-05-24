@@ -508,17 +508,19 @@ function MainApp({ user, lang, setLang }) {
                 <input className="gi" value={form.order_number} onChange={e=>setForm({...form,order_number:e.target.value})} placeholder={t.orderNumberPlaceholder} />
               </div>
               {form.status !== "Comandat" && (
-                <div style={{minWidth:0}}>
-                  <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.awbRequired}</label>
-                  <input className="gi" value={form.awb} onChange={e=>setForm({...form,awb:e.target.value})} placeholder={t.awbPlaceholder} style={{fontFamily:"monospace"}} autoFocus={form.status !== "Comandat"} />
-                </div>
+                <>
+                  <div style={{minWidth:0}}>
+                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.awbRequired}</label>
+                    <input className="gi" value={form.awb} onChange={e=>setForm({...form,awb:e.target.value})} placeholder={t.awbPlaceholder} style={{fontFamily:"monospace"}} />
+                  </div>
+                  <div style={{minWidth:0}}>
+                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.courier}</label>
+                    <select className="gi" value={form.courier} onChange={e=>setForm({...form,courier:e.target.value})}>
+                      {COURIERS.map(c=><option key={c.name}>{c.name}</option>)}
+                    </select>
+                  </div>
+                </>
               )}
-              <div style={{minWidth:0}}>
-                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.courier}</label>
-                <select className="gi" value={form.courier} onChange={e=>setForm({...form,courier:e.target.value})}>
-                  {COURIERS.map(c=><option key={c.name}>{c.name}</option>)}
-                </select>
-              </div>
               <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.shop}</label>
                 <input className="gi" value={form.shop} onChange={e=>setForm({...form,shop:e.target.value})} placeholder={t.shopPlaceholder} />
