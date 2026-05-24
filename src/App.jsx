@@ -583,8 +583,8 @@ function MainApp({ user, lang, setLang }) {
                       </div>
                       <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
                         {p.order_number && <span style={{fontSize:13,color:"rgba(255,255,255,0.55)",fontWeight:500}}>#{p.order_number.replace(/^#/,"")}</span>}
-                        <span style={{fontFamily:"monospace",fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.awb}</span>
-                        <span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.courier}</span>
+                        {p.status !== "Comandat" && <span style={{fontFamily:"monospace",fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.awb}</span>}
+                        {p.status !== "Comandat" && <span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.courier}</span>}
                         {p.shop && <span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.shop}</span>}
                         <span style={{fontSize:13,color:"rgba(255,255,255,0.3)"}}>
                           {new Date(p.date+"T12:00:00").toLocaleDateString(lang === "en" ? "en-GB" : "ro-RO",{day:"numeric",month:"short",year:"numeric"})}
