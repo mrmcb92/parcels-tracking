@@ -16,8 +16,8 @@ const T = {
     parcels: (n) => `${n} ${n === 1 ? "parcel" : "parcels"}`,
     loading: "Loading...",
     loadingParcels: "Loading parcels...",
-    checkAll: "Check all",
-    checking: "Checking...",
+    checkAll: "Run tracking now",
+    checking: "Running...",
     export: "Export",
     downloadCSV: "Download CSV",
     downloadExcel: "Download Excel",
@@ -83,8 +83,8 @@ const T = {
     parcels: (n) => `${n} ${n === 1 ? "colet" : "colete"}`,
     loading: "Se încarcă...",
     loadingParcels: "Se încarcă coletele...",
-    checkAll: "Verifică toate",
-    checking: "Se verifică...",
+    checkAll: "Verifică acum",
+    checking: "Se rulează...",
     export: "Export",
     downloadCSV: "Descarcă CSV",
     downloadExcel: "Descarcă Excel",
@@ -396,43 +396,35 @@ function MainApp({ user, lang, setLang }) {
 
   function getUrl(p) { const c = COURIERS.find(c => c.name === p.courier); return c?.url ? c.url(p.awb) : null; }
 
-  async function checkOne(p) {
-    if (checking.has(p.id)) return;
-    setChecking(prev => new Set([...prev, p.id]));
+  const COURIER_TRACK_URLS: Record<string, (awb: string) => string> = {
+    "FAN Courier":  (a) => `https://www.fancourier.ro/awb-tracking/?awb=${a}`,
+    "Cargus":       (a) => `https://www.cargus.ro/tracking-colet/?Awb=${a}`,
+    "Sameday":      (a) => `https://sameday.ro/status-colet/?awb=${a}`,
+    "DPD":          (a) => `https://xawb.ro/urmarire-colet-dpd?awb=${a}`,
+    "GLS":          (a) => `https://xawb.ro/urmarire-colet-gls?awb=${a}`,
+    "Posta Romana": (a) => `https://xawb.ro/urmarire-colet-posta?awb=${a}`,
+    "Alta":         (a) => `https://xawb.ro/?awb=${a}`,
+  };
+
+  function checkOne(p) {
+    const urlFn = COURIER_TRACK_URLS[p.courier] || COURIER_TRACK_URLS["Alta"];
+    window.open(urlFn(p.awb), "_blank", "noopener,noreferrer");
+  }
+
+  async function checkAll() {
+    setChecking(new Set(["all"]));
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(EDGE_FUNCTION_URL, {
+      await fetch(EDGE_FUNCTION_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ awb: p.awb, courier: p.courier }),
+        body: JSON.stringify({ trigger: true }),
       });
-      const result = await res.json();
-      const hasRealStatus = result.status && result.status !== "unknown";
-      // Nu suprascrie un status bun cu "unknown" — păstrează statusul anterior
-      const updates = {
-        last_event: result.detail || "",
-        last_checked: new Date().toISOString(),
-        ...(hasRealStatus ? { tracked_status: result.status } : {}),
-      };
-      await supabase.from("packages").update(updates).eq("id", p.id);
-      setPkgs(prev => prev.map(x => x.id !== p.id ? x : { ...x, ...updates }));
-    } catch (_) {
-      // Eroare de rețea — actualizează doar ora, nu atinge tracked_status
-      const updates = { last_checked: new Date().toISOString() };
-      await supabase.from("packages").update(updates).eq("id", p.id);
-      setPkgs(prev => prev.map(x => x.id !== p.id ? x : { ...x, ...updates }));
-    }
-    setChecking(prev => { const n = new Set(prev); n.delete(p.id); return n; });
-  }
-
-  async function checkAll() {
-    for (const p of pkgs) {
-      await checkOne(p);
-      await new Promise(r => setTimeout(r, 500));
-    }
+    } catch (_) { /* ignorăm eroarea */ }
+    setTimeout(() => setChecking(new Set()), 3000);
   }
 
   function exportCSV() {
@@ -492,7 +484,7 @@ function MainApp({ user, lang, setLang }) {
           </div>
           <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
             <LangToggle lang={lang} setLang={setLang} />
-            <button className="gb" onClick={checkAll} disabled={anyChecking||pkgs.filter(p=>p.status!=="Livrat").length===0}>
+            <button className="gb" onClick={checkAll} disabled={anyChecking}>
               <RefreshCw size={14} className={anyChecking?"spin":""} aria-hidden />
               {anyChecking ? t.checking : t.checkAll}
             </button>
