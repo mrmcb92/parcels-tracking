@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Plus, Trash2, ExternalLink, X, Search, Package, Download,
-  FileText, Loader, ChevronDown, LogOut,
+  FileText, ChevronDown, LogOut,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { supabase } from "./supabase.js";
@@ -428,7 +428,6 @@ function MainApp({ user, lang, setLang }) {
     return okS && okQ;
   });
 
-  const SC_FALLBACK = { color: "#94a3b8", bg: "rgba(148,163,184,0.18)", border: "rgba(148,163,184,0.45)" };
   const LBL = (s) => t.statuses[s] || s;
 
   return (
@@ -587,35 +586,6 @@ function MainApp({ user, lang, setLang }) {
                         </span>
                       </div>
                       {p.notes && <div style={{fontSize:13,color:"rgba(255,255,255,0.3)",marginTop:4}}>{p.notes}</div>}
-                      {(p.last_checked) && (
-                        <div className="ti" style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                            <span style={{fontSize:12,color:"rgba(255,255,255,0.42)",display:"flex",alignItems:"center",gap:6}}>
-                              <Loader size={11} className="spin" aria-hidden /> {t.verifying}
-                            </span>
-                          ) : (
-                            <>
-                              <span style={{fontSize:11,color:"rgba(255,255,255,0.25)",letterSpacing:"0.06em",textTransform:"uppercase"}}>{t.verified}:</span>
-                              {p.tracked_status && p.tracked_status !== "unknown" && p.tracked_status !== "error" ? (
-                                (() => { const tcfg = SC[p.tracked_status] || SC_FALLBACK; return (
-                                  <span className="sp" style={{background:tcfg.bg,color:tcfg.color,borderColor:tcfg.border,cursor:"default"}}>
-                                    {LBL(p.tracked_status)}
-                                  </span>
-                                ); })()
-                              ) : (
-                                <span style={{fontSize:12,color:"rgba(255,255,255,0.35)"}}>{t.noTrackingInfo}</span>
-                              )}
-                              {p.last_event && p.tracked_status !== "unknown" && p.tracked_status !== "error" && (
-                                <span style={{fontSize:11,color:"rgba(255,255,255,0.35)"}}>· {p.last_event}</span>
-                              )}
-                              {p.last_checked && (
-                                <span style={{fontSize:11,color:"rgba(255,255,255,0.22)"}}>
-                                  · {new Date(p.last_checked).toLocaleString(lang==="en"?"en-GB":"ro-RO",{hour:"2-digit",minute:"2-digit",day:"numeric",month:"short"})}
-                                </span>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      )}
                     </div>
                     <div style={{display:"flex",gap:4,flexShrink:0,alignItems:"flex-start"}}>
                       {url && <a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={13} /></a>}
