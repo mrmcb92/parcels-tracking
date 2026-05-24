@@ -422,12 +422,14 @@ function MainApp({ user, lang, setLang }) {
   }
 
   const counts = STATUSES.reduce((a, s) => ({ ...a, [s]: pkgs.filter(p => p.status === s).length }), {});
+  const STATUS_ORDER = { "Comandat": 0, "In livrare": 1, "Livrat": 2 };
+
   const filtered = pkgs.filter(p => {
     const okS = filter === "Toate" || p.status === filter;
     const q = search.toLowerCase();
     const okQ = !q || p.name.toLowerCase().includes(q) || p.awb.toLowerCase().includes(q) || (p.shop||"").toLowerCase().includes(q);
     return okS && okQ;
-  });
+  }).sort((a, b) => (STATUS_ORDER[a.status] ?? 1) - (STATUS_ORDER[b.status] ?? 1));
 
   const LBL = (s) => t.statuses[s] || s;
 
