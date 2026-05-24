@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Plus, Trash2, ExternalLink, X, Search, Package, Download,
-  FileText, ChevronDown, LogOut,
+  FileText, Loader, ChevronDown, LogOut,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { supabase } from "./supabase.js";
