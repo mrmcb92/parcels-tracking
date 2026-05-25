@@ -723,10 +723,68 @@ function MainApp({user,lang,setLang,pendingInvite}) {
 
   const isGroupOwner=currentGroup&&currentGroup.group_members?.some(m=>m.user_id===user.id&&m.role==="owner");
 
+  // Pull to refresh
+  const [pullY,setPullY]           = useState(0);
+  const [refreshing,setRefreshing] = useState(false);
+  const touchStartY                = useRef(0);
+  const PULL_THRESHOLD             = 70;
+
+  function onTouchStart(e){
+    if(window.scrollY===0) touchStartY.current=e.touches[0].clientY;
+  }
+  function onTouchMove(e){
+    if(refreshing)return;
+    const dy=e.touches[0].clientY-touchStartY.current;
+    if(dy>0&&window.scrollY===0){
+      setPullY(Math.min(dy*0.4,PULL_THRESHOLD));
+    }
+  }
+  async function onTouchEnd(){
+    if(pullY>=PULL_THRESHOLD&&!refreshing){
+      setRefreshing(true);
+      await loadAll();
+      setRefreshing(false);
+    }
+    setPullY(0);
+  }
+
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#16033a 0%,#0b1735 45%,#07121f 100%)",position:"relative"}}>
+    <div
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      style={{minHeight:"100vh",background:"linear-gradient(140deg,#16033a 0%,#0b1735 45%,#07121f 100%)",position:"relative"}}>
       <Background/>
-      <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem",maxWidth:800,margin:"0 auto"}}>
+
+      {/* Pull to refresh indicator */}
+      <div style={{
+        position:"fixed",top:0,left:0,right:0,zIndex:500,
+        display:"flex",alignItems:"center",justifyContent:"center",
+        height:`${Math.max(pullY, refreshing?44:0)}px`,
+        overflow:"hidden",
+        transition:pullY>0?"none":"height .3s ease",
+        pointerEvents:"none",
+      }}>
+        {(pullY>10||refreshing)&&(
+          <div style={{
+            display:"flex",alignItems:"center",gap:8,
+            opacity:refreshing?1:Math.min(pullY/PULL_THRESHOLD,1),
+            transform:`scale(${refreshing?1:Math.min(0.7+pullY/PULL_THRESHOLD*0.3,1)})`,
+            transition:refreshing?"none":"opacity .1s,transform .1s",
+          }}>
+            <div style={{
+              width:28,height:28,borderRadius:"50%",
+              background:"rgba(167,139,250,0.2)",
+              border:"1.5px solid rgba(167,139,250,0.5)",
+              display:"flex",alignItems:"center",justifyContent:"center",
+            }}>
+              <Loader size={14} style={{color:"#a78bfa",animation:refreshing?"spin 1s linear infinite":"none",transform:refreshing?"none":`rotate(${pullY*4}deg)`}}/>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem",maxWidth:800,margin:"0 auto",transform:`translateY(${pullY}px)`,transition:pullY>0?"none":"transform .3s ease"}}>
 
         {/* Header */}
         <div style={{marginBottom:"1rem"}}>
