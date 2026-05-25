@@ -574,12 +574,20 @@ function MainApp({user,lang,setLang,pendingInvite}) {
 
   async function loadAll(){
     setLoading(true);
-    const [{data:pkgData},{data:grpData}]=await Promise.all([
+    const [{data:pkgData},{data:memberData}]=await Promise.all([
       supabase.from("packages").select("*").order("created_at",{ascending:false}),
-      supabase.from("groups").select("*,group_members(user_id,role)"),
+      supabase.from("group_members").select("group_id,role,groups(id,name,invite_code,created_by)").eq("user_id",user.id),
     ]);
     if(pkgData)setPkgs(pkgData);
-    if(grpData)setGroups(grpData);
+    if(memberData){
+      const grps=memberData
+        .filter(m=>m.groups)
+        .map(m=>({
+          ...m.groups,
+          group_members:[{user_id:user.id,role:m.role}],
+        }));
+      setGroups(grps);
+    }
     setLoading(false);
   }
 
@@ -646,10 +654,21 @@ function MainApp({user,lang,setLang,pendingInvite}) {
   }
 
   async function leaveGroup(g){
-    const {error}=await supabase.from("group_members").delete().eq("group_id",g.id).eq("user_id",user.id);
-    if(!error){
-      setGroups(prev=>prev.filter(x=>x.id!==g.id));
-      if(currentView===g.id)setCurrentView("personal");
+    const isOwner=g.group_members?.some(m=>m.user_id===user.id&&m.role==="owner");
+    if(isOwner){
+      // Owner șterge tot grupul
+      const {error}=await supabase.from("groups").delete().eq("id",g.id);
+      if(!error){
+        setGroups(prev=>prev.filter(x=>x.id!==g.id));
+        if(currentView===g.id)setCurrentView("personal");
+      }
+    } else {
+      // Membru iese din grup
+      const {error}=await supabase.from("group_members").delete().eq("group_id",g.id).eq("user_id",user.id);
+      if(!error){
+        setGroups(prev=>prev.filter(x=>x.id!==g.id));
+        if(currentView===g.id)setCurrentView("personal");
+      }
     }
   }
 
