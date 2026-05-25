@@ -588,6 +588,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
 
   function handleGroupJoined(g){
     setInviteModal(null);
+    localStorage.removeItem("pending_invite");
     history.replaceState(null,"",window.location.pathname);
     if(g){
       setGroups(prev=>{
@@ -595,6 +596,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
         return [...prev,{...g,group_members:[{user_id:user.id,role:"member"}]}];
       });
       setCurrentView(g.id);
+      loadAll();
     }
   }
 
@@ -863,7 +865,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
 
       {shareModal&&<ShareModal shareUrl={shareModal.shareUrl} onClose={()=>setShareModal(null)} t={t}/>}
       {showGroupModal&&<GroupModal user={user} onClose={()=>setShowGroupModal(false)} onCreated={handleGroupCreated} t={t}/>}
-      {inviteModal&&<InviteModal inviteCode={inviteModal} onJoined={handleGroupJoined} onDismiss={()=>{setInviteModal(null);history.replaceState(null,"",window.location.pathname);}} t={t}/>}
+      {inviteModal&&<InviteModal inviteCode={inviteModal} onJoined={handleGroupJoined} onDismiss={()=>{setInviteModal(null);localStorage.removeItem("pending_invite");history.replaceState(null,"",window.location.pathname);}} t={t}/>}
     </div>
   );
 }
