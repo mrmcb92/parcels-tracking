@@ -51,6 +51,8 @@ const T = {
     noGroups:"No groups yet",noGroupParcels:"No parcels in this group yet.",
     addFirstGroupParcel:'Press "Add" to add the first parcel.',
     leaveGroup:"Leave group",members:"members",groupCreated:"Group created",
+    moveToGroup:"Move to group",moveToPersonal:"Move to personal",
+    selectGroup:"Select group",move:"Move",
     invalidInvite:"Invalid or expired invite link.",memberCount:(n)=>`${n} ${n===1?"member":"members"}`,
   },
   ro: {
@@ -94,6 +96,8 @@ const T = {
     noGroups:"Niciun grup",noGroupParcels:"Niciun colet în acest grup.",
     addFirstGroupParcel:'Apasă „Adaugă" pentru a adăuga primul colet.',
     leaveGroup:"Ieși din grup",members:"membri",groupCreated:"Grup creat",
+    moveToGroup:"Mută în grup",moveToPersonal:"Mută la personal",
+    selectGroup:"Selectează grup",move:"Mută",
     invalidInvite:"Link de invitație invalid sau expirat.",memberCount:(n)=>`${n} ${n===1?"membru":"membri"}`,
   },
 };
@@ -487,6 +491,46 @@ function LoginScreen({lang,setLang}) {
   );
 }
 
+// ── MoveModal ─────────────────────────────────────────────────────────────────
+
+function MoveModal({pkg, groups, onMove, onClose, t}) {
+  const [selected, setSelected] = useState(pkg.group_id || "personal");
+
+  const options = [
+    {id:"personal", name:t.myParcels},
+    ...groups.map(g => ({id:g.id, name:g.name})),
+  ];
+
+  return (
+    <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:400,width:"100%"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
+          <h2 style={{fontSize:15,fontWeight:600,color:"white",display:"flex",alignItems:"center",gap:8}}>
+            <Users size={15} style={{color:"#a78bfa"}}/> {t.moveToGroup}
+          </h2>
+          <button className="ib" onClick={onClose}><X size={14}/></button>
+        </div>
+        <p style={{fontSize:13,color:"rgba(255,255,255,0.5)",marginBottom:"1rem"}}>{pkg.name}</p>
+        <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:"1.25rem"}}>
+          {options.map(o=>(
+            <button key={o.id} onClick={()=>setSelected(o.id)}
+              style={{padding:"10px 14px",borderRadius:12,border:`1px solid ${selected===o.id?"rgba(167,139,250,0.5)":"rgba(255,255,255,0.1)"}`,background:selected===o.id?"rgba(167,139,250,0.18)":"rgba(255,255,255,0.04)",color:selected===o.id?"#a78bfa":"rgba(255,255,255,0.7)",cursor:"pointer",textAlign:"left",fontSize:14,fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
+              {o.id==="personal"?<Package size={13}/>:<Users size={13}/>} {o.name}
+              {selected===o.id&&<Check size={13} style={{marginLeft:"auto"}}/>}
+            </button>
+          ))}
+        </div>
+        <div style={{display:"flex",justifyContent:"flex-end",gap:8}}>
+          <button className="gb" onClick={onClose}>{t.cancel}</button>
+          <button className="gb gbp" onClick={()=>onMove(pkg, selected==="personal"?null:selected)}>
+            <Users size={13}/> {t.move}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── MainApp ───────────────────────────────────────────────────────────────────
 
 function MainApp({user,lang,setLang,pendingInvite}) {
@@ -505,7 +549,8 @@ function MainApp({user,lang,setLang,pendingInvite}) {
   const [showGroupModal,setShowGroupModal] = useState(false);
   const [shareModal,setShareModal] = useState(null); // {shareUrl} or null
   const [shareLoading,setShareLoading]     = useState(null); // package id
-  const [inviteModal,setInviteModal]       = useState(pendingInvite||null);
+  const [moveModal,setMoveModal]     = useState(null); // package to move
+  const [inviteModal,setInviteModal] = useState(pendingInvite||null);
   const exportRef = useRef(null);
 
   useEffect(()=>{loadAll();},[]);
@@ -604,6 +649,15 @@ function MainApp({user,lang,setLang,pendingInvite}) {
     await supabase.from("group_members").delete().eq("group_id",g.id).eq("user_id",user.id);
     setGroups(prev=>prev.filter(x=>x.id!==g.id));
     if(currentView===g.id)setCurrentView("personal");
+  }
+
+  async function moveParcel(pkg, targetGroupId) {
+    const group_id = targetGroupId || null;
+    const {error} = await supabase.from("packages").update({group_id}).eq("id", pkg.id);
+    if (!error) {
+      setPkgs(prev => prev.map(p => p.id === pkg.id ? {...p, group_id} : p));
+    }
+    setMoveModal(null);
   }
 
   function exportCSV(){
@@ -846,6 +900,11 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                       <button className="ib" onClick={()=>shareParcel(p)} disabled={isSharing} title={t.share}>
                         {isSharing?<Loader size={13} className="spin"/>:<Share2 size={13}/>}
                       </button>
+                      {p.user_id===user.id&&groups.length>0&&(
+                        <button className="ib" onClick={()=>setMoveModal(p)} title={t.moveToGroup}>
+                          <Users size={13}/>
+                        </button>
+                      )}
                       {url&&p.awb&&<a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={13}/></a>}
                       <button className="ib" onClick={()=>openForm(p)} style={{padding:"6px 10px"}}>Edit</button>
                       <button className="ib ibx" onClick={()=>del(p.id)} aria-label={t.delete}><Trash2 size={13}/></button>
@@ -863,6 +922,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
         <div style={{height:"2rem"}}/>
       </div>
 
+      {moveModal&&<MoveModal pkg={moveModal} groups={groups} onMove={moveParcel} onClose={()=>setMoveModal(null)} t={t}/>}
       {shareModal&&<ShareModal shareUrl={shareModal.shareUrl} onClose={()=>setShareModal(null)} t={t}/>}
       {showGroupModal&&<GroupModal user={user} onClose={()=>setShowGroupModal(false)} onCreated={handleGroupCreated} t={t}/>}
       {inviteModal&&<InviteModal inviteCode={inviteModal} onJoined={handleGroupJoined} onDismiss={()=>{setInviteModal(null);localStorage.removeItem("pending_invite");history.replaceState(null,"",window.location.pathname);}} t={t}/>}
