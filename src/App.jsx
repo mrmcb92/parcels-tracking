@@ -646,9 +646,11 @@ function MainApp({user,lang,setLang,pendingInvite}) {
   }
 
   async function leaveGroup(g){
-    await supabase.from("group_members").delete().eq("group_id",g.id).eq("user_id",user.id);
-    setGroups(prev=>prev.filter(x=>x.id!==g.id));
-    if(currentView===g.id)setCurrentView("personal");
+    const {error}=await supabase.from("group_members").delete().eq("group_id",g.id).eq("user_id",user.id);
+    if(!error){
+      setGroups(prev=>prev.filter(x=>x.id!==g.id));
+      if(currentView===g.id)setCurrentView("personal");
+    }
   }
 
   async function moveParcel(pkg, targetGroupId) {
