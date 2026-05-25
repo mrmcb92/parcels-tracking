@@ -708,22 +708,28 @@ function MainApp({user,lang,setLang,pendingInvite}) {
       <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem",maxWidth:800,margin:"0 auto"}}>
 
         {/* Header */}
-        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:"1rem",flexWrap:"wrap"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,flex:1,minWidth:0}}>
+        <div style={{marginBottom:"1rem"}}>
+          {/* Row 1: logo + actions */}
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:"0.6rem"}}>
             <div className="gc" style={{padding:9,borderRadius:16,display:"flex",flexShrink:0}}>
               <Package size={20} style={{color:"#a78bfa"}}/>
             </div>
-            <div>
+            <div style={{flex:1,minWidth:0}}>
               <h1 style={{fontSize:18,fontWeight:600,color:"white",letterSpacing:"-0.01em"}}>{t.appName}</h1>
               <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:1}}>
                 {loading?t.loading:t.parcels(viewPkgs.length)}
               </p>
             </div>
-          </div>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
+            {/* Lang toggle + sign out always on right */}
             <LangToggle lang={lang} setLang={setLang}/>
-            <div style={{position:"relative"}} ref={exportRef}>
-              <button className="gb" onClick={()=>setShowExp(v=>!v)}>
+            <button className="ib" onClick={()=>supabase.auth.signOut()} title={t.signOut}>
+              <LogOut size={13}/>
+            </button>
+          </div>
+          {/* Row 2: export + add */}
+          <div style={{display:"flex",gap:6,alignItems:"center"}}>
+            <div style={{position:"relative",flex:1}} ref={exportRef}>
+              <button className="gb" onClick={()=>setShowExp(v=>!v)} style={{width:"100%",justifyContent:"center"}}>
                 <Download size={14}/> {t.export} <ChevronDown size={12}/>
               </button>
               {showExp&&(
@@ -733,11 +739,8 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                 </div>
               )}
             </div>
-            <button className="gb gbp" onClick={()=>openForm()}>
+            <button className="gb gbp" onClick={()=>openForm()} style={{flex:1,justifyContent:"center"}}>
               <Plus size={14}/> {t.add}
-            </button>
-            <button className="ib" onClick={()=>supabase.auth.signOut()} title={t.signOut}>
-              <LogOut size={13}/>
             </button>
           </div>
         </div>
