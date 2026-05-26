@@ -113,7 +113,12 @@ const COURIERS = [
   {name:"DPD",         url:(a)=>`https://awb.woot.ro/urmarire-colet-dpd/${a}`},
   {name:"GLS",         url:(a)=>`https://awb.woot.ro/urmarire-colet-gls/${a}`},
   {name:"Posta Romana",url:(a)=>`https://awb.woot.ro/urmarire-colet-postaromana/${a}`},
-  {name:"Alta",        url:(a)=>`https://awb.woot.ro/${a}`},
+  {name:"DHL",         url:(a)=>`https://awb.woot.ro/urmarire-colet-dhl/${a}`},
+  {name:"FedEx",       url:(a)=>`https://awb.woot.ro/urmarire-colet-fedex/${a}`},
+  {name:"UPS",         url:(a)=>`https://awb.woot.ro/urmarire-colet-ups/${a}`},
+  {name:"Sinapseria",  url:(a)=>`https://awb.woot.ro/urmarire-colet-sinapseria/${a}`},
+  {name:"Dragon Star", url:(a)=>`https://awb.woot.ro/urmarire-colet-dragonstar/${a}`},
+  {name:"PTT Express", url:(a)=>`https://awb.woot.ro/urmarire-colet-pttexpress/${a}`},
 ];
 
 const STATUSES = ["Comandat","In livrare","Livrat"];
