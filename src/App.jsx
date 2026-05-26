@@ -110,10 +110,10 @@ const COURIERS = [
   {name:"FAN Courier", url:(a)=>`https://www.fancourier.ro/awb-tracking/?awb=${a}`},
   {name:"Cargus",      url:(a)=>`https://www.cargus.ro/tracking-colet/?Awb=${a}`},
   {name:"Sameday",     url:(a)=>`https://sameday.ro/status-colet/?awb=${a}`},
-  {name:"DPD",         url:(a)=>`https://xawb.ro/urmarire-colet-dpd?awb=${a}`},
-  {name:"GLS",         url:(a)=>`https://gls-group.com/RO/ro/urmarire-colet?match=${a}`},
-  {name:"Posta Romana",url:(a)=>`https://xawb.ro/urmarire-colet-posta?awb=${a}`},
-  {name:"Alta",        url:(a)=>`https://xawb.ro/?awb=${a}`},
+  {name:"DPD",         url:(a)=>`https://awb.woot.ro/urmarire-colet-dpd/${a}`},
+  {name:"GLS",         url:(a)=>`https://awb.woot.ro/urmarire-colet-gls/${a}`},
+  {name:"Posta Romana",url:(a)=>`https://awb.woot.ro/urmarire-colet-postaromana/${a}`},
+  {name:"Alta",        url:(a)=>`https://awb.woot.ro/${a}`},
 ];
 
 const STATUSES = ["Comandat","In livrare","Livrat"];
