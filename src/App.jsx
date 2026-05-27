@@ -31,7 +31,7 @@ const T = {
     saveErr:"Save error: ",
     noParcelAdded:"No parcels yet",noParcelSub:'Press "Add" to get started',
     noMatch:"No parcels match the filters.",
-    quickStatus:"Quick status:",trackExternal:"Open tracking page",delete:"Delete parcel",
+    quickStatus:"Quick status:",trackExternal:"Open tracking page",delete:"Delete parcel",deleteConfirmMsg:"This action cannot be undone.",
     loginSub:"Track your parcels from any device",loginBtn:"Continue with Google",
     loginConnecting:"Connecting...",loginNote:"Each user sees only their own parcels.",
     statuses:{"Comandat":"Ordered","In livrare":"In delivery","Livrat":"Delivered"},
@@ -74,7 +74,7 @@ const T = {
     saveErr:"Eroare la salvare: ",
     noParcelAdded:"Niciun colet adăugat",noParcelSub:'Apasă „Adaugă" pentru a începe',
     noMatch:"Niciun colet nu corespunde filtrelor.",
-    quickStatus:"Status rapid:",trackExternal:"Deschide pagina de tracking",delete:"Șterge coletul",
+    quickStatus:"Status rapid:",trackExternal:"Deschide pagina de tracking",delete:"Șterge coletul",deleteConfirmMsg:"Această acțiune nu poate fi anulată.",
     loginSub:"Urmărește-ți coletele de pe orice device",loginBtn:"Continuă cu Google",
     loginConnecting:"Se conectează...",loginNote:"Fiecare utilizator vede doar propriile colete.",
     statuses:{"Comandat":"Comandat","In livrare":"In livrare","Livrat":"Livrat"},
@@ -532,6 +532,30 @@ function MoveModal({pkg, groups, onMove, onClose, t}) {
   );
 }
 
+// ── ConfirmDeleteModal ────────────────────────────────────────────────────────
+
+function ConfirmDeleteModal({pkg, onConfirm, onClose, t}) {
+  return (
+    <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:380,width:"100%",textAlign:"center"}}>
+        <div className="gc" style={{display:"inline-flex",padding:"10px",borderRadius:16,marginBottom:14}}>
+          <Trash2 size={20} style={{color:"#f87171"}}/>
+        </div>
+        <h2 style={{fontSize:15,fontWeight:600,color:"white",marginBottom:6}}>{t.delete}</h2>
+        <p style={{fontSize:13,color:"rgba(255,255,255,0.55)",marginBottom:4}}>{pkg.name}</p>
+        <p style={{fontSize:12,color:"rgba(255,255,255,0.3)",marginBottom:"1.5rem"}}>{t.deleteConfirmMsg}</p>
+        <div style={{display:"flex",gap:8,justifyContent:"center"}}>
+          <button className="gb" onClick={onClose}>{t.cancel}</button>
+          <button className="gb" onClick={onConfirm}
+            style={{background:"rgba(248,113,113,0.2)",borderColor:"rgba(248,113,113,0.45)",color:"#f87171"}}>
+            <Trash2 size={13}/> {t.delete}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── MainApp ───────────────────────────────────────────────────────────────────
 
 function MainApp({user,lang,setLang,pendingInvite}) {
@@ -551,6 +575,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
   const [shareModal,setShareModal] = useState(null); // {shareUrl} or null
   const [shareLoading,setShareLoading]     = useState(null); // package id
   const [moveModal,setMoveModal]     = useState(null); // package to move
+  const [deleteConfirm,setDeleteConfirm] = useState(null); // package to delete
   const [inviteModal,setInviteModal] = useState(pendingInvite||null);
   const exportRef = useRef(null);
 
@@ -941,7 +966,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                       )}
                       {url&&p.awb&&<a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={13}/></a>}
                       <button className="ib" onClick={()=>openForm(p)} style={{padding:"6px 10px"}}>Edit</button>
-                      <button className="ib ibx" onClick={()=>del(p.id)} aria-label={t.delete}><Trash2 size={13}/></button>
+                      <button className="ib ibx" onClick={()=>setDeleteConfirm(p)} aria-label={t.delete}><Trash2 size={13}/></button>
                     </div>
                   </div>
                   <div style={{display:"flex",gap:4,marginTop:10,paddingTop:10,borderTop:"1px solid rgba(255,255,255,0.06)",flexWrap:"wrap",alignItems:"center"}}>
@@ -956,6 +981,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
         <div style={{height:"2rem"}}/>
       </div>
 
+      {deleteConfirm&&<ConfirmDeleteModal pkg={deleteConfirm} onConfirm={()=>{del(deleteConfirm.id);setDeleteConfirm(null);}} onClose={()=>setDeleteConfirm(null)} t={t}/>}
       {moveModal&&<MoveModal pkg={moveModal} groups={groups} onMove={moveParcel} onClose={()=>setMoveModal(null)} t={t}/>}
       {shareModal&&<ShareModal shareUrl={shareModal.shareUrl} onClose={()=>setShareModal(null)} t={t}/>}
       {showGroupModal&&<GroupModal user={user} onClose={()=>setShowGroupModal(false)} onCreated={handleGroupCreated} t={t}/>}
