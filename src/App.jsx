@@ -141,7 +141,7 @@ const STATUS_ORDER = {"Comandat":0,"In livrare":1,"Livrat":2};
 const emptyForm = () => ({
   name:"",awb:"",courier:"FAN Courier",status:"Comandat",
   date:new Date().toISOString().split("T")[0],notes:"",shop:"",amount:"",order_number:"",
-  products:[],
+  products:[{name:"",qty:1}],
 });
 
 // ── Styles ────────────────────────────────────────────────────────────────────
