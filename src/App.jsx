@@ -27,7 +27,7 @@ const T = {
     status:"Status",orderDate:"Order date",
     notes:"Notes (optional)",notesPlaceholder:"value, product link, other details...",
     cancel:"Cancel",save:"Save changes",addParcel:"Add parcel",
-    formErr:"Fill in the description.",formErrAwb:"Fill in the AWB number.",
+    formErr:"Add at least one product.",formErrAwb:"Fill in the AWB number.",
     saveErr:"Save error: ",
     noParcelAdded:"No parcels yet",noParcelSub:'Press "Add" to get started',
     noMatch:"No parcels match the filters.",
@@ -73,7 +73,7 @@ const T = {
     status:"Status",orderDate:"Data comenzii",
     notes:"Note (opțional)",notesPlaceholder:"valoare, link produs, alte detalii...",
     cancel:"Anulează",save:"Salvează modificările",addParcel:"Adaugă colet",
-    formErr:"Completează descrierea.",formErrAwb:"Completează numărul AWB.",
+    formErr:"Adaugă cel puțin un produs.",formErrAwb:"Completează numărul AWB.",
     saveErr:"Eroare la salvare: ",
     noParcelAdded:"Niciun colet adăugat",noParcelSub:'Apasă „Adaugă" pentru a începe',
     noMatch:"Niciun colet nu corespunde filtrelor.",
@@ -630,9 +630,11 @@ function MainApp({user,lang,setLang,pendingInvite}) {
   }
 
   async function submit(){
-    if(!form.name.trim()){setFormErr(t.formErr);return;}
+    const validProducts=form.products.filter(p=>p.name.trim());
+    if(validProducts.length===0){setFormErr(t.formErr);return;}
     if(form.status!=="Comandat"&&!form.awb.trim()){setFormErr(t.formErrAwb);return;}
-    const entry={...form,name:form.name.trim(),awb:form.awb.trim()};
+    const autoName=validProducts.map(p=>`${p.qty>1?p.qty+"× ":""}${p.name.trim()}`).join(", ");
+    const entry={...form,name:autoName,awb:form.awb.trim(),products:validProducts};
     if(editId){
       const {error}=await supabase.from("packages").update(entry).eq("id",editId);
       if(error){setFormErr(t.saveErr+error.message);return;}
@@ -877,15 +879,35 @@ function MainApp({user,lang,setLang,pendingInvite}) {
               <button className="ib" onClick={()=>{setShowForm(false);setEditId(null);}}><X size={14}/></button>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,overflow:"hidden"}}>
+
+              {/* Products — first field */}
               <div style={{gridColumn:"span 2"}}>
-                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.description}</label>
-                <input className="gi" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder={t.descPlaceholder}/>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                  <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.products} *</label>
+                  <button type="button" className="ib" onClick={addProduct} style={{fontSize:11,padding:"3px 10px"}}>
+                    <Plus size={11}/> {t.addProduct}
+                  </button>
+                </div>
+                {form.products.length===0?(
+                  <p style={{fontSize:12,color:"rgba(255,255,255,0.18)",textAlign:"center",padding:"6px 0"}}>{t.noProductsYet}</p>
+                ):(
+                  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                    {form.products.map((prod,i)=>(
+                      <div key={i} style={{display:"flex",gap:6,alignItems:"center"}}>
+                        <input className="gi" value={prod.name} onChange={e=>updateProduct(i,"name",e.target.value)} placeholder={t.productName} style={{flex:1}} autoFocus={i===0&&form.products.length===1}/>
+                        <input className="gi" type="number" min="1" value={prod.qty} onChange={e=>updateProduct(i,"qty",Math.max(1,parseInt(e.target.value)||1))} style={{width:64,textAlign:"center"}} placeholder={t.qty}/>
+                        <button type="button" className="ib ibx" onClick={()=>removeProduct(i)} style={{flexShrink:0,padding:"6px 8px"}}><X size={12}/></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
+
               <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.orderNumber}</label>
                 <input className="gi" value={form.order_number} onChange={e=>setForm({...form,order_number:e.target.value})} placeholder={t.orderNumberPlaceholder}/>
               </div>
-              {form.status!=="Comandat"&&(
+              {form.status!=="Comandat"?(
                 <>
                   <div style={{minWidth:0}}>
                     <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.awbRequired}</label>
@@ -897,16 +919,27 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                       {COURIERS.map(c=><option key={c.name}>{c.name}</option>)}
                     </select>
                   </div>
+                  <div style={{minWidth:0}}>
+                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.shop}</label>
+                    <input className="gi" value={form.shop} onChange={e=>setForm({...form,shop:e.target.value})} placeholder={t.shopPlaceholder}/>
+                  </div>
+                  <div style={{minWidth:0}}>
+                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.amount}</label>
+                    <input className="gi" type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={t.amountPlaceholder}/>
+                  </div>
+                </>
+              ):(
+                <>
+                  <div style={{minWidth:0}}>
+                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.shop}</label>
+                    <input className="gi" value={form.shop} onChange={e=>setForm({...form,shop:e.target.value})} placeholder={t.shopPlaceholder}/>
+                  </div>
+                  <div style={{minWidth:0}}>
+                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.amount}</label>
+                    <input className="gi" type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={t.amountPlaceholder}/>
+                  </div>
                 </>
               )}
-              <div style={{minWidth:0}}>
-                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.shop}</label>
-                <input className="gi" value={form.shop} onChange={e=>setForm({...form,shop:e.target.value})} placeholder={t.shopPlaceholder}/>
-              </div>
-              <div style={{minWidth:0}}>
-                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.amount}</label>
-                <input className="gi" type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={t.amountPlaceholder}/>
-              </div>
               <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.status}</label>
                 <select className="gi" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
@@ -920,29 +953,6 @@ function MainApp({user,lang,setLang,pendingInvite}) {
               <div style={{gridColumn:"span 2"}}>
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.notes}</label>
                 <input className="gi" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder={t.notesPlaceholder}/>
-              </div>
-
-              {/* Products */}
-              <div style={{gridColumn:"span 2"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-                  <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.products}</label>
-                  <button type="button" className="ib" onClick={addProduct} style={{fontSize:11,padding:"3px 10px"}}>
-                    <Plus size={11}/> {t.addProduct}
-                  </button>
-                </div>
-                {form.products.length===0?(
-                  <p style={{fontSize:12,color:"rgba(255,255,255,0.18)",textAlign:"center",padding:"6px 0"}}>{t.noProductsYet}</p>
-                ):(
-                  <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                    {form.products.map((prod,i)=>(
-                      <div key={i} style={{display:"flex",gap:6,alignItems:"center"}}>
-                        <input className="gi" value={prod.name} onChange={e=>updateProduct(i,"name",e.target.value)} placeholder={t.productName} style={{flex:1}}/>
-                        <input className="gi" type="number" min="1" value={prod.qty} onChange={e=>updateProduct(i,"qty",Math.max(1,parseInt(e.target.value)||1))} style={{width:64,textAlign:"center"}} placeholder={t.qty}/>
-                        <button type="button" className="ib ibx" onClick={()=>removeProduct(i)} style={{flexShrink:0,padding:"6px 8px"}}><X size={12}/></button>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
             {formErr&&<p style={{fontSize:12,color:"#f87171",marginTop:8}}>{formErr}</p>}
