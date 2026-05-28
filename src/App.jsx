@@ -35,7 +35,7 @@ const T = {
     loginSub:"Track your parcels from any device",loginBtn:"Continue with Google",
     loginConnecting:"Connecting...",loginNote:"Each user sees only their own parcels.",
     statuses:{"Comandat":"Ordered","In livrare":"In delivery","Livrat":"Delivered"},
-    exportHeaders:["Description","Order No.","AWB","Courier","Status","Date","Shop","Amount","Notes"],
+    exportHeaders:["Description","Order No.","AWB","Courier","Status","Date","Shop","Amount","Notes","Products"],
     // Share
     share:"Share",shareTitle:"Share parcel",
     shareDesc:"Anyone with this link can view this parcel (read-only, no account needed).",
@@ -52,6 +52,9 @@ const T = {
     leaveGroup:"Leave group",
     moveToGroup:"Move to group",move:"Move",
     invalidInvite:"Invalid or expired invite link.",memberCount:(n)=>`${n} ${n===1?"member":"members"}`,
+    // Products
+    products:"Products",addProduct:"Add product",productName:"Product name",qty:"Qty",noProductsYet:"No products added yet.",
+    productCount:(n)=>`${n} ${n===1?"product":"products"}`,
   },
   ro: {
     appName:"Parcel Tracking",appSub:"Urmărește-ți coletele de pe orice device",
@@ -78,7 +81,7 @@ const T = {
     loginSub:"Urmărește-ți coletele de pe orice device",loginBtn:"Continuă cu Google",
     loginConnecting:"Se conectează...",loginNote:"Fiecare utilizator vede doar propriile colete.",
     statuses:{"Comandat":"Comandat","In livrare":"In livrare","Livrat":"Livrat"},
-    exportHeaders:["Descriere","Nr. comandă","AWB","Curier","Status","Data","Magazin","Suma","Note"],
+    exportHeaders:["Descriere","Nr. comandă","AWB","Curier","Status","Data","Magazin","Suma","Note","Produse"],
     // Share
     share:"Distribuie",shareTitle:"Distribuie colet",
     shareDesc:"Oricine cu acest link poate vedea acest colet (doar citire, fără cont necesar).",
@@ -95,6 +98,9 @@ const T = {
     leaveGroup:"Ieși din grup",
     moveToGroup:"Mută în grup",move:"Mută",
     invalidInvite:"Link de invitație invalid sau expirat.",memberCount:(n)=>`${n} ${n===1?"membru":"membri"}`,
+    // Products
+    products:"Produse",addProduct:"Adaugă produs",productName:"Numele produsului",qty:"Cant.",noProductsYet:"Niciun produs adăugat.",
+    productCount:(n)=>`${n} ${n===1?"produs":"produse"}`,
   },
 };
 
@@ -135,6 +141,7 @@ const STATUS_ORDER = {"Comandat":0,"In livrare":1,"Livrat":2};
 const emptyForm = () => ({
   name:"",awb:"",courier:"FAN Courier",status:"Comandat",
   date:new Date().toISOString().split("T")[0],notes:"",shop:"",amount:"",order_number:"",
+  products:[],
 });
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -618,7 +625,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
   }
 
   function openForm(p=null){
-    setForm(p?{name:p.name,awb:p.awb,courier:p.courier,status:p.status,date:p.date,notes:p.notes||"",shop:p.shop||"",amount:p.amount||"",order_number:p.order_number||""}:emptyForm());
+    setForm(p?{name:p.name,awb:p.awb,courier:p.courier,status:p.status,date:p.date,notes:p.notes||"",shop:p.shop||"",amount:p.amount||"",order_number:p.order_number||"",products:p.products||[]}:emptyForm());
     setEditId(p?p.id:null);setFormErr("");setShowForm(true);
   }
 
@@ -707,9 +714,14 @@ function MainApp({user,lang,setLang,pendingInvite}) {
     setMoveModal(null);
   }
 
+  // Product helpers
+  function addProduct(){ setForm(f=>({...f,products:[...f.products,{name:"",qty:1}]})); }
+  function removeProduct(i){ setForm(f=>({...f,products:f.products.filter((_,j)=>j!==i)})); }
+  function updateProduct(i,field,value){ setForm(f=>({...f,products:f.products.map((pr,j)=>j===i?{...pr,[field]:value}:pr)})); }
+
   function exportCSV(){
     const h=t.exportHeaders;
-    const rows=viewPkgs.map(p=>[p.name,p.order_number||"",p.awb,p.courier,t.statuses[p.status]||p.status,p.date,p.shop||"",p.amount||"",p.notes||""]);
+    const rows=viewPkgs.map(p=>[p.name,p.order_number||"",p.awb,p.courier,t.statuses[p.status]||p.status,p.date,p.shop||"",p.amount||"",p.notes||"",(p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; ")]);
     const csv=[h,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="parcels.csv";a.click();
@@ -722,6 +734,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
       [headers[0]]:p.name,[headers[1]]:p.order_number||"",[headers[2]]:p.awb,
       [headers[3]]:p.courier,[headers[4]]:t.statuses[p.status]||p.status,
       [headers[5]]:p.date,[headers[6]]:p.shop||"",[headers[7]]:p.amount||"",[headers[8]]:p.notes||"",
+      [headers[9]]:(p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; "),
     }));
     const ws=XLSX.utils.json_to_sheet(data);
     const wb=XLSX.utils.book_new();
@@ -908,6 +921,29 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                 <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.notes}</label>
                 <input className="gi" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder={t.notesPlaceholder}/>
               </div>
+
+              {/* Products */}
+              <div style={{gridColumn:"span 2"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                  <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.products}</label>
+                  <button type="button" className="ib" onClick={addProduct} style={{fontSize:11,padding:"3px 10px"}}>
+                    <Plus size={11}/> {t.addProduct}
+                  </button>
+                </div>
+                {form.products.length===0?(
+                  <p style={{fontSize:12,color:"rgba(255,255,255,0.18)",textAlign:"center",padding:"6px 0"}}>{t.noProductsYet}</p>
+                ):(
+                  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                    {form.products.map((prod,i)=>(
+                      <div key={i} style={{display:"flex",gap:6,alignItems:"center"}}>
+                        <input className="gi" value={prod.name} onChange={e=>updateProduct(i,"name",e.target.value)} placeholder={t.productName} style={{flex:1}}/>
+                        <input className="gi" type="number" min="1" value={prod.qty} onChange={e=>updateProduct(i,"qty",Math.max(1,parseInt(e.target.value)||1))} style={{width:64,textAlign:"center"}} placeholder={t.qty}/>
+                        <button type="button" className="ib ibx" onClick={()=>removeProduct(i)} style={{flexShrink:0,padding:"6px 8px"}}><X size={12}/></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             {formErr&&<p style={{fontSize:12,color:"#f87171",marginTop:8}}>{formErr}</p>}
             <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:"1.25rem"}}>
@@ -944,6 +980,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                         <span style={{fontWeight:500,fontSize:15,color:"white"}}>{p.name}</span>
                         <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{LBL(p.status)}</span>
                         {p.amount&&<span className="sp" style={{background:"rgba(52,211,153,0.12)",color:"#34d399",borderColor:"rgba(52,211,153,0.35)",fontSize:11}}>{Number(p.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
+                        {p.products&&p.products.length>0&&<span className="sp" style={{background:"rgba(251,191,36,0.12)",color:"#fbbf24",borderColor:"rgba(251,191,36,0.35)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
                         {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(167,139,250,0.12)",color:"#a78bfa",borderColor:"rgba(167,139,250,0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
                       </div>
                       <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
@@ -954,6 +991,15 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                         <span style={{fontSize:13,color:"rgba(255,255,255,0.3)"}}>{new Date(p.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>
                       </div>
                       {p.notes&&<div style={{fontSize:13,color:"rgba(255,255,255,0.3)",marginTop:4}}>{p.notes}</div>}
+                      {p.products&&p.products.length>0&&(
+                        <div style={{marginTop:5,display:"flex",gap:4,flexWrap:"wrap"}}>
+                          {p.products.map((prod,i)=>(
+                            <span key={i} style={{fontSize:11,color:"rgba(255,255,255,0.42)",background:"rgba(255,255,255,0.06)",padding:"2px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.09)"}}>
+                              {prod.qty>1?`${prod.qty}× `:""}{prod.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div style={{display:"flex",gap:4,flexShrink:0,alignItems:"flex-start"}}>
                       <button className="ib" onClick={()=>shareParcel(p)} disabled={isSharing} title={t.share}>
