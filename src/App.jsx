@@ -148,61 +148,66 @@ const emptyForm = () => ({
 
 const STYLES = `
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'DM Sans',sans-serif;background:#16033a;-webkit-font-smoothing:antialiased}
+  body{font-family:'Outfit',sans-serif;background:#0f0a1e;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
   @keyframes b1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.07)}66%{transform:translate(-18px,22px) scale(0.94)}}
   @keyframes b2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-35px,28px) scale(1.05)}66%{transform:translate(28px,-18px) scale(0.96)}}
   @keyframes b3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(22px,-42px) scale(1.06)}}
   @keyframes spin{to{transform:rotate(360deg)}}
   .spin{animation:spin 1s linear infinite}
-  .gc{background:rgba(255,255,255,0.08);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.14);border-radius:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 8px 32px rgba(0,0,0,0.2)}
-  .gc-strong{background:rgba(255,255,255,0.11);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border:1px solid rgba(255,255,255,0.2);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.32),0 20px 48px rgba(0,0,0,0.28)}
-  .pkg{background:rgba(255,255,255,0.055);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.09);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12),0 4px 16px rgba(0,0,0,0.1);padding:1rem 1.25rem;transition:border-color .2s}
-  .pkg:hover{border-color:rgba(255,255,255,0.17)}
-  .gi{background:rgba(0,0,0,0.28);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.11);border-radius:12px;color:white;font-size:14px;padding:10px 14px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .2s;width:100%}
-  .gi::placeholder{color:rgba(255,255,255,0.3)}
-  .gi:focus{border-color:rgba(255,255,255,0.32)}
-  .gi option{background:#1e293b;color:white}
-  .gb{background:rgba(255,255,255,0.09);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.18);border-radius:12px;color:rgba(255,255,255,0.88);cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;padding:8px 14px;transition:background .18s,transform .1s;display:inline-flex;align-items:center;gap:6px}
-  .gb:hover{background:rgba(255,255,255,0.15)}
-  .gb:active{transform:scale(0.97)}
-  .gb:disabled{opacity:0.4;cursor:not-allowed}
-  .gbp{background:rgba(167,139,250,0.28);border-color:rgba(167,139,250,0.5)}
-  .gbp:hover{background:rgba(167,139,250,0.38)}
-  .ib{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:rgba(255,255,255,0.65);cursor:pointer;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;font-family:'DM Sans',sans-serif;font-size:13px}
-  .ib:hover{background:rgba(255,255,255,0.14);color:white}
-  .ib:disabled{opacity:0.35;cursor:not-allowed}
-  .ibx:hover{background:rgba(248,113,113,0.18);border-color:rgba(248,113,113,0.4);color:#f87171}
-  .fp{font-size:13px;padding:5px 14px;border-radius:100px;cursor:pointer;border:1px solid rgba(255,255,255,0.13);background:rgba(255,255,255,0.055);color:rgba(255,255,255,0.65);transition:all .18s;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0}
-  .fp:hover{background:rgba(255,255,255,0.11);color:white}
-  .fp.act{background:rgba(255,255,255,0.17);border-color:rgba(255,255,255,0.28);color:white}
-  .sp{font-size:12px;padding:3px 10px;border-radius:100px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:'DM Sans',sans-serif}
+  .grain{position:fixed;inset:0;pointer-events:none;z-index:2;opacity:0.038;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
+  .gc{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.12);border-radius:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),0 8px 32px rgba(88,28,220,0.14)}
+  .gc-strong{background:rgba(255,255,255,0.09);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border:1px solid rgba(255,255,255,0.15);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.26),0 24px 56px rgba(88,28,220,0.22)}
+  .pkg{background:rgba(255,255,255,0.05);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.08);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 4px 16px rgba(88,28,220,0.1);padding:1rem 1.25rem;transition:border-color .25s,transform .25s,box-shadow .25s}
+  .pkg:hover{border-color:rgba(167,139,250,0.28);transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 8px 28px rgba(109,40,217,0.18)}
+  .gi{background:rgba(0,0,0,0.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:white;font-size:14px;padding:10px 14px;outline:none;font-family:'Outfit',sans-serif;transition:border-color .2s,box-shadow .2s;width:100%}
+  .gi::placeholder{color:rgba(255,255,255,0.25)}
+  .gi:focus{border-color:rgba(167,139,250,0.55);box-shadow:0 0 0 3px rgba(139,92,246,0.12)}
+  .gi option{background:#130d2a;color:white}
+  .gb{background:rgba(255,255,255,0.08);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.14);border-radius:12px;color:rgba(255,255,255,0.85);cursor:pointer;font-size:14px;font-family:'Outfit',sans-serif;padding:8px 16px;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+  .gb:hover{background:rgba(255,255,255,0.14);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,0.25)}
+  .gb:active{transform:scale(0.97) translateY(0)}
+  .gb:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
+  .gbp{background:rgba(109,40,217,0.32);border-color:rgba(167,139,250,0.48);box-shadow:0 4px 14px rgba(109,40,217,0.2)}
+  .gbp:hover{background:rgba(109,40,217,0.48);border-color:rgba(167,139,250,0.65);box-shadow:0 6px 20px rgba(109,40,217,0.32)}
+  .ib{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.09);border-radius:10px;color:rgba(255,255,255,0.55);cursor:pointer;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .18s;font-family:'Outfit',sans-serif;font-size:13px}
+  .ib:hover{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.9);transform:translateY(-1px)}
+  .ib:active{transform:scale(0.95)}
+  .ib:disabled{opacity:0.3;cursor:not-allowed;transform:none}
+  .ibx:hover{background:rgba(248,113,113,0.14);border-color:rgba(248,113,113,0.35);color:#f87171;transform:translateY(-1px)}
+  .fp{font-size:13px;padding:5px 14px;border-radius:100px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.045);color:rgba(255,255,255,0.55);transition:all .18s;font-family:'Outfit',sans-serif;white-space:nowrap;flex-shrink:0}
+  .fp:hover{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.88)}
+  .fp.act{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.24);color:white}
+  .sp{font-size:12px;padding:3px 10px;border-radius:100px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:'Outfit',sans-serif;letter-spacing:0.01em}
   .sp:hover{opacity:0.8}
   .sp:active{transform:scale(0.95)}
-  .em{position:absolute;top:calc(100% + 8px);right:0;background:rgba(12,18,35,0.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.14);border-radius:14px;padding:6px;min-width:165px;z-index:200;box-shadow:0 20px 40px rgba(0,0,0,0.45)}
-  .ei{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;cursor:pointer;color:rgba(255,255,255,0.78);font-size:14px;transition:background .15s;font-family:'DM Sans',sans-serif;background:none;border:none;width:100%;text-align:left}
+  .em{position:absolute;top:calc(100% + 8px);right:0;background:rgba(9,5,22,0.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:6px;min-width:165px;z-index:200;box-shadow:0 20px 40px rgba(88,28,220,0.24)}
+  .ei{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;cursor:pointer;color:rgba(255,255,255,0.75);font-size:14px;transition:background .15s;font-family:'Outfit',sans-serif;background:none;border:none;width:100%;text-align:left}
   .ei:hover{background:rgba(255,255,255,0.08);color:white}
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem}
-  .lang-btn{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:rgba(255,255,255,0.7);cursor:pointer;padding:5px 4px;display:inline-flex;align-items:center;gap:2px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;transition:all .15s;min-width:52px;justify-content:center}
-  .lang-btn:hover{background:rgba(255,255,255,0.13);color:white}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem}
+  .lang-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:rgba(255,255,255,0.65);cursor:pointer;padding:5px 4px;display:inline-flex;align-items:center;gap:2px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;transition:all .15s;min-width:52px;justify-content:center}
+  .lang-btn:hover{background:rgba(255,255,255,0.12);color:white}
   .lang-seg{padding:3px 7px;border-radius:7px;transition:all .15s;line-height:1}
-  .lang-seg.active{background:rgba(255,255,255,0.18);color:white}
+  .lang-seg.active{background:rgba(167,139,250,0.22);color:white}
   .gnav{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:1rem;scrollbar-width:none}
   .gnav::-webkit-scrollbar{display:none}
   a{color:inherit;text-decoration:none}
   ::-webkit-scrollbar{width:3px}
-  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.18);border-radius:2px}
+  ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.22);border-radius:2px}
+  :focus-visible{outline:2px solid rgba(167,139,250,0.55);outline-offset:2px;border-radius:4px}
 `;
 
 // ── Background ────────────────────────────────────────────────────────────────
 
 function Background() {
   return (
-    <div style={{position:"fixed",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
-      <div style={{position:"absolute",width:700,height:700,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,0.38) 0%,transparent 65%)",top:-220,left:-160,animation:"b1 13s ease-in-out infinite",filter:"blur(2px)"}} />
-      <div style={{position:"absolute",width:580,height:580,borderRadius:"50%",background:"radial-gradient(circle,rgba(6,182,212,0.28) 0%,transparent 65%)",top:"18%",right:-160,animation:"b2 16s ease-in-out infinite",filter:"blur(2px)"}} />
-      <div style={{position:"absolute",width:480,height:480,borderRadius:"50%",background:"radial-gradient(circle,rgba(236,72,153,0.22) 0%,transparent 65%)",bottom:-80,left:"28%",animation:"b3 19s ease-in-out infinite",filter:"blur(2px)"}} />
-      <div style={{position:"absolute",width:380,height:380,borderRadius:"50%",background:"radial-gradient(circle,rgba(16,185,129,0.18) 0%,transparent 65%)",bottom:"8%",right:"4%",animation:"b1 22s ease-in-out infinite reverse",filter:"blur(2px)"}} />
-    </div>
+    <>
+      <div style={{position:"fixed",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
+        <div style={{position:"absolute",width:750,height:750,borderRadius:"50%",background:"radial-gradient(circle,rgba(109,40,217,0.38) 0%,transparent 65%)",top:-240,left:-180,animation:"b1 14s ease-in-out infinite",filter:"blur(3px)"}} />
+        <div style={{position:"absolute",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(79,57,196,0.24) 0%,transparent 65%)",top:"16%",right:-180,animation:"b2 17s ease-in-out infinite",filter:"blur(3px)"}} />
+        <div style={{position:"absolute",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,0.18) 0%,transparent 65%)",bottom:-100,left:"26%",animation:"b3 20s ease-in-out infinite",filter:"blur(3px)"}} />
+      </div>
+      <div className="grain"/>
+    </>
   );
 }
 
@@ -237,7 +242,7 @@ function SharedParcelView({token,lang,setLang}) {
   const LBL  = (s)=>t.statuses[s]||s;
 
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#16033a 0%,#0b1735 45%,#07121f 100%)",position:"relative"}}>
+    <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#0f0a1e 0%,#0a0818 50%,#060410 100%)",position:"relative"}}>
       <Background/>
       <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem",maxWidth:800,margin:"0 auto"}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:"1.5rem",flexWrap:"wrap"}}>
@@ -467,7 +472,7 @@ function LoginScreen({lang,setLang}) {
   }
 
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#16033a 0%,#0b1735 45%,#07121f 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem",position:"relative"}}>
+    <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#0f0a1e 0%,#0a0818 50%,#060410 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem",position:"relative"}}>
       <Background/>
       <div style={{position:"absolute",top:16,right:16,zIndex:10}}>
         <LangToggle lang={lang} setLang={setLang}/>
@@ -477,7 +482,7 @@ function LoginScreen({lang,setLang}) {
           <div className="gc" style={{display:"inline-flex",padding:"12px",borderRadius:20,marginBottom:16}}>
             <Package size={28} style={{color:"#a78bfa"}}/>
           </div>
-          <h1 style={{fontSize:22,fontWeight:700,color:"white",letterSpacing:"-0.02em"}}>{t.appName}</h1>
+          <h1 style={{fontSize:22,fontWeight:700,color:"white",letterSpacing:"-0.03em"}}>{t.appName}</h1>
           <p style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginTop:6}}>{t.loginSub}</p>
         </div>
         <button onClick={loginWithGoogle} disabled={busy}
@@ -772,7 +777,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
   }
 
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#16033a 0%,#0b1735 45%,#07121f 100%)",position:"relative"}}>
+    <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#0f0a1e 0%,#0a0818 50%,#060410 100%)",position:"relative"}}>
       <Background/>
       <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem",maxWidth:800,margin:"0 auto"}}>
 
@@ -784,7 +789,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
               <Package size={20} style={{color:"#a78bfa"}}/>
             </div>
             <div style={{flex:1,minWidth:0}}>
-              <h1 style={{fontSize:18,fontWeight:600,color:"white",letterSpacing:"-0.01em"}}>{t.appName}</h1>
+              <h1 style={{fontSize:18,fontWeight:600,color:"white",letterSpacing:"-0.02em"}}>{t.appName}</h1>
               <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:1}}>
                 {loading?t.loading:t.parcels(viewPkgs.length)}
               </p>
@@ -987,7 +992,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:5}}>
-                        <span style={{fontWeight:500,fontSize:15,color:"white"}}>{p.name}</span>
+                        <span style={{fontWeight:600,fontSize:15,color:"white",letterSpacing:"-0.01em"}}>{p.name}</span>
                         <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{LBL(p.status)}</span>
                         {p.amount&&<span className="sp" style={{background:"rgba(52,211,153,0.12)",color:"#34d399",borderColor:"rgba(52,211,153,0.35)",fontSize:11}}>{Number(p.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
                         {p.products&&p.products.length>0&&<span className="sp" style={{background:"rgba(251,191,36,0.12)",color:"#fbbf24",borderColor:"rgba(251,191,36,0.35)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
@@ -1076,7 +1081,7 @@ export default function App() {
     <>
       <style>{STYLES}</style>
       {loadingAuth?(
-        <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#16033a 0%,#0b1735 45%,#07121f 100%)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#0f0a1e 0%,#0a0818 50%,#060410 100%)",display:"flex",alignItems:"center",justifyContent:"center"}}>
           <Background/>
         </div>
       ):session?(
