@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   Plus, Trash2, ExternalLink, X, Search, Package, Download,
   FileText, Loader, ChevronDown, LogOut, Share2, Users, Copy,
-  Check, UserPlus, RefreshCw,
+  Check, UserPlus, RefreshCw, Sun, Moon,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { supabase } from "./supabase.js";
@@ -105,6 +105,7 @@ const T = {
 };
 
 const LANG_KEY = "parcel-lang";
+const THEME_KEY = "parcel-theme";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -148,58 +149,109 @@ const emptyForm = () => ({
 
 const STYLES = `
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Outfit',sans-serif;background:#0f0a1e;-webkit-font-smoothing:antialiased;scroll-behavior:smooth;overflow-x:hidden}
+  :root,[data-theme="dark"]{
+    --ink:255,255,255;
+    --frost:255,255,255;
+    --bg:linear-gradient(140deg,#0f0a1e 0%,#0a0818 50%,#060410 100%);
+    --bg-solid:#0f0a1e;
+    --glass-bg:rgba(var(--frost),0.07);
+    --glass-bg-strong:rgba(var(--frost),0.09);
+    --glass-bg-hover:rgba(var(--frost),0.14);
+    --glass-border:rgba(var(--frost),0.12);
+    --glass-border-strong:rgba(var(--frost),0.16);
+    --glass-hi:rgba(var(--frost),0.18);
+    --pkg-bg:rgba(var(--frost),0.05);
+    --pkg-border:rgba(var(--frost),0.08);
+    --input-bg:rgba(0,0,0,0.25);
+    --input-border:rgba(var(--frost),0.1);
+    --btn-bg:rgba(var(--frost),0.08);
+    --btn-border:rgba(var(--frost),0.14);
+    --menu-bg:rgba(9,5,22,0.96);
+    --option-bg:#130d2a;
+    --scrim:rgba(0,0,0,0.6);
+    --shadow:rgba(88,28,220,0.14);
+    --shadow-strong:rgba(88,28,220,0.22);
+    --grain-op:0.04;
+    --blob-op:1;
+  }
+  [data-theme="light"]{
+    --ink:30,27,56;
+    --frost:255,255,255;
+    --bg:linear-gradient(140deg,#eef0fb 0%,#e8ebf7 50%,#edeaf8 100%);
+    --bg-solid:#eef0fb;
+    --glass-bg:rgba(var(--frost),0.55);
+    --glass-bg-strong:rgba(var(--frost),0.72);
+    --glass-bg-hover:rgba(var(--frost),0.85);
+    --glass-border:rgba(var(--frost),0.85);
+    --glass-border-strong:rgba(var(--frost),0.95);
+    --glass-hi:rgba(var(--frost),0.9);
+    --pkg-bg:rgba(var(--frost),0.55);
+    --pkg-border:rgba(var(--frost),0.8);
+    --input-bg:rgba(var(--frost),0.65);
+    --input-border:rgba(var(--ink),0.14);
+    --btn-bg:rgba(var(--frost),0.62);
+    --btn-border:rgba(var(--ink),0.1);
+    --menu-bg:rgba(var(--frost),0.93);
+    --option-bg:#ffffff;
+    --scrim:rgba(30,27,56,0.28);
+    --shadow:rgba(80,60,170,0.13);
+    --shadow-strong:rgba(80,60,170,0.2);
+    --grain-op:0.02;
+    --blob-op:0.45;
+  }
+  body{font-family:'Outfit',sans-serif;background:var(--bg-solid);-webkit-font-smoothing:antialiased;scroll-behavior:smooth;overflow-x:hidden;transition:background .35s ease}
   @keyframes b1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.07)}66%{transform:translate(-18px,22px) scale(0.94)}}
   @keyframes b2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-35px,28px) scale(1.05)}66%{transform:translate(28px,-18px) scale(0.96)}}
   @keyframes b3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(22px,-42px) scale(1.06)}}
   @keyframes spin{to{transform:rotate(360deg)}}
   .spin{animation:spin 1s linear infinite}
-  .grain{position:fixed;inset:0;pointer-events:none;z-index:2;opacity:0.038;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
-  .gc{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.12);border-radius:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),0 8px 32px rgba(88,28,220,0.14)}
-  .gc-strong{background:rgba(255,255,255,0.09);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border:1px solid rgba(255,255,255,0.15);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.26),0 24px 56px rgba(88,28,220,0.22)}
-  .pkg{background:rgba(255,255,255,0.05);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.08);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 4px 16px rgba(88,28,220,0.1);padding:1rem 1.25rem;transition:border-color .25s,transform .25s,box-shadow .25s;overflow:hidden}
-  .pkg:hover{border-color:rgba(167,139,250,0.28);transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 8px 28px rgba(109,40,217,0.18)}
-  .gi{background:rgba(0,0,0,0.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:white;font-size:14px;padding:10px 14px;outline:none;font-family:'Outfit',sans-serif;transition:border-color .2s,box-shadow .2s;width:100%}
-  .gi::placeholder{color:rgba(255,255,255,0.25)}
-  .gi:focus{border-color:rgba(167,139,250,0.55);box-shadow:0 0 0 3px rgba(139,92,246,0.12)}
-  .gi option{background:#130d2a;color:white}
-  .gb{background:rgba(255,255,255,0.08);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.14);border-radius:12px;color:rgba(255,255,255,0.85);cursor:pointer;font-size:14px;font-family:'Outfit',sans-serif;padding:8px 16px;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
-  .gb:hover{background:rgba(255,255,255,0.14);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,0.25)}
+  .bg-blobs{opacity:var(--blob-op);transition:opacity .35s ease}
+  .grain{position:fixed;inset:0;pointer-events:none;z-index:2;opacity:var(--grain-op);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
+  .gc{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-border);border-radius:20px;box-shadow:inset 0 1px 0 var(--glass-hi),0 8px 32px var(--shadow)}
+  .gc-strong{background:var(--glass-bg-strong);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border:1px solid var(--glass-border-strong);border-radius:24px;box-shadow:inset 0 1px 0 var(--glass-hi),0 24px 56px var(--shadow-strong)}
+  .pkg{background:var(--pkg-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--pkg-border);border-radius:18px;box-shadow:inset 0 1px 0 var(--glass-hi),0 4px 16px var(--shadow);padding:1rem 1.25rem;transition:border-color .25s,transform .25s,box-shadow .25s,background .35s;overflow:hidden}
+  .pkg:hover{border-color:rgba(167,139,250,0.4);transform:translateY(-1px);box-shadow:inset 0 1px 0 var(--glass-hi),0 8px 28px var(--shadow-strong)}
+  .gi{background:var(--input-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--input-border);border-radius:12px;color:rgb(var(--ink));font-size:14px;padding:10px 14px;outline:none;font-family:'Outfit',sans-serif;transition:border-color .2s,box-shadow .2s,background .35s;width:100%}
+  .gi::placeholder{color:rgba(var(--ink),0.4)}
+  .gi:focus{border-color:rgba(167,139,250,0.55);box-shadow:0 0 0 3px rgba(139,92,246,0.14)}
+  .gi option{background:var(--option-bg);color:rgb(var(--ink))}
+  .gb{background:var(--btn-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--btn-border);border-radius:12px;color:rgba(var(--ink),0.85);cursor:pointer;font-size:14px;font-family:'Outfit',sans-serif;padding:8px 16px;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+  .gb:hover{background:var(--glass-bg-hover);transform:translateY(-1px);box-shadow:0 4px 14px var(--shadow)}
   .gb:active{transform:scale(0.97) translateY(0)}
   .gb:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
-  .gbp{background:rgba(109,40,217,0.32);border-color:rgba(167,139,250,0.48);box-shadow:0 4px 14px rgba(109,40,217,0.2)}
-  .gbp:hover{background:rgba(109,40,217,0.48);border-color:rgba(167,139,250,0.65);box-shadow:0 6px 20px rgba(109,40,217,0.32)}
-  .ib{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.09);border-radius:10px;color:rgba(255,255,255,0.55);cursor:pointer;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .18s;font-family:'Outfit',sans-serif;font-size:13px}
-  .ib:hover{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.9);transform:translateY(-1px)}
+  .gbp{background:rgba(109,40,217,0.9);border-color:rgba(167,139,250,0.6);box-shadow:0 4px 14px rgba(109,40,217,0.28);color:#fff}
+  .gbp:hover{background:rgba(124,58,237,1);border-color:rgba(167,139,250,0.8);box-shadow:0 6px 20px rgba(109,40,217,0.4)}
+  .ib{background:var(--btn-bg);border:1px solid var(--btn-border);border-radius:10px;color:rgba(var(--ink),0.55);cursor:pointer;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .18s;font-family:'Outfit',sans-serif;font-size:13px}
+  .ib:hover{background:var(--glass-bg-hover);color:rgba(var(--ink),0.9);transform:translateY(-1px)}
   .ib:active{transform:scale(0.95)}
   .ib:disabled{opacity:0.3;cursor:not-allowed;transform:none}
-  .ibx:hover{background:rgba(248,113,113,0.14);border-color:rgba(248,113,113,0.35);color:#f87171;transform:translateY(-1px)}
-  .fp{font-size:13px;padding:5px 14px;border-radius:100px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.045);color:rgba(255,255,255,0.55);transition:all .18s;font-family:'Outfit',sans-serif;white-space:nowrap;flex-shrink:0}
-  .fp:hover{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.88)}
-  .fp.act{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.24);color:white}
+  .ibx:hover{background:rgba(248,113,113,0.16);border-color:rgba(248,113,113,0.4);color:#ef4444;transform:translateY(-1px)}
+  .fp{font-size:13px;padding:5px 14px;border-radius:100px;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass-bg);color:rgba(var(--ink),0.6);transition:all .18s;font-family:'Outfit',sans-serif;white-space:nowrap;flex-shrink:0}
+  .fp:hover{background:var(--glass-bg-hover);color:rgba(var(--ink),0.9)}
+  .fp.act{background:var(--glass-bg-hover);border-color:var(--glass-border-strong);color:rgb(var(--ink))}
   .sp{font-size:12px;padding:3px 10px;border-radius:100px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:'Outfit',sans-serif;letter-spacing:0.01em}
   .sp:hover{opacity:0.8}
   .sp:active{transform:scale(0.95)}
-  .em{position:absolute;top:calc(100% + 8px);right:0;background:rgba(9,5,22,0.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:6px;min-width:165px;z-index:200;box-shadow:0 20px 40px rgba(88,28,220,0.24)}
-  .ei{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;cursor:pointer;color:rgba(255,255,255,0.75);font-size:14px;transition:background .15s;font-family:'Outfit',sans-serif;background:none;border:none;width:100%;text-align:left}
-  .ei:hover{background:rgba(255,255,255,0.08);color:white}
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem}
-  .lang-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:rgba(255,255,255,0.65);cursor:pointer;padding:5px 4px;display:inline-flex;align-items:center;gap:2px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;transition:all .15s;min-width:52px;justify-content:center}
-  .lang-btn:hover{background:rgba(255,255,255,0.12);color:white}
-  .lang-seg{padding:3px 7px;border-radius:7px;transition:all .15s;line-height:1}
-  .lang-seg.active{background:rgba(167,139,250,0.22);color:white}
+  .em{position:absolute;top:calc(100% + 8px);right:0;background:var(--menu-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--glass-border);border-radius:14px;padding:6px;min-width:165px;z-index:200;box-shadow:0 20px 40px var(--shadow-strong)}
+  .ei{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;cursor:pointer;color:rgba(var(--ink),0.78);font-size:14px;transition:background .15s;font-family:'Outfit',sans-serif;background:none;border:none;width:100%;text-align:left}
+  .ei:hover{background:var(--glass-bg-hover);color:rgb(var(--ink))}
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem}
+  .lang-btn{background:var(--btn-bg);border:1px solid var(--btn-border);border-radius:10px;color:rgba(var(--ink),0.65);cursor:pointer;padding:5px 4px;display:inline-flex;align-items:center;gap:2px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;transition:all .15s;min-width:52px;justify-content:center}
+  .lang-btn:hover{background:var(--glass-bg-hover);color:rgb(var(--ink))}
+  .lang-seg{padding:3px 7px;border-radius:7px;transition:all .15s;line-height:1;display:inline-flex;align-items:center}
+  .lang-seg.active{background:rgba(167,139,250,0.28);color:rgb(var(--ink))}
   .gnav{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:1rem;scrollbar-width:none}
   .gnav::-webkit-scrollbar{display:none}
   a{color:inherit;text-decoration:none}
   ::-webkit-scrollbar{width:3px}
   ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.22);border-radius:2px}
-  :focus-visible{outline:2px solid rgba(167,139,250,0.55);outline-offset:2px;border-radius:4px}
-  .pkg-name{font-weight:600;font-size:15px;color:#fff;letter-spacing:-0.01em;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+  :focus-visible{outline:2px solid rgba(167,139,250,0.6);outline-offset:2px;border-radius:4px}
+  .pkg-name{font-weight:600;font-size:15px;color:rgb(var(--ink));letter-spacing:-0.01em;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
   .pkg-content{flex:1;min-width:0;overflow:hidden}
   .pkg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
   .pkg-actions{display:flex;gap:4px;flex-shrink:0;align-items:flex-start}
   .pkg-meta{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center}
-  .ptag{display:block;font-size:12px;color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.06);padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,0.09);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ptag{display:block;font-size:12px;color:rgba(var(--ink),0.5);background:rgba(var(--ink),0.06);padding:3px 9px;border-radius:6px;border:1px solid rgba(var(--ink),0.1);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   @media (max-width:520px){
     .pkg{padding:0.875rem 1rem}
     .pkg-top{flex-direction:column;gap:10px}
@@ -214,7 +266,7 @@ const STYLES = `
 function Background() {
   return (
     <>
-      <div style={{position:"fixed",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
+      <div className="bg-blobs" style={{position:"fixed",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
         <div style={{position:"absolute",width:750,height:750,borderRadius:"50%",background:"radial-gradient(circle,rgba(109,40,217,0.38) 0%,transparent 65%)",top:-240,left:-180,animation:"b1 14s ease-in-out infinite",filter:"blur(3px)"}} />
         <div style={{position:"absolute",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(79,57,196,0.24) 0%,transparent 65%)",top:"16%",right:-180,animation:"b2 17s ease-in-out infinite",filter:"blur(3px)"}} />
         <div style={{position:"absolute",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,0.18) 0%,transparent 65%)",bottom:-100,left:"26%",animation:"b3 20s ease-in-out infinite",filter:"blur(3px)"}} />
@@ -230,15 +282,28 @@ function LangToggle({lang,setLang}) {
   return (
     <button className="lang-btn" onClick={()=>setLang(l=>{const n=l==="en"?"ro":"en";localStorage.setItem(LANG_KEY,n);return n;})}>
       <span className={`lang-seg${lang==="en"?" active":""}`}>EN</span>
-      <span style={{color:"rgba(255,255,255,0.2)",fontSize:10}}>·</span>
+      <span style={{color:"rgba(var(--ink),0.2)",fontSize:10}}>·</span>
       <span className={`lang-seg${lang==="ro"?" active":""}`}>RO</span>
+    </button>
+  );
+}
+
+// ── ThemeToggle ───────────────────────────────────────────────────────────────
+
+function ThemeToggle({theme,setTheme}) {
+  return (
+    <button className="lang-btn" title={theme==="dark"?"Light mode":"Dark mode"} aria-label="Toggle theme"
+      onClick={()=>setTheme(prev=>{const n=prev==="dark"?"light":"dark";localStorage.setItem(THEME_KEY,n);return n;})}>
+      <span className={`lang-seg${theme==="light"?" active":""}`}><Sun size={12}/></span>
+      <span style={{color:"rgba(var(--ink),0.2)",fontSize:10}}>·</span>
+      <span className={`lang-seg${theme==="dark"?" active":""}`}><Moon size={12}/></span>
     </button>
   );
 }
 
 // ── SharedParcelView ──────────────────────────────────────────────────────────
 
-function SharedParcelView({token,lang,setLang}) {
+function SharedParcelView({token,lang,setLang,theme,setTheme}) {
   const t = T[lang];
   const [pkg,setPkg]       = useState(null);
   const [loading,setLoading] = useState(true);
@@ -255,7 +320,7 @@ function SharedParcelView({token,lang,setLang}) {
   const LBL  = (s)=>t.statuses[s]||s;
 
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#0f0a1e 0%,#0a0818 50%,#060410 100%)",position:"relative"}}>
+    <div style={{minHeight:"100vh",background:"var(--bg)",position:"relative"}}>
       <Background/>
       <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem",maxWidth:800,margin:"0 auto"}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:"1.5rem",flexWrap:"wrap"}}>
@@ -264,24 +329,24 @@ function SharedParcelView({token,lang,setLang}) {
               <Package size={20} style={{color:"#a78bfa"}}/>
             </div>
             <div>
-              <h1 style={{fontSize:18,fontWeight:600,color:"white"}}>{t.sharedParcel}</h1>
-              <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:1}}>{t.appName}</p>
+              <h1 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))"}}>{t.sharedParcel}</h1>
+              <p style={{fontSize:12,color:"rgba(var(--ink),0.4)",marginTop:1}}>{t.appName}</p>
             </div>
           </div>
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            <LangToggle lang={lang} setLang={setLang}/>
+            <ThemeToggle theme={theme} setTheme={setTheme}/><LangToggle lang={lang} setLang={setLang}/>
             <a href={BASE} className="gb">{t.backToApp}</a>
           </div>
         </div>
 
         {loading ? (
-          <div style={{textAlign:"center",padding:"3rem",color:"rgba(255,255,255,0.4)",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          <div style={{textAlign:"center",padding:"3rem",color:"rgba(var(--ink),0.4)",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
             <Loader size={16} className="spin"/> {t.loading}
           </div>
         ) : error||!pkg ? (
           <div className="gc" style={{padding:"3rem",textAlign:"center"}}>
-            <Package size={32} style={{color:"rgba(255,255,255,0.15)",marginBottom:12}}/>
-            <p style={{color:"rgba(255,255,255,0.4)",fontSize:14}}>{t.invalidInvite}</p>
+            <Package size={32} style={{color:"rgba(var(--ink),0.15)",marginBottom:12}}/>
+            <p style={{color:"rgba(var(--ink),0.4)",fontSize:14}}>{t.invalidInvite}</p>
           </div>
         ) : (()=>{
           const cfg=SC[pkg.status]||SC_FB;
@@ -292,18 +357,18 @@ function SharedParcelView({token,lang,setLang}) {
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:5}}>
-                    <span style={{fontWeight:500,fontSize:15,color:"white"}}>{pkg.name}</span>
+                    <span style={{fontWeight:500,fontSize:15,color:"rgb(var(--ink))"}}>{pkg.name}</span>
                     <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border,cursor:"default"}}>{LBL(pkg.status)}</span>
                     {pkg.amount&&<span className="sp" style={{background:"rgba(52,211,153,0.12)",color:"#34d399",borderColor:"rgba(52,211,153,0.35)",fontSize:11,cursor:"default"}}>{Number(pkg.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
                   </div>
                   <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
-                    {pkg.order_number&&<span style={{fontSize:13,color:"rgba(255,255,255,0.55)",fontWeight:500}}>#{pkg.order_number.replace(/^#/,"")}</span>}
-                    {pkg.status!=="Comandat"&&pkg.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(255,255,255,0.42)"}}>{pkg.awb}</span>}
-                    {pkg.status!=="Comandat"&&pkg.courier&&<span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{pkg.courier}</span>}
-                    {pkg.shop&&<span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{pkg.shop}</span>}
-                    {pkg.date&&<span style={{fontSize:13,color:"rgba(255,255,255,0.3)"}}>{new Date(pkg.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>}
+                    {pkg.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.55)",fontWeight:500}}>#{pkg.order_number.replace(/^#/,"")}</span>}
+                    {pkg.status!=="Comandat"&&pkg.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.awb}</span>}
+                    {pkg.status!=="Comandat"&&pkg.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.courier}</span>}
+                    {pkg.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.shop}</span>}
+                    {pkg.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{new Date(pkg.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>}
                   </div>
-                  {pkg.notes&&<div style={{fontSize:13,color:"rgba(255,255,255,0.3)",marginTop:4}}>{pkg.notes}</div>}
+                  {pkg.notes&&<div style={{fontSize:13,color:"rgba(var(--ink),0.3)",marginTop:4}}>{pkg.notes}</div>}
                 </div>
                 {url&&pkg.awb&&<a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={13}/></a>}
               </div>
@@ -326,12 +391,12 @@ function ShareModal({shareUrl,onClose,t}) {
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="gc-strong" style={{padding:"1.5rem",maxWidth:460,width:"100%"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
-          <h2 style={{fontSize:15,fontWeight:600,color:"white",display:"flex",alignItems:"center",gap:8}}>
+          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
             <Share2 size={15} style={{color:"#a78bfa"}}/> {t.shareTitle}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
-        <p style={{fontSize:13,color:"rgba(255,255,255,0.5)",marginBottom:"1rem",lineHeight:1.6}}>{t.shareDesc}</p>
+        <p style={{fontSize:13,color:"rgba(var(--ink),0.5)",marginBottom:"1rem",lineHeight:1.6}}>{t.shareDesc}</p>
         <div style={{display:"flex",gap:8,marginBottom:"1rem"}}>
           <input className="gi" readOnly value={shareUrl} style={{fontFamily:"monospace",fontSize:11}} onClick={e=>e.target.select()}/>
           <button className="gb gbp" onClick={copy} style={{flexShrink:0,whiteSpace:"nowrap"}}>
@@ -376,14 +441,14 @@ function GroupModal({user,onClose,onCreated,t}) {
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="gc-strong" style={{padding:"1.5rem",maxWidth:460,width:"100%"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
-          <h2 style={{fontSize:15,fontWeight:600,color:"white",display:"flex",alignItems:"center",gap:8}}>
+          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
             <Users size={15} style={{color:"#a78bfa"}}/> {created?t.inviteTitle:t.newGroup}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
         {!created?(
           <>
-            <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.groupName}</label>
+            <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.groupName}</label>
             <input className="gi" value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&createGroup()} placeholder={t.groupNamePlaceholder} autoFocus style={{marginBottom:14}}/>
             <div style={{display:"flex",justifyContent:"flex-end",gap:8}}>
               <button className="gb" onClick={onClose}>{t.cancel}</button>
@@ -395,8 +460,8 @@ function GroupModal({user,onClose,onCreated,t}) {
           </>
         ):(
           <>
-            <p style={{fontSize:13,color:"rgba(255,255,255,0.5)",marginBottom:"1rem",lineHeight:1.6}}>{t.inviteDesc}</p>
-            <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.inviteLink}</label>
+            <p style={{fontSize:13,color:"rgba(var(--ink),0.5)",marginBottom:"1rem",lineHeight:1.6}}>{t.inviteDesc}</p>
+            <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.inviteLink}</label>
             <div style={{display:"flex",gap:8,marginBottom:14}}>
               <input className="gi" readOnly value={inviteUrl} style={{fontFamily:"monospace",fontSize:11}} onClick={e=>e.target.select()}/>
               <button className="gb gbp" onClick={copyInvite} style={{flexShrink:0,whiteSpace:"nowrap"}}>
@@ -440,18 +505,18 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
           <Users size={24} style={{color:"#a78bfa"}}/>
         </div>
         {loading?(
-          <div style={{color:"rgba(255,255,255,0.4)",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          <div style={{color:"rgba(var(--ink),0.4)",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
             <Loader size={14} className="spin"/>{t.loading}
           </div>
         ):done?(
           <div>
             <div style={{fontSize:36,marginBottom:8}}>✓</div>
-            <p style={{color:"white",fontSize:15,fontWeight:500}}>{t.joined}</p>
+            <p style={{color:"rgb(var(--ink))",fontSize:15,fontWeight:500}}>{t.joined}</p>
           </div>
         ):group?(
           <>
-            <h2 style={{fontSize:18,fontWeight:600,color:"white",marginBottom:6}}>{group.name}</h2>
-            <p style={{fontSize:13,color:"rgba(255,255,255,0.45)",marginBottom:"1.5rem"}}>{t.joinGroup}?</p>
+            <h2 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))",marginBottom:6}}>{group.name}</h2>
+            <p style={{fontSize:13,color:"rgba(var(--ink),0.45)",marginBottom:"1.5rem"}}>{t.joinGroup}?</p>
             <div style={{display:"flex",gap:8,justifyContent:"center"}}>
               <button className="gb" onClick={onDismiss}>{t.cancel}</button>
               <button className="gb gbp" onClick={join} disabled={busy}>
@@ -461,7 +526,7 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
             </div>
           </>
         ):(
-          <p style={{color:"rgba(255,255,255,0.45)",fontSize:13}}>{t.invalidInvite}</p>
+          <p style={{color:"rgba(var(--ink),0.45)",fontSize:13}}>{t.invalidInvite}</p>
         )}
       </div>
     </div>
@@ -470,7 +535,7 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
 
 // ── LoginScreen ───────────────────────────────────────────────────────────────
 
-function LoginScreen({lang,setLang}) {
+function LoginScreen({lang,setLang,theme,setTheme}) {
   const t=T[lang];
   const [busy,setBusy]=useState(false);
   const [err,setErr]  =useState("");
@@ -485,18 +550,18 @@ function LoginScreen({lang,setLang}) {
   }
 
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#0f0a1e 0%,#0a0818 50%,#060410 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem",position:"relative"}}>
+    <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem",position:"relative"}}>
       <Background/>
       <div style={{position:"absolute",top:16,right:16,zIndex:10}}>
-        <LangToggle lang={lang} setLang={setLang}/>
+        <ThemeToggle theme={theme} setTheme={setTheme}/><LangToggle lang={lang} setLang={setLang}/>
       </div>
       <div className="gc-strong" style={{maxWidth:400,width:"100%",padding:"2rem",position:"relative",zIndex:1}}>
         <div style={{textAlign:"center",marginBottom:"2rem"}}>
           <div className="gc" style={{display:"inline-flex",padding:"12px",borderRadius:20,marginBottom:16}}>
             <Package size={28} style={{color:"#a78bfa"}}/>
           </div>
-          <h1 style={{fontSize:22,fontWeight:700,color:"white",letterSpacing:"-0.03em"}}>{t.appName}</h1>
-          <p style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginTop:6}}>{t.loginSub}</p>
+          <h1 style={{fontSize:22,fontWeight:700,color:"rgb(var(--ink))",letterSpacing:"-0.03em"}}>{t.appName}</h1>
+          <p style={{fontSize:13,color:"rgba(var(--ink),0.4)",marginTop:6}}>{t.loginSub}</p>
         </div>
         <button onClick={loginWithGoogle} disabled={busy}
           style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"13px 16px",background:"white",border:"none",borderRadius:14,cursor:"pointer",fontSize:15,fontWeight:500,color:"#1f1f1f",fontFamily:"'DM Sans',sans-serif",opacity:busy?0.7:1,transition:"opacity .15s"}}>
@@ -511,7 +576,7 @@ function LoginScreen({lang,setLang}) {
           {busy?t.loginConnecting:t.loginBtn}
         </button>
         {err&&<p style={{fontSize:12,color:"#f87171",marginTop:12,textAlign:"center"}}>{err}</p>}
-        <p style={{fontSize:11,color:"rgba(255,255,255,0.2)",textAlign:"center",marginTop:20,lineHeight:1.6}}>{t.loginNote}</p>
+        <p style={{fontSize:11,color:"rgba(var(--ink),0.2)",textAlign:"center",marginTop:20,lineHeight:1.6}}>{t.loginNote}</p>
       </div>
     </div>
   );
@@ -531,16 +596,16 @@ function MoveModal({pkg, groups, onMove, onClose, t}) {
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="gc-strong" style={{padding:"1.5rem",maxWidth:400,width:"100%"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
-          <h2 style={{fontSize:15,fontWeight:600,color:"white",display:"flex",alignItems:"center",gap:8}}>
+          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
             <Users size={15} style={{color:"#a78bfa"}}/> {t.moveToGroup}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
-        <p style={{fontSize:13,color:"rgba(255,255,255,0.5)",marginBottom:"1rem"}}>{pkg.name}</p>
+        <p style={{fontSize:13,color:"rgba(var(--ink),0.5)",marginBottom:"1rem"}}>{pkg.name}</p>
         <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:"1.25rem"}}>
           {options.map(o=>(
             <button key={o.id} onClick={()=>setSelected(o.id)}
-              style={{padding:"10px 14px",borderRadius:12,border:`1px solid ${selected===o.id?"rgba(167,139,250,0.5)":"rgba(255,255,255,0.1)"}`,background:selected===o.id?"rgba(167,139,250,0.18)":"rgba(255,255,255,0.04)",color:selected===o.id?"#a78bfa":"rgba(255,255,255,0.7)",cursor:"pointer",textAlign:"left",fontSize:14,fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
+              style={{padding:"10px 14px",borderRadius:12,border:`1px solid ${selected===o.id?"rgba(167,139,250,0.5)":"rgba(var(--ink),0.1)"}`,background:selected===o.id?"rgba(167,139,250,0.18)":"rgba(var(--ink),0.04)",color:selected===o.id?"#a78bfa":"rgba(var(--ink),0.7)",cursor:"pointer",textAlign:"left",fontSize:14,fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
               {o.id==="personal"?<Package size={13}/>:<Users size={13}/>} {o.name}
               {selected===o.id&&<Check size={13} style={{marginLeft:"auto"}}/>}
             </button>
@@ -566,9 +631,9 @@ function ConfirmDeleteModal({pkg, onConfirm, onClose, t}) {
         <div className="gc" style={{display:"inline-flex",padding:"10px",borderRadius:16,marginBottom:14}}>
           <Trash2 size={20} style={{color:"#f87171"}}/>
         </div>
-        <h2 style={{fontSize:15,fontWeight:600,color:"white",marginBottom:6}}>{t.delete}</h2>
-        <p style={{fontSize:13,color:"rgba(255,255,255,0.55)",marginBottom:4}}>{pkg.name}</p>
-        <p style={{fontSize:12,color:"rgba(255,255,255,0.3)",marginBottom:"1.5rem"}}>{t.deleteConfirmMsg}</p>
+        <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",marginBottom:6}}>{t.delete}</h2>
+        <p style={{fontSize:13,color:"rgba(var(--ink),0.55)",marginBottom:4}}>{pkg.name}</p>
+        <p style={{fontSize:12,color:"rgba(var(--ink),0.3)",marginBottom:"1.5rem"}}>{t.deleteConfirmMsg}</p>
         <div style={{display:"flex",gap:8,justifyContent:"center"}}>
           <button className="gb" onClick={onClose}>{t.cancel}</button>
           <button className="gb" onClick={onConfirm}
@@ -583,7 +648,7 @@ function ConfirmDeleteModal({pkg, onConfirm, onClose, t}) {
 
 // ── MainApp ───────────────────────────────────────────────────────────────────
 
-function MainApp({user,lang,setLang,pendingInvite}) {
+function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const t=T[lang];
   const [pkgs,setPkgs]             = useState([]);
   const [groups,setGroups]         = useState([]);
@@ -790,7 +855,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
   }
 
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#0f0a1e 0%,#0a0818 50%,#060410 100%)",position:"relative"}}>
+    <div style={{minHeight:"100vh",background:"var(--bg)",position:"relative"}}>
       <Background/>
       <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem",maxWidth:800,margin:"0 auto"}}>
 
@@ -802,15 +867,15 @@ function MainApp({user,lang,setLang,pendingInvite}) {
               <Package size={20} style={{color:"#a78bfa"}}/>
             </div>
             <div style={{flex:1,minWidth:0}}>
-              <h1 style={{fontSize:18,fontWeight:600,color:"white",letterSpacing:"-0.02em"}}>{t.appName}</h1>
-              <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:1}}>
+              <h1 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))",letterSpacing:"-0.02em"}}>{t.appName}</h1>
+              <p style={{fontSize:12,color:"rgba(var(--ink),0.4)",marginTop:1}}>
                 {loading?t.loading:t.parcels(viewPkgs.length)}
               </p>
             </div>
             <button className="ib" onClick={handleRefresh} disabled={refreshing} title="Refresh">
               <RefreshCw size={13} className={refreshing?"spin":""}/>
             </button>
-            <LangToggle lang={lang} setLang={setLang}/>
+            <ThemeToggle theme={theme} setTheme={setTheme}/><LangToggle lang={lang} setLang={setLang}/>
             <button className="ib" onClick={()=>supabase.auth.signOut()} title={t.signOut}>
               <LogOut size={13}/>
             </button>
@@ -853,7 +918,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
         {currentGroup&&(
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:"0.75rem",padding:"8px 12px",background:"rgba(167,139,250,0.08)",borderRadius:12,border:"1px solid rgba(167,139,250,0.2)"}}>
             <Users size={14} style={{color:"#a78bfa",flexShrink:0}}/>
-            <span style={{fontSize:13,color:"rgba(255,255,255,0.7)",flex:1}}>{currentGroup.name} · {t.memberCount(currentGroup.group_members?.length||0)}</span>
+            <span style={{fontSize:13,color:"rgba(var(--ink),0.7)",flex:1}}>{currentGroup.name} · {t.memberCount(currentGroup.group_members?.length||0)}</span>
             {isGroupOwner&&(
               <button className="ib" title={t.inviteLink} onClick={()=>{
                 const BASE=`${window.location.protocol}//${window.location.host}${window.location.pathname}`;
@@ -871,9 +936,9 @@ function MainApp({user,lang,setLang,pendingInvite}) {
 
         {/* Search */}
         <div style={{position:"relative",marginBottom:"1rem"}}>
-          <Search size={13} style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",color:"rgba(255,255,255,0.3)"}}/>
+          <Search size={13} style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",color:"rgba(var(--ink),0.3)"}}/>
           <input className="gi" value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.searchPlaceholder} style={{paddingLeft:36}}/>
-          {search&&<button onClick={()=>setSearch("")} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.35)",display:"flex",padding:2}}><X size={13}/></button>}
+          {search&&<button onClick={()=>setSearch("")} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"rgba(var(--ink),0.35)",display:"flex",padding:2}}><X size={13}/></button>}
         </div>
 
         {/* Filters */}
@@ -893,7 +958,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
         {showForm&&(
           <div className="gc-strong" style={{padding:"1.5rem",marginBottom:"1rem"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
-              <h2 style={{fontSize:15,fontWeight:600,color:"white"}}>{editId?t.editParcel:t.newParcel}</h2>
+              <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))"}}>{editId?t.editParcel:t.newParcel}</h2>
               <button className="ib" onClick={()=>{setShowForm(false);setEditId(null);}}><X size={14}/></button>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,overflow:"hidden"}}>
@@ -901,13 +966,13 @@ function MainApp({user,lang,setLang,pendingInvite}) {
               {/* Products — first field */}
               <div style={{gridColumn:"span 2"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-                  <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.products} *</label>
+                  <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.products} *</label>
                   <button type="button" className="ib" onClick={addProduct} style={{fontSize:11,padding:"3px 10px"}}>
                     <Plus size={11}/> {t.addProduct}
                   </button>
                 </div>
                 {form.products.length===0?(
-                  <p style={{fontSize:12,color:"rgba(255,255,255,0.18)",textAlign:"center",padding:"6px 0"}}>{t.noProductsYet}</p>
+                  <p style={{fontSize:12,color:"rgba(var(--ink),0.18)",textAlign:"center",padding:"6px 0"}}>{t.noProductsYet}</p>
                 ):(
                   <div style={{display:"flex",flexDirection:"column",gap:6}}>
                     {form.products.map((prod,i)=>(
@@ -922,54 +987,54 @@ function MainApp({user,lang,setLang,pendingInvite}) {
               </div>
 
               <div style={{minWidth:0}}>
-                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.orderNumber}</label>
+                <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.orderNumber}</label>
                 <input className="gi" value={form.order_number} onChange={e=>setForm({...form,order_number:e.target.value})} placeholder={t.orderNumberPlaceholder}/>
               </div>
               {form.status!=="Comandat"?(
                 <>
                   <div style={{minWidth:0}}>
-                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.awbRequired}</label>
+                    <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.awbRequired}</label>
                     <input className="gi" value={form.awb} onChange={e=>setForm({...form,awb:e.target.value})} placeholder={t.awbPlaceholder} style={{fontFamily:"monospace"}}/>
                   </div>
                   <div style={{minWidth:0}}>
-                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.courier}</label>
+                    <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.courier}</label>
                     <select className="gi" value={form.courier} onChange={e=>setForm({...form,courier:e.target.value})}>
                       {COURIERS.map(c=><option key={c.name}>{c.name}</option>)}
                     </select>
                   </div>
                   <div style={{minWidth:0}}>
-                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.shop}</label>
+                    <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.shop}</label>
                     <input className="gi" value={form.shop} onChange={e=>setForm({...form,shop:e.target.value})} placeholder={t.shopPlaceholder}/>
                   </div>
                   <div style={{minWidth:0}}>
-                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.amount}</label>
+                    <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.amount}</label>
                     <input className="gi" type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={t.amountPlaceholder}/>
                   </div>
                 </>
               ):(
                 <>
                   <div style={{minWidth:0}}>
-                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.shop}</label>
+                    <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.shop}</label>
                     <input className="gi" value={form.shop} onChange={e=>setForm({...form,shop:e.target.value})} placeholder={t.shopPlaceholder}/>
                   </div>
                   <div style={{minWidth:0}}>
-                    <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.amount}</label>
+                    <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.amount}</label>
                     <input className="gi" type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={t.amountPlaceholder}/>
                   </div>
                 </>
               )}
               <div style={{minWidth:0}}>
-                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.status}</label>
+                <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.status}</label>
                 <select className="gi" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
                   {STATUSES.map(s=><option key={s} value={s}>{LBL(s)}</option>)}
                 </select>
               </div>
               <div style={{minWidth:0}}>
-                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.orderDate}</label>
+                <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.orderDate}</label>
                 <input type="date" className="gi" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} style={{colorScheme:"dark",maxWidth:"100%",minWidth:0}}/>
               </div>
               <div style={{gridColumn:"span 2"}}>
-                <label style={{fontSize:10,color:"rgba(255,255,255,0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.notes}</label>
+                <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.notes}</label>
                 <input className="gi" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder={t.notesPlaceholder}/>
               </div>
             </div>
@@ -983,17 +1048,17 @@ function MainApp({user,lang,setLang,pendingInvite}) {
 
         {/* Package list */}
         {loading?(
-          <div style={{textAlign:"center",padding:"3rem",color:"rgba(255,255,255,0.35)",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          <div style={{textAlign:"center",padding:"3rem",color:"rgba(var(--ink),0.35)",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
             <Loader size={16} className="spin"/> {t.loadingParcels}
           </div>
         ):viewPkgs.length===0?(
           <div className="gc" style={{padding:"4rem 1rem",textAlign:"center"}}>
-            <Package size={36} style={{color:"rgba(255,255,255,0.18)",marginBottom:12}}/>
-            <p style={{color:"rgba(255,255,255,0.55)",fontSize:14}}>{currentGroup?t.noGroupParcels:t.noParcelAdded}</p>
-            <p style={{color:"rgba(255,255,255,0.3)",fontSize:13,marginTop:4}}>{currentGroup?t.addFirstGroupParcel:t.noParcelSub}</p>
+            <Package size={36} style={{color:"rgba(var(--ink),0.18)",marginBottom:12}}/>
+            <p style={{color:"rgba(var(--ink),0.55)",fontSize:14}}>{currentGroup?t.noGroupParcels:t.noParcelAdded}</p>
+            <p style={{color:"rgba(var(--ink),0.3)",fontSize:13,marginTop:4}}>{currentGroup?t.addFirstGroupParcel:t.noParcelSub}</p>
           </div>
         ):filtered.length===0?(
-          <div style={{textAlign:"center",padding:"3rem",color:"rgba(255,255,255,0.35)",fontSize:13}}>{t.noMatch}</div>
+          <div style={{textAlign:"center",padding:"3rem",color:"rgba(var(--ink),0.35)",fontSize:13}}>{t.noMatch}</div>
         ):(
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {filtered.map(p=>{
@@ -1012,13 +1077,13 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                         {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(167,139,250,0.12)",color:"#a78bfa",borderColor:"rgba(167,139,250,0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
                       </div>
                       <div className="pkg-meta" style={{marginTop:6}}>
-                        {p.order_number&&<span style={{fontSize:13,color:"rgba(255,255,255,0.55)",fontWeight:500}}>#{p.order_number.replace(/^#/,"")}</span>}
-                        {p.status!=="Comandat"&&p.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.awb}</span>}
-                        {p.status!=="Comandat"&&p.courier&&<span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.courier}</span>}
-                        {p.shop&&<span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.shop}</span>}
-                        <span style={{fontSize:13,color:"rgba(255,255,255,0.3)"}}>{new Date(p.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>
+                        {p.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.55)",fontWeight:500}}>#{p.order_number.replace(/^#/,"")}</span>}
+                        {p.status!=="Comandat"&&p.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.awb}</span>}
+                        {p.status!=="Comandat"&&p.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.courier}</span>}
+                        {p.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.shop}</span>}
+                        <span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{new Date(p.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>
                       </div>
-                      {p.notes&&<div style={{fontSize:13,color:"rgba(255,255,255,0.3)",marginTop:4}}>{p.notes}</div>}
+                      {p.notes&&<div style={{fontSize:13,color:"rgba(var(--ink),0.3)",marginTop:4}}>{p.notes}</div>}
                       {p.products&&p.products.length>1&&(
                         <div style={{marginTop:6}}>
                           {p.products.map((prod,i)=>(
@@ -1043,9 +1108,9 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                       <button className="ib ibx" onClick={()=>setDeleteConfirm(p)} aria-label={t.delete}><Trash2 size={13}/></button>
                     </div>
                   </div>
-                  <div style={{display:"flex",gap:4,marginTop:10,paddingTop:10,borderTop:"1px solid rgba(255,255,255,0.06)",flexWrap:"wrap",alignItems:"center"}}>
-                    <span style={{fontSize:10,color:"rgba(255,255,255,0.25)",marginRight:4,letterSpacing:"0.06em",textTransform:"uppercase"}}>{t.quickStatus}</span>
-                    {STATUSES.map(s=>{const c=SC[s];const act=p.status===s;return <button key={s} className="sp" onClick={()=>setStatus(p.id,s)} style={{background:act?c.bg:"rgba(255,255,255,0.04)",color:act?c.color:"rgba(255,255,255,0.32)",borderColor:act?c.border:"rgba(255,255,255,0.07)"}}>{LBL(s)}</button>;})}
+                  <div style={{display:"flex",gap:4,marginTop:10,paddingTop:10,borderTop:"1px solid rgba(var(--ink),0.06)",flexWrap:"wrap",alignItems:"center"}}>
+                    <span style={{fontSize:10,color:"rgba(var(--ink),0.25)",marginRight:4,letterSpacing:"0.06em",textTransform:"uppercase"}}>{t.quickStatus}</span>
+                    {STATUSES.map(s=>{const c=SC[s];const act=p.status===s;return <button key={s} className="sp" onClick={()=>setStatus(p.id,s)} style={{background:act?c.bg:"rgba(var(--ink),0.04)",color:act?c.color:"rgba(var(--ink),0.32)",borderColor:act?c.border:"rgba(var(--ink),0.07)"}}>{LBL(s)}</button>;})}
                   </div>
                 </div>
               );
@@ -1070,6 +1135,7 @@ export default function App() {
   const [session,setSession]         = useState(null);
   const [loadingAuth,setLoadingAuth] = useState(true);
   const [lang,setLang]               = useState(()=>localStorage.getItem(LANG_KEY)||"en");
+  const [theme,setTheme]             = useState(()=>localStorage.getItem(THEME_KEY)||"dark");
 
   const hash        = window.location.hash;
   const shareToken  = hash.startsWith("#share/")  ? hash.slice(7)  : null;
@@ -1083,9 +1149,16 @@ export default function App() {
     return ()=>listener.subscription.unsubscribe();
   },[]);
 
+  // Apply theme to <html> and the mobile status-bar color
+  useEffect(()=>{
+    document.documentElement.setAttribute("data-theme",theme);
+    const meta=document.querySelector('meta[name="theme-color"]');
+    if(meta)meta.setAttribute("content",theme==="dark"?"#0f0a1e":"#eef0fb");
+  },[theme]);
+
   // Shared parcel view — no auth required
   if(shareToken){
-    return(<><style>{STYLES}</style><SharedParcelView token={shareToken} lang={lang} setLang={setLang}/></>);
+    return(<><style>{STYLES}</style><SharedParcelView token={shareToken} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme}/></>);
   }
 
   const pendingInvite=(!inviteCode&&localStorage.getItem("pending_invite"))||inviteCode||null;
@@ -1094,13 +1167,13 @@ export default function App() {
     <>
       <style>{STYLES}</style>
       {loadingAuth?(
-        <div style={{minHeight:"100vh",background:"linear-gradient(140deg,#0f0a1e 0%,#0a0818 50%,#060410 100%)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center"}}>
           <Background/>
         </div>
       ):session?(
-        <MainApp user={session.user} lang={lang} setLang={setLang} pendingInvite={pendingInvite} key={session.user.id}/>
+        <MainApp user={session.user} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} pendingInvite={pendingInvite} key={session.user.id}/>
       ):(
-        <LoginScreen lang={lang} setLang={setLang}/>
+        <LoginScreen lang={lang} setLang={setLang} theme={theme} setTheme={setTheme}/>
       )}
     </>
   );
