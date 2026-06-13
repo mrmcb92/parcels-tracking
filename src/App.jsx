@@ -194,11 +194,11 @@ const STYLES = `
   ::-webkit-scrollbar{width:3px}
   ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.22);border-radius:2px}
   :focus-visible{outline:2px solid rgba(167,139,250,0.55);outline-offset:2px;border-radius:4px}
-  .pkg-name{font-weight:600;font-size:15px;color:#fff;letter-spacing:-0.01em;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .pkg-name{font-weight:600;font-size:15px;color:#fff;letter-spacing:-0.01em;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
   .pkg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
   .pkg-actions{display:flex;gap:4px;flex-shrink:0;align-items:flex-start}
   .pkg-meta{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center}
-  .ptag{font-size:11px;color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.09);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ptag{display:block;font-size:12px;color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.06);padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,0.09);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   @media (max-width:520px){
     .pkg{padding:0.875rem 1rem}
     .pkg-top{flex-direction:column;gap:10px}
@@ -1018,7 +1018,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                       </div>
                       {p.notes&&<div style={{fontSize:13,color:"rgba(255,255,255,0.3)",marginTop:4}}>{p.notes}</div>}
                       {p.products&&p.products.length>1&&(
-                        <div style={{marginTop:6,display:"flex",gap:4,flexWrap:"wrap"}}>
+                        <div style={{marginTop:6,display:"flex",flexDirection:"column",gap:4}}>
                           {p.products.map((prod,i)=>(
                             <span key={i} className="ptag" title={`${prod.qty>1?prod.qty+"× ":""}${prod.name}`}>
                               {prod.qty>1?`${prod.qty}× `:""}{prod.name}
