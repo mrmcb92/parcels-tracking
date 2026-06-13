@@ -1,4 +1,4 @@
-const CACHE = "parcel-tracking-v4";
+const CACHE = "parcel-tracking-v5";
 const ASSETS = ["/parcels-tracking/", "/parcels-tracking/index.html"];
 
 self.addEventListener("install", (e) => {

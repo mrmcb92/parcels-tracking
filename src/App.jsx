@@ -128,11 +128,11 @@ const STATUSES = ["Comandat","In livrare","Livrat"];
 
 const SC = {
   "Comandat":   {color:"#94a3b8",bg:"rgba(148,163,184,0.18)",border:"rgba(148,163,184,0.45)"},
-  "In livrare": {color:"#a78bfa",bg:"rgba(167,139,250,0.18)",border:"rgba(167,139,250,0.45)"},
+  "In livrare": {color:"rgb(var(--accent))",bg:"rgba(var(--accent),0.18)",border:"rgba(var(--accent),0.45)"},
   "Livrat":     {color:"#34d399",bg:"rgba(52,211,153,0.18)", border:"rgba(52,211,153,0.45)"},
-  "In procesare":{color:"#a78bfa",bg:"rgba(167,139,250,0.18)",border:"rgba(167,139,250,0.45)"},
-  "In tranzit": {color:"#a78bfa",bg:"rgba(167,139,250,0.18)",border:"rgba(167,139,250,0.45)"},
-  "La livrare": {color:"#a78bfa",bg:"rgba(167,139,250,0.18)",border:"rgba(167,139,250,0.45)"},
+  "In procesare":{color:"rgb(var(--accent))",bg:"rgba(var(--accent),0.18)",border:"rgba(var(--accent),0.45)"},
+  "In tranzit": {color:"rgb(var(--accent))",bg:"rgba(var(--accent),0.18)",border:"rgba(var(--accent),0.45)"},
+  "La livrare": {color:"rgb(var(--accent))",bg:"rgba(var(--accent),0.18)",border:"rgba(var(--accent),0.45)"},
   "Retur":      {color:"#94a3b8",bg:"rgba(148,163,184,0.18)",border:"rgba(148,163,184,0.45)"},
 };
 
@@ -152,8 +152,9 @@ const STYLES = `
   :root,[data-theme="dark"]{
     --ink:255,255,255;
     --frost:255,255,255;
-    --bg:linear-gradient(140deg,#0f0a1e 0%,#0a0818 50%,#060410 100%);
-    --bg-solid:#0f0a1e;
+    --accent:59,130,246;
+    --bg:linear-gradient(150deg,#101013 0%,#0b0b0e 55%,#070709 100%);
+    --bg-solid:#101013;
     --glass-bg:rgba(var(--frost),0.07);
     --glass-bg-strong:rgba(var(--frost),0.09);
     --glass-bg-hover:rgba(var(--frost),0.14);
@@ -166,19 +167,20 @@ const STYLES = `
     --input-border:rgba(var(--frost),0.1);
     --btn-bg:rgba(var(--frost),0.08);
     --btn-border:rgba(var(--frost),0.14);
-    --menu-bg:rgba(9,5,22,0.96);
-    --option-bg:#130d2a;
+    --menu-bg:rgba(20,20,23,0.96);
+    --option-bg:#18181b;
     --scrim:rgba(0,0,0,0.6);
-    --shadow:rgba(88,28,220,0.14);
-    --shadow-strong:rgba(88,28,220,0.22);
+    --shadow:rgba(0,0,0,0.35);
+    --shadow-strong:rgba(0,0,0,0.5);
     --grain-op:0.04;
     --blob-op:1;
   }
   [data-theme="light"]{
-    --ink:30,27,56;
+    --ink:24,24,27;
     --frost:255,255,255;
-    --bg:linear-gradient(140deg,#eef0fb 0%,#e8ebf7 50%,#edeaf8 100%);
-    --bg-solid:#eef0fb;
+    --accent:37,99,235;
+    --bg:linear-gradient(150deg,#f6f7f9 0%,#eef0f3 55%,#f3f4f6 100%);
+    --bg-solid:#f6f7f9;
     --glass-bg:rgba(var(--frost),0.55);
     --glass-bg-strong:rgba(var(--frost),0.72);
     --glass-bg-hover:rgba(var(--frost),0.85);
@@ -193,11 +195,11 @@ const STYLES = `
     --btn-border:rgba(var(--ink),0.1);
     --menu-bg:rgba(var(--frost),0.93);
     --option-bg:#ffffff;
-    --scrim:rgba(30,27,56,0.28);
-    --shadow:rgba(80,60,170,0.13);
-    --shadow-strong:rgba(80,60,170,0.2);
+    --scrim:rgba(24,24,27,0.28);
+    --shadow:rgba(24,24,27,0.1);
+    --shadow-strong:rgba(24,24,27,0.16);
     --grain-op:0.02;
-    --blob-op:0.45;
+    --blob-op:0.5;
   }
   body{font-family:'Outfit',sans-serif;background:var(--bg-solid);-webkit-font-smoothing:antialiased;scroll-behavior:smooth;overflow-x:hidden;transition:background .35s ease}
   @keyframes b1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.07)}66%{transform:translate(-18px,22px) scale(0.94)}}
@@ -210,17 +212,17 @@ const STYLES = `
   .gc{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-border);border-radius:20px;box-shadow:inset 0 1px 0 var(--glass-hi),0 8px 32px var(--shadow)}
   .gc-strong{background:var(--glass-bg-strong);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border:1px solid var(--glass-border-strong);border-radius:24px;box-shadow:inset 0 1px 0 var(--glass-hi),0 24px 56px var(--shadow-strong)}
   .pkg{background:var(--pkg-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--pkg-border);border-radius:18px;box-shadow:inset 0 1px 0 var(--glass-hi),0 4px 16px var(--shadow);padding:1rem 1.25rem;transition:border-color .25s,transform .25s,box-shadow .25s,background .35s;overflow:hidden}
-  .pkg:hover{border-color:rgba(167,139,250,0.4);transform:translateY(-1px);box-shadow:inset 0 1px 0 var(--glass-hi),0 8px 28px var(--shadow-strong)}
+  .pkg:hover{border-color:rgba(var(--accent),0.4);transform:translateY(-1px);box-shadow:inset 0 1px 0 var(--glass-hi),0 8px 28px var(--shadow-strong)}
   .gi{background:var(--input-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--input-border);border-radius:12px;color:rgb(var(--ink));font-size:14px;padding:10px 14px;outline:none;font-family:'Outfit',sans-serif;transition:border-color .2s,box-shadow .2s,background .35s;width:100%}
   .gi::placeholder{color:rgba(var(--ink),0.4)}
-  .gi:focus{border-color:rgba(167,139,250,0.55);box-shadow:0 0 0 3px rgba(139,92,246,0.14)}
+  .gi:focus{border-color:rgba(var(--accent),0.55);box-shadow:0 0 0 3px rgba(var(--accent),0.14)}
   .gi option{background:var(--option-bg);color:rgb(var(--ink))}
   .gb{background:var(--btn-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--btn-border);border-radius:12px;color:rgba(var(--ink),0.85);cursor:pointer;font-size:14px;font-family:'Outfit',sans-serif;padding:8px 16px;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
   .gb:hover{background:var(--glass-bg-hover);transform:translateY(-1px);box-shadow:0 4px 14px var(--shadow)}
   .gb:active{transform:scale(0.97) translateY(0)}
   .gb:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
-  .gbp{background:rgba(109,40,217,0.9);border-color:rgba(167,139,250,0.6);box-shadow:0 4px 14px rgba(109,40,217,0.28);color:#fff}
-  .gbp:hover{background:rgba(124,58,237,1);border-color:rgba(167,139,250,0.8);box-shadow:0 6px 20px rgba(109,40,217,0.4)}
+  .gbp{background:rgba(var(--accent),0.9);border-color:rgba(var(--accent),0.6);box-shadow:0 4px 14px rgba(var(--accent),0.28);color:#fff}
+  .gbp:hover{background:rgba(var(--accent),1);border-color:rgba(var(--accent),0.8);box-shadow:0 6px 20px rgba(var(--accent),0.4)}
   .ib{background:var(--btn-bg);border:1px solid var(--btn-border);border-radius:10px;color:rgba(var(--ink),0.55);cursor:pointer;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .18s;font-family:'Outfit',sans-serif;font-size:13px}
   .ib:hover{background:var(--glass-bg-hover);color:rgba(var(--ink),0.9);transform:translateY(-1px)}
   .ib:active{transform:scale(0.95)}
@@ -239,13 +241,13 @@ const STYLES = `
   .lang-btn{background:var(--btn-bg);border:1px solid var(--btn-border);border-radius:10px;color:rgba(var(--ink),0.65);cursor:pointer;padding:5px 4px;display:inline-flex;align-items:center;gap:2px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;transition:all .15s;min-width:52px;justify-content:center}
   .lang-btn:hover{background:var(--glass-bg-hover);color:rgb(var(--ink))}
   .lang-seg{padding:3px 7px;border-radius:7px;transition:all .15s;line-height:1;display:inline-flex;align-items:center}
-  .lang-seg.active{background:rgba(167,139,250,0.28);color:rgb(var(--ink))}
+  .lang-seg.active{background:rgba(var(--accent),0.28);color:rgb(var(--ink))}
   .gnav{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:1rem;scrollbar-width:none}
   .gnav::-webkit-scrollbar{display:none}
   a{color:inherit;text-decoration:none}
   ::-webkit-scrollbar{width:3px}
-  ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.22);border-radius:2px}
-  :focus-visible{outline:2px solid rgba(167,139,250,0.6);outline-offset:2px;border-radius:4px}
+  ::-webkit-scrollbar-thumb{background:rgba(var(--accent),0.22);border-radius:2px}
+  :focus-visible{outline:2px solid rgba(var(--accent),0.6);outline-offset:2px;border-radius:4px}
   .pkg-name{font-weight:600;font-size:15px;color:rgb(var(--ink));letter-spacing:-0.01em;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
   .pkg-content{flex:1;min-width:0;overflow:hidden}
   .pkg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
@@ -267,9 +269,9 @@ function Background() {
   return (
     <>
       <div className="bg-blobs" style={{position:"fixed",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
-        <div style={{position:"absolute",width:750,height:750,borderRadius:"50%",background:"radial-gradient(circle,rgba(109,40,217,0.38) 0%,transparent 65%)",top:-240,left:-180,animation:"b1 14s ease-in-out infinite",filter:"blur(3px)"}} />
-        <div style={{position:"absolute",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(79,57,196,0.24) 0%,transparent 65%)",top:"16%",right:-180,animation:"b2 17s ease-in-out infinite",filter:"blur(3px)"}} />
-        <div style={{position:"absolute",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,0.18) 0%,transparent 65%)",bottom:-100,left:"26%",animation:"b3 20s ease-in-out infinite",filter:"blur(3px)"}} />
+        <div style={{position:"absolute",width:750,height:750,borderRadius:"50%",background:"radial-gradient(circle,rgba(var(--accent),0.22) 0%,transparent 65%)",top:-240,left:-180,animation:"b1 14s ease-in-out infinite",filter:"blur(3px)"}} />
+        <div style={{position:"absolute",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(var(--accent),0.16) 0%,transparent 65%)",top:"16%",right:-180,animation:"b2 17s ease-in-out infinite",filter:"blur(3px)"}} />
+        <div style={{position:"absolute",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(var(--accent),0.18) 0%,transparent 65%)",bottom:-100,left:"26%",animation:"b3 20s ease-in-out infinite",filter:"blur(3px)"}} />
       </div>
       <div className="grain"/>
     </>
@@ -326,7 +328,7 @@ function SharedParcelView({token,lang,setLang,theme,setTheme}) {
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:"1.5rem",flexWrap:"wrap"}}>
           <div style={{display:"flex",alignItems:"center",gap:10,flex:1}}>
             <div className="gc" style={{padding:9,borderRadius:16,display:"flex",flexShrink:0}}>
-              <Package size={20} style={{color:"#a78bfa"}}/>
+              <Package size={20} style={{color:"rgb(var(--accent))"}}/>
             </div>
             <div>
               <h1 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))"}}>{t.sharedParcel}</h1>
@@ -392,7 +394,7 @@ function ShareModal({shareUrl,onClose,t}) {
       <div className="gc-strong" style={{padding:"1.5rem",maxWidth:460,width:"100%"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
           <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
-            <Share2 size={15} style={{color:"#a78bfa"}}/> {t.shareTitle}
+            <Share2 size={15} style={{color:"rgb(var(--accent))"}}/> {t.shareTitle}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
@@ -442,7 +444,7 @@ function GroupModal({user,onClose,onCreated,t}) {
       <div className="gc-strong" style={{padding:"1.5rem",maxWidth:460,width:"100%"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
           <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
-            <Users size={15} style={{color:"#a78bfa"}}/> {created?t.inviteTitle:t.newGroup}
+            <Users size={15} style={{color:"rgb(var(--accent))"}}/> {created?t.inviteTitle:t.newGroup}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
@@ -502,7 +504,7 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
     <div className="overlay">
       <div className="gc-strong" style={{padding:"1.75rem",maxWidth:380,width:"100%",textAlign:"center"}}>
         <div className="gc" style={{display:"inline-flex",padding:"12px",borderRadius:20,marginBottom:16}}>
-          <Users size={24} style={{color:"#a78bfa"}}/>
+          <Users size={24} style={{color:"rgb(var(--accent))"}}/>
         </div>
         {loading?(
           <div style={{color:"rgba(var(--ink),0.4)",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
@@ -558,7 +560,7 @@ function LoginScreen({lang,setLang,theme,setTheme}) {
       <div className="gc-strong" style={{maxWidth:400,width:"100%",padding:"2rem",position:"relative",zIndex:1}}>
         <div style={{textAlign:"center",marginBottom:"2rem"}}>
           <div className="gc" style={{display:"inline-flex",padding:"12px",borderRadius:20,marginBottom:16}}>
-            <Package size={28} style={{color:"#a78bfa"}}/>
+            <Package size={28} style={{color:"rgb(var(--accent))"}}/>
           </div>
           <h1 style={{fontSize:22,fontWeight:700,color:"rgb(var(--ink))",letterSpacing:"-0.03em"}}>{t.appName}</h1>
           <p style={{fontSize:13,color:"rgba(var(--ink),0.4)",marginTop:6}}>{t.loginSub}</p>
@@ -597,7 +599,7 @@ function MoveModal({pkg, groups, onMove, onClose, t}) {
       <div className="gc-strong" style={{padding:"1.5rem",maxWidth:400,width:"100%"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
           <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
-            <Users size={15} style={{color:"#a78bfa"}}/> {t.moveToGroup}
+            <Users size={15} style={{color:"rgb(var(--accent))"}}/> {t.moveToGroup}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
@@ -605,7 +607,7 @@ function MoveModal({pkg, groups, onMove, onClose, t}) {
         <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:"1.25rem"}}>
           {options.map(o=>(
             <button key={o.id} onClick={()=>setSelected(o.id)}
-              style={{padding:"10px 14px",borderRadius:12,border:`1px solid ${selected===o.id?"rgba(167,139,250,0.5)":"rgba(var(--ink),0.1)"}`,background:selected===o.id?"rgba(167,139,250,0.18)":"rgba(var(--ink),0.04)",color:selected===o.id?"#a78bfa":"rgba(var(--ink),0.7)",cursor:"pointer",textAlign:"left",fontSize:14,fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
+              style={{padding:"10px 14px",borderRadius:12,border:`1px solid ${selected===o.id?"rgba(var(--accent),0.5)":"rgba(var(--ink),0.1)"}`,background:selected===o.id?"rgba(var(--accent),0.18)":"rgba(var(--ink),0.04)",color:selected===o.id?"rgb(var(--accent))":"rgba(var(--ink),0.7)",cursor:"pointer",textAlign:"left",fontSize:14,fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
               {o.id==="personal"?<Package size={13}/>:<Users size={13}/>} {o.name}
               {selected===o.id&&<Check size={13} style={{marginLeft:"auto"}}/>}
             </button>
@@ -864,7 +866,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
           {/* Row 1: logo + refresh + lang + signout */}
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:"0.6rem"}}>
             <div className="gc" style={{padding:9,borderRadius:16,display:"flex",flexShrink:0}}>
-              <Package size={20} style={{color:"#a78bfa"}}/>
+              <Package size={20} style={{color:"rgb(var(--accent))"}}/>
             </div>
             <div style={{flex:1,minWidth:0}}>
               <h1 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))",letterSpacing:"-0.02em"}}>{t.appName}</h1>
@@ -909,15 +911,15 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
               <Users size={11} style={{opacity:0.6}}/> {g.name}
             </button>
           ))}
-          <button className="fp" onClick={()=>setShowGroupModal(true)} style={{color:"#a78bfa",borderColor:"rgba(167,139,250,0.3)"}}>
+          <button className="fp" onClick={()=>setShowGroupModal(true)} style={{color:"rgb(var(--accent))",borderColor:"rgba(var(--accent),0.3)"}}>
             + {t.newGroup}
           </button>
         </div>
 
         {/* Group header (when viewing a group) */}
         {currentGroup&&(
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:"0.75rem",padding:"8px 12px",background:"rgba(167,139,250,0.08)",borderRadius:12,border:"1px solid rgba(167,139,250,0.2)"}}>
-            <Users size={14} style={{color:"#a78bfa",flexShrink:0}}/>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:"0.75rem",padding:"8px 12px",background:"rgba(var(--accent),0.08)",borderRadius:12,border:"1px solid rgba(var(--accent),0.2)"}}>
+            <Users size={14} style={{color:"rgb(var(--accent))",flexShrink:0}}/>
             <span style={{fontSize:13,color:"rgba(var(--ink),0.7)",flex:1}}>{currentGroup.name} · {t.memberCount(currentGroup.group_members?.length||0)}</span>
             {isGroupOwner&&(
               <button className="ib" title={t.inviteLink} onClick={()=>{
@@ -1074,7 +1076,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                         <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{LBL(p.status)}</span>
                         {p.amount&&<span className="sp" style={{background:"rgba(52,211,153,0.12)",color:"#34d399",borderColor:"rgba(52,211,153,0.35)",fontSize:11}}>{Number(p.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
                         {p.products&&p.products.length>0&&<span className="sp" style={{background:"rgba(251,191,36,0.12)",color:"#fbbf24",borderColor:"rgba(251,191,36,0.35)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
-                        {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(167,139,250,0.12)",color:"#a78bfa",borderColor:"rgba(167,139,250,0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
+                        {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(var(--accent),0.12)",color:"rgb(var(--accent))",borderColor:"rgba(var(--accent),0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
                       </div>
                       <div className="pkg-meta" style={{marginTop:6}}>
                         {p.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.55)",fontWeight:500}}>#{p.order_number.replace(/^#/,"")}</span>}
@@ -1153,7 +1155,7 @@ export default function App() {
   useEffect(()=>{
     document.documentElement.setAttribute("data-theme",theme);
     const meta=document.querySelector('meta[name="theme-color"]');
-    if(meta)meta.setAttribute("content",theme==="dark"?"#0f0a1e":"#eef0fb");
+    if(meta)meta.setAttribute("content",theme==="dark"?"#101013":"#f6f7f9");
   },[theme]);
 
   // Shared parcel view — no auth required
