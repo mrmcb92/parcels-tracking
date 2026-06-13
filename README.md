@@ -18,8 +18,10 @@ A personal parcel tracking app accessible from any device. Built with React, Sup
 - Move parcels between personal space and any group
 - Real-time sync — data updates across all open tabs instantly
 - **Google Sign-In** — each user sees only their own parcels
+- **Light / Dark theme** — toggle between a clean light look and a neutral dark look; the choice is remembered per device
+- **Modern glassmorphism UI** — frosted-glass surfaces, neutral palette with a single blue accent
 - English / Romanian language switcher
-- **PWA** — installable on any device directly from the browser
+- **PWA** — installable on any device directly from the browser, works offline
 
 ## Supported Couriers
 
@@ -278,8 +280,10 @@ O aplicație personală pentru urmărirea coletelor, accesibilă de pe orice dev
 - Mută colete între spațiul personal și orice grup
 - Sincronizare în timp real — datele se actualizează instantaneu pe toate tab-urile deschise
 - **Autentificare cu Google** — fiecare utilizator vede doar propriile colete
+- **Temă Light / Dark** — comută între un look luminos curat și unul întunecat neutru; alegerea e reținută pe fiecare device
+- **Interfață glassmorphism modernă** — suprafețe din sticlă mată, paletă neutră cu un singur accent albastru
 - Comutator de limbă Engleză / Română
-- **PWA** — instalabilă pe orice device direct din browser
+- **PWA** — instalabilă pe orice device direct din browser, funcționează offline
 
 ## Curierii suportați
 
