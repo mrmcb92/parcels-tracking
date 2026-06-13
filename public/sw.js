@@ -1,4 +1,4 @@
-const CACHE = "parcel-tracking-v2";
+const CACHE = "parcel-tracking-v3";
 const ASSETS = ["/parcels-tracking/", "/parcels-tracking/index.html"];
 
 self.addEventListener("install", (e) => {
@@ -16,8 +16,17 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  // Network first, cache fallback
+  // Network first; on success refresh the cached copy so the offline
+  // fallback is always the latest version seen.
   e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
+    fetch(e.request)
+      .then((res) => {
+        if (res && res.ok && e.request.method === "GET") {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
