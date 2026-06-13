@@ -194,6 +194,17 @@ const STYLES = `
   ::-webkit-scrollbar{width:3px}
   ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.22);border-radius:2px}
   :focus-visible{outline:2px solid rgba(167,139,250,0.55);outline-offset:2px;border-radius:4px}
+  .pkg-name{font-weight:600;font-size:15px;color:#fff;letter-spacing:-0.01em;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .pkg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .pkg-actions{display:flex;gap:4px;flex-shrink:0;align-items:flex-start}
+  .pkg-meta{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center}
+  .ptag{font-size:11px;color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.09);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @media (max-width:520px){
+    .pkg{padding:0.875rem 1rem}
+    .pkg-top{flex-direction:column;gap:10px}
+    .pkg-actions{width:100%;justify-content:flex-end}
+    .pkg-name{-webkit-line-clamp:3}
+  }
 `;
 
 // ── Background ────────────────────────────────────────────────────────────────
@@ -989,16 +1000,16 @@ function MainApp({user,lang,setLang,pendingInvite}) {
               const isSharing=shareLoading===p.id;
               return (
                 <div key={p.id} className="pkg">
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
+                  <div className="pkg-top">
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:5}}>
-                        <span style={{fontWeight:600,fontSize:15,color:"white",letterSpacing:"-0.01em"}}>{p.name}</span>
+                      <span className="pkg-name" title={p.name}>{p.name}</span>
+                      <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginTop:6}}>
                         <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{LBL(p.status)}</span>
                         {p.amount&&<span className="sp" style={{background:"rgba(52,211,153,0.12)",color:"#34d399",borderColor:"rgba(52,211,153,0.35)",fontSize:11}}>{Number(p.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
                         {p.products&&p.products.length>0&&<span className="sp" style={{background:"rgba(251,191,36,0.12)",color:"#fbbf24",borderColor:"rgba(251,191,36,0.35)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
                         {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(167,139,250,0.12)",color:"#a78bfa",borderColor:"rgba(167,139,250,0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
                       </div>
-                      <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
+                      <div className="pkg-meta" style={{marginTop:6}}>
                         {p.order_number&&<span style={{fontSize:13,color:"rgba(255,255,255,0.55)",fontWeight:500}}>#{p.order_number.replace(/^#/,"")}</span>}
                         {p.status!=="Comandat"&&p.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.awb}</span>}
                         {p.status!=="Comandat"&&p.courier&&<span style={{fontSize:13,color:"rgba(255,255,255,0.42)"}}>{p.courier}</span>}
@@ -1006,17 +1017,17 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                         <span style={{fontSize:13,color:"rgba(255,255,255,0.3)"}}>{new Date(p.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>
                       </div>
                       {p.notes&&<div style={{fontSize:13,color:"rgba(255,255,255,0.3)",marginTop:4}}>{p.notes}</div>}
-                      {p.products&&p.products.length>0&&(
-                        <div style={{marginTop:5,display:"flex",gap:4,flexWrap:"wrap"}}>
+                      {p.products&&p.products.length>1&&(
+                        <div style={{marginTop:6,display:"flex",gap:4,flexWrap:"wrap"}}>
                           {p.products.map((prod,i)=>(
-                            <span key={i} style={{fontSize:11,color:"rgba(255,255,255,0.42)",background:"rgba(255,255,255,0.06)",padding:"2px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.09)"}}>
+                            <span key={i} className="ptag" title={`${prod.qty>1?prod.qty+"× ":""}${prod.name}`}>
                               {prod.qty>1?`${prod.qty}× `:""}{prod.name}
                             </span>
                           ))}
                         </div>
                       )}
                     </div>
-                    <div style={{display:"flex",gap:4,flexShrink:0,alignItems:"flex-start"}}>
+                    <div className="pkg-actions">
                       <button className="ib" onClick={()=>shareParcel(p)} disabled={isSharing} title={t.share}>
                         {isSharing?<Loader size={13} className="spin"/>:<Share2 size={13}/>}
                       </button>
