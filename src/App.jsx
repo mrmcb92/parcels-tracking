@@ -195,6 +195,7 @@ const STYLES = `
   ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.22);border-radius:2px}
   :focus-visible{outline:2px solid rgba(167,139,250,0.55);outline-offset:2px;border-radius:4px}
   .pkg-name{font-weight:600;font-size:15px;color:#fff;letter-spacing:-0.01em;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+  .pkg-content{flex:1;min-width:0;overflow:hidden}
   .pkg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
   .pkg-actions{display:flex;gap:4px;flex-shrink:0;align-items:flex-start}
   .pkg-meta{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center}
@@ -204,6 +205,7 @@ const STYLES = `
     .pkg-top{flex-direction:column;gap:10px}
     .pkg-actions{width:100%;justify-content:flex-end}
     .pkg-name{-webkit-line-clamp:3}
+    .pkg-content{max-width:calc(100vw - 4.5rem)}
   }
 `;
 
@@ -1001,7 +1003,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
               return (
                 <div key={p.id} className="pkg">
                   <div className="pkg-top">
-                    <div style={{flex:1,minWidth:0,overflow:"hidden"}}>
+                    <div className="pkg-content">
                       <span className="pkg-name" title={p.name}>{p.name}</span>
                       <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginTop:6}}>
                         <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{LBL(p.status)}</span>
