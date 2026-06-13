@@ -148,7 +148,7 @@ const emptyForm = () => ({
 
 const STYLES = `
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Outfit',sans-serif;background:#0f0a1e;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+  body{font-family:'Outfit',sans-serif;background:#0f0a1e;-webkit-font-smoothing:antialiased;scroll-behavior:smooth;overflow-x:hidden}
   @keyframes b1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.07)}66%{transform:translate(-18px,22px) scale(0.94)}}
   @keyframes b2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-35px,28px) scale(1.05)}66%{transform:translate(28px,-18px) scale(0.96)}}
   @keyframes b3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(22px,-42px) scale(1.06)}}
@@ -157,7 +157,7 @@ const STYLES = `
   .grain{position:fixed;inset:0;pointer-events:none;z-index:2;opacity:0.038;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
   .gc{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.12);border-radius:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),0 8px 32px rgba(88,28,220,0.14)}
   .gc-strong{background:rgba(255,255,255,0.09);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border:1px solid rgba(255,255,255,0.15);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.26),0 24px 56px rgba(88,28,220,0.22)}
-  .pkg{background:rgba(255,255,255,0.05);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.08);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 4px 16px rgba(88,28,220,0.1);padding:1rem 1.25rem;transition:border-color .25s,transform .25s,box-shadow .25s}
+  .pkg{background:rgba(255,255,255,0.05);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.08);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 4px 16px rgba(88,28,220,0.1);padding:1rem 1.25rem;transition:border-color .25s,transform .25s,box-shadow .25s;overflow:hidden}
   .pkg:hover{border-color:rgba(167,139,250,0.28);transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 8px 28px rgba(109,40,217,0.18)}
   .gi{background:rgba(0,0,0,0.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:white;font-size:14px;padding:10px 14px;outline:none;font-family:'Outfit',sans-serif;transition:border-color .2s,box-shadow .2s;width:100%}
   .gi::placeholder{color:rgba(255,255,255,0.25)}
@@ -1001,7 +1001,7 @@ function MainApp({user,lang,setLang,pendingInvite}) {
               return (
                 <div key={p.id} className="pkg">
                   <div className="pkg-top">
-                    <div style={{flex:1,minWidth:0}}>
+                    <div style={{flex:1,minWidth:0,overflow:"hidden"}}>
                       <span className="pkg-name" title={p.name}>{p.name}</span>
                       <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginTop:6}}>
                         <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{LBL(p.status)}</span>
