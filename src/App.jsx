@@ -1018,9 +1018,9 @@ function MainApp({user,lang,setLang,pendingInvite}) {
                       </div>
                       {p.notes&&<div style={{fontSize:13,color:"rgba(255,255,255,0.3)",marginTop:4}}>{p.notes}</div>}
                       {p.products&&p.products.length>1&&(
-                        <div style={{marginTop:6,display:"flex",flexDirection:"column",gap:4}}>
+                        <div style={{marginTop:6}}>
                           {p.products.map((prod,i)=>(
-                            <span key={i} className="ptag" title={`${prod.qty>1?prod.qty+"× ":""}${prod.name}`}>
+                            <span key={i} className="ptag" style={i>0?{marginTop:4}:undefined} title={`${prod.qty>1?prod.qty+"× ":""}${prod.name}`}>
                               {prod.qty>1?`${prod.qty}× `:""}{prod.name}
                             </span>
                           ))}
