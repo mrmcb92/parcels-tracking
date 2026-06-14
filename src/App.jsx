@@ -937,11 +937,6 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
             <button className="ib" onClick={handleRefresh} disabled={refreshing} title="Refresh">
               <RefreshCw size={13} className={refreshing?"spin":""}/>
             </button>
-            {!isStandalone&&(
-              <button className="ib" onClick={()=>setShowInstall(true)} title={t.installApp} aria-label={t.installApp}>
-                <Smartphone size={13}/>
-              </button>
-            )}
             <ThemeToggle theme={theme} setTheme={setTheme}/><LangToggle lang={lang} setLang={setLang}/>
             <button className="ib" onClick={()=>supabase.auth.signOut()} title={t.signOut}>
               <LogOut size={13}/>
@@ -964,6 +959,13 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
               <Plus size={14}/> {t.add}
             </button>
           </div>
+          {/* Install app guide */}
+          {!isStandalone&&(
+            <button className="gb" onClick={()=>setShowInstall(true)}
+              style={{width:"100%",justifyContent:"center",marginTop:6,fontSize:13}}>
+              <Smartphone size={14}/> {t.installApp} <ChevronDown size={12} style={{transform:"rotate(-90deg)"}}/>
+            </button>
+          )}
         </div>
 
         {/* Groups nav */}
