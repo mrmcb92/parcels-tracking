@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   Plus, Trash2, ExternalLink, X, Search, Package, Download,
   FileText, Loader, ChevronDown, LogOut, Share2, Users, Copy,
-  Check, UserPlus, RefreshCw, Sun, Moon,
+  Check, UserPlus, RefreshCw, Sun, Moon, Smartphone,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { supabase } from "./supabase.js";
@@ -55,6 +55,16 @@ const T = {
     // Products
     products:"Products",addProduct:"Add product",productName:"Product name",qty:"Qty",noProductsYet:"No products added yet.",
     productCount:(n)=>`${n} ${n===1?"product":"products"}`,
+    // Install guide
+    installApp:"Install app",
+    installTitle:"Install on your phone",
+    installIntro:"Add Parcel Tracking to your home screen for quick, full-screen access — it works offline like a native app.",
+    installIosTitle:"iPhone & iPad — Safari",
+    installAndroidTitle:"Android — Chrome",
+    installIosSteps:["Open this page in Safari.","Tap the Share button (a square with an upward arrow).","Scroll down and tap “Add to Home Screen”.","Tap “Add” in the top-right corner."],
+    installAndroidSteps:["Open this page in Chrome.","Tap the menu (⋮) in the top-right.","Tap “Add to Home screen” (or “Install app”).","Confirm by tapping “Add” / “Install”."],
+    installNote:"Once added, open the app from its icon — no browser bar, full-screen.",
+    gotIt:"Got it",
   },
   ro: {
     appName:"Parcel Tracking",appSub:"Urmărește-ți coletele de pe orice device",
@@ -101,6 +111,16 @@ const T = {
     // Products
     products:"Produse",addProduct:"Adaugă produs",productName:"Numele produsului",qty:"Cant.",noProductsYet:"Niciun produs adăugat.",
     productCount:(n)=>`${n} ${n===1?"produs":"produse"}`,
+    // Ghid instalare
+    installApp:"Instalează aplicația",
+    installTitle:"Instalează pe telefon",
+    installIntro:"Adaugă Parcel Tracking pe ecranul principal pentru acces rapid, pe tot ecranul — funcționează offline ca o aplicație nativă.",
+    installIosTitle:"iPhone & iPad — Safari",
+    installAndroidTitle:"Android — Chrome",
+    installIosSteps:["Deschide această pagină în Safari.","Apasă butonul Share (un pătrat cu o săgeată în sus).","Derulează în jos și apasă „Add to Home Screen” / „Adaugă pe ecranul principal”.","Apasă „Add” / „Adaugă” în colțul din dreapta sus."],
+    installAndroidSteps:["Deschide această pagină în Chrome.","Apasă meniul (⋮) din dreapta sus.","Apasă „Adaugă pe ecranul principal” (sau „Instalează aplicația”).","Confirmă apăsând „Adaugă” / „Instalează”."],
+    installNote:"După adăugare, deschide aplicația din iconiță — fără bara browserului, pe tot ecranul.",
+    gotIt:"Am înțeles",
   },
 };
 
@@ -648,6 +668,44 @@ function ConfirmDeleteModal({pkg, onConfirm, onClose, t}) {
   );
 }
 
+// ── InstallGuideModal ─────────────────────────────────────────────────────────
+
+function InstallGuideModal({onClose, t}) {
+  const Section = ({icon, title, steps}) => (
+    <div style={{marginBottom:18}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+        {icon}
+        <span style={{fontSize:13,fontWeight:600,color:"rgb(var(--ink))"}}>{title}</span>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {steps.map((s,i)=>(
+          <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+            <span style={{flexShrink:0,width:20,height:20,borderRadius:6,background:"rgba(var(--accent),0.16)",color:"rgb(var(--accent))",fontSize:11,fontWeight:600,display:"inline-flex",alignItems:"center",justifyContent:"center"}}>{i+1}</span>
+            <span style={{fontSize:13,color:"rgba(var(--ink),0.7)",lineHeight:1.45}}>{s}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  return (
+    <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:440,width:"100%",maxHeight:"85vh",overflowY:"auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem"}}>
+          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
+            <Smartphone size={15} style={{color:"rgb(var(--accent))"}}/> {t.installTitle}
+          </h2>
+          <button className="ib" onClick={onClose}><X size={14}/></button>
+        </div>
+        <p style={{fontSize:13,color:"rgba(var(--ink),0.55)",marginBottom:"1.25rem",lineHeight:1.6}}>{t.installIntro}</p>
+        <Section icon={<Share2 size={14} style={{color:"rgb(var(--accent))"}}/>} title={t.installIosTitle} steps={t.installIosSteps}/>
+        <Section icon={<Smartphone size={14} style={{color:"rgb(var(--accent))"}}/>} title={t.installAndroidTitle} steps={t.installAndroidSteps}/>
+        <p style={{fontSize:12,color:"rgba(var(--ink),0.4)",marginBottom:"1.25rem",lineHeight:1.5}}>{t.installNote}</p>
+        <button className="gb gbp" onClick={onClose} style={{width:"100%",justifyContent:"center"}}>{t.gotIt}</button>
+      </div>
+    </div>
+  );
+}
+
 // ── MainApp ───────────────────────────────────────────────────────────────────
 
 function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
@@ -668,6 +726,8 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const [shareLoading,setShareLoading]     = useState(null); // package id
   const [moveModal,setMoveModal]     = useState(null); // package to move
   const [deleteConfirm,setDeleteConfirm] = useState(null); // package to delete
+  const [showInstall,setShowInstall] = useState(false);
+  const isStandalone = typeof window!=="undefined" && (window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone);
   const [inviteModal,setInviteModal] = useState(pendingInvite||null);
   const exportRef = useRef(null);
 
@@ -877,6 +937,11 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
             <button className="ib" onClick={handleRefresh} disabled={refreshing} title="Refresh">
               <RefreshCw size={13} className={refreshing?"spin":""}/>
             </button>
+            {!isStandalone&&(
+              <button className="ib" onClick={()=>setShowInstall(true)} title={t.installApp} aria-label={t.installApp}>
+                <Smartphone size={13}/>
+              </button>
+            )}
             <ThemeToggle theme={theme} setTheme={setTheme}/><LangToggle lang={lang} setLang={setLang}/>
             <button className="ib" onClick={()=>supabase.auth.signOut()} title={t.signOut}>
               <LogOut size={13}/>
@@ -1122,6 +1187,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
         <div style={{height:"2rem"}}/>
       </div>
 
+      {showInstall&&<InstallGuideModal onClose={()=>setShowInstall(false)} t={t}/>}
       {deleteConfirm&&<ConfirmDeleteModal pkg={deleteConfirm} onConfirm={()=>{del(deleteConfirm.id);setDeleteConfirm(null);}} onClose={()=>setDeleteConfirm(null)} t={t}/>}
       {moveModal&&<MoveModal pkg={moveModal} groups={groups} onMove={moveParcel} onClose={()=>setMoveModal(null)} t={t}/>}
       {shareModal&&<ShareModal shareUrl={shareModal.shareUrl} onClose={()=>setShareModal(null)} t={t}/>}
