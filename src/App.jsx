@@ -146,17 +146,21 @@ const COURIERS = [
 
 const STATUSES = ["Comandat","In livrare","Livrat"];
 
+const SC_LOW = {color:"rgba(var(--ink),0.55)",bg:"rgba(var(--ink),0.07)",border:"rgba(var(--ink),0.18)"};
+const SC_MID = {color:"rgba(var(--ink),0.9)",bg:"rgba(var(--ink),0.13)",border:"rgba(var(--ink),0.3)"};
+const SC_SOLID = {color:"var(--accent-fg)",bg:"rgb(var(--accent))",border:"transparent"};
+
 const SC = {
-  "Comandat":   {color:"#94a3b8",bg:"rgba(148,163,184,0.18)",border:"rgba(148,163,184,0.45)"},
-  "In livrare": {color:"rgb(var(--accent))",bg:"rgba(var(--accent),0.18)",border:"rgba(var(--accent),0.45)"},
-  "Livrat":     {color:"#34d399",bg:"rgba(52,211,153,0.18)", border:"rgba(52,211,153,0.45)"},
-  "In procesare":{color:"rgb(var(--accent))",bg:"rgba(var(--accent),0.18)",border:"rgba(var(--accent),0.45)"},
-  "In tranzit": {color:"rgb(var(--accent))",bg:"rgba(var(--accent),0.18)",border:"rgba(var(--accent),0.45)"},
-  "La livrare": {color:"rgb(var(--accent))",bg:"rgba(var(--accent),0.18)",border:"rgba(var(--accent),0.45)"},
-  "Retur":      {color:"#94a3b8",bg:"rgba(148,163,184,0.18)",border:"rgba(148,163,184,0.45)"},
+  "Comandat":   SC_LOW,
+  "In livrare": SC_MID,
+  "Livrat":     SC_SOLID,
+  "In procesare":SC_MID,
+  "In tranzit": SC_MID,
+  "La livrare": SC_MID,
+  "Retur":      SC_LOW,
 };
 
-const SC_FB = {color:"#94a3b8",bg:"rgba(148,163,184,0.18)",border:"rgba(148,163,184,0.45)"};
+const SC_FB = SC_LOW;
 const STATUS_ORDER = {"Comandat":0,"In livrare":1,"Livrat":2};
 
 const emptyForm = () => ({
@@ -172,7 +176,8 @@ const STYLES = `
   :root,[data-theme="dark"]{
     --ink:255,255,255;
     --frost:255,255,255;
-    --accent:59,130,246;
+    --accent:255,255,255;
+    --accent-fg:#101013;
     --bg:linear-gradient(150deg,#101013 0%,#0b0b0e 55%,#070709 100%);
     --bg-solid:#101013;
     --glass-bg:rgba(var(--frost),0.07);
@@ -198,7 +203,8 @@ const STYLES = `
   [data-theme="light"]{
     --ink:24,24,27;
     --frost:255,255,255;
-    --accent:37,99,235;
+    --accent:24,24,27;
+    --accent-fg:#ffffff;
     --bg:linear-gradient(150deg,#f6f7f9 0%,#eef0f3 55%,#f3f4f6 100%);
     --bg-solid:#f6f7f9;
     --glass-bg:rgba(var(--frost),0.55);
@@ -241,8 +247,8 @@ const STYLES = `
   .gb:hover{background:var(--glass-bg-hover);transform:translateY(-1px);box-shadow:0 4px 14px var(--shadow)}
   .gb:active{transform:scale(0.97) translateY(0)}
   .gb:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
-  .gbp{background:rgba(var(--accent),0.9);border-color:rgba(var(--accent),0.6);box-shadow:0 4px 14px rgba(var(--accent),0.28);color:#fff}
-  .gbp:hover{background:rgba(var(--accent),1);border-color:rgba(var(--accent),0.8);box-shadow:0 6px 20px rgba(var(--accent),0.4)}
+  .gbp{background:rgb(var(--accent));border-color:transparent;box-shadow:0 4px 14px var(--shadow);color:var(--accent-fg)}
+  .gbp:hover{background:rgba(var(--accent),0.88);border-color:transparent;box-shadow:0 6px 20px var(--shadow-strong)}
   .ib{background:var(--btn-bg);border:1px solid var(--btn-border);border-radius:10px;color:rgba(var(--ink),0.55);cursor:pointer;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .18s;font-family:'Outfit',sans-serif;font-size:13px}
   .ib:hover{background:var(--glass-bg-hover);color:rgba(var(--ink),0.9);transform:translateY(-1px)}
   .ib:active{transform:scale(0.95)}
@@ -381,7 +387,7 @@ function SharedParcelView({token,lang,setLang,theme,setTheme}) {
                   <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:5}}>
                     <span style={{fontWeight:500,fontSize:15,color:"rgb(var(--ink))"}}>{pkg.name}</span>
                     <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border,cursor:"default"}}>{LBL(pkg.status)}</span>
-                    {pkg.amount&&<span className="sp" style={{background:"rgba(52,211,153,0.12)",color:"#34d399",borderColor:"rgba(52,211,153,0.35)",fontSize:11,cursor:"default"}}>{Number(pkg.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
+                    {pkg.amount&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.7)",borderColor:"rgba(var(--ink),0.18)",fontSize:11,cursor:"default"}}>{Number(pkg.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
                   </div>
                   <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
                     {pkg.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.55)",fontWeight:500}}>#{pkg.order_number.replace(/^#/,"")}</span>}
@@ -1141,8 +1147,8 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                       <span className="pkg-name" title={p.name}>{p.name}</span>
                       <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginTop:6}}>
                         <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{LBL(p.status)}</span>
-                        {p.amount&&<span className="sp" style={{background:"rgba(52,211,153,0.12)",color:"#34d399",borderColor:"rgba(52,211,153,0.35)",fontSize:11}}>{Number(p.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
-                        {p.products&&p.products.length>0&&<span className="sp" style={{background:"rgba(251,191,36,0.12)",color:"#fbbf24",borderColor:"rgba(251,191,36,0.35)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
+                        {p.amount&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.7)",borderColor:"rgba(var(--ink),0.18)",fontSize:11}}>{Number(p.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
+                        {p.products&&p.products.length>0&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.55)",borderColor:"rgba(var(--ink),0.18)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
                         {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(var(--accent),0.12)",color:"rgb(var(--accent))",borderColor:"rgba(var(--accent),0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
                       </div>
                       <div className="pkg-meta" style={{marginTop:6}}>
