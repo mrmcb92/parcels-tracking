@@ -176,23 +176,23 @@ const STYLES = `
   :root,[data-theme="dark"]{
     --ink:245,245,245;
     --accent:245,245,245;
-    --accent-fg:#16101e;
-    --bg:#16101e;
-    --bg-solid:#16101e;
-    --glass-bg:#1d1626;
-    --glass-bg-strong:#241b30;
-    --glass-bg-hover:#2a2037;
-    --glass-border:rgba(245,245,245,0.09);
-    --glass-border-strong:rgba(245,245,245,0.14);
-    --pkg-bg:#1d1626;
+    --accent-fg:#161618;
+    --bg:#141416;
+    --bg-solid:#141416;
+    --glass-bg:#1d1d20;
+    --glass-bg-strong:#26262a;
+    --glass-bg-hover:#2b2b30;
+    --glass-border:rgba(245,245,245,0.1);
+    --glass-border-strong:rgba(245,245,245,0.18);
+    --pkg-bg:#1d1d20;
     --pkg-border:rgba(245,245,245,0.08);
-    --input-bg:#130d1c;
-    --input-border:rgba(245,245,245,0.13);
-    --btn-bg:#241b30;
-    --btn-border:rgba(245,245,245,0.1);
-    --menu-bg:#241b30;
-    --option-bg:#1d1626;
-    --scrim:rgba(7,5,12,0.72);
+    --input-bg:#0f0f11;
+    --input-border:rgba(245,245,245,0.14);
+    --btn-bg:#26262a;
+    --btn-border:rgba(245,245,245,0.11);
+    --menu-bg:#26262a;
+    --option-bg:#1d1d20;
+    --scrim:rgba(0,0,0,0.7);
     --shadow:rgba(0,0,0,0.35);
     --shadow-strong:rgba(0,0,0,0.5);
     --card-shadow:0 1px 3px rgba(0,0,0,0.3),0 8px 24px rgba(0,0,0,0.36);
@@ -245,9 +245,9 @@ const STYLES = `
   .ib:active{transform:scale(0.95)}
   .ib:disabled{opacity:0.3;cursor:not-allowed;transform:none}
   .ibx:hover{background:rgba(248,113,113,0.16);border-color:rgba(248,113,113,0.4);color:#ef4444;transform:translateY(-1px)}
-  .fp{font-size:13px;padding:5px 14px;border-radius:100px;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass-bg);color:rgba(var(--ink),0.6);transition:all .18s;font-family:'Plus Jakarta Sans','Inter',sans-serif;white-space:nowrap;flex-shrink:0}
-  .fp:hover{background:var(--glass-bg-hover);color:rgba(var(--ink),0.9)}
-  .fp.act{background:var(--glass-bg-hover);border-color:var(--glass-border-strong);color:rgb(var(--ink))}
+  .fp{font-size:13px;padding:6px 15px;border-radius:100px;cursor:pointer;border:1px solid var(--glass-border-strong);background:var(--glass-bg);color:rgba(var(--ink),0.7);transition:all .18s;font-family:'Plus Jakarta Sans','Inter',sans-serif;white-space:nowrap;flex-shrink:0;box-shadow:var(--card-shadow)}
+  .fp:hover{background:var(--glass-bg-hover);color:rgb(var(--ink));border-color:rgba(var(--ink),0.28)}
+  .fp.act{background:rgb(var(--accent));border-color:transparent;color:var(--accent-fg);font-weight:600;box-shadow:var(--card-shadow)}
   .sp{font-size:12px;padding:3px 10px;border-radius:100px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:0.01em}
   .sp:hover{opacity:0.8}
   .sp:active{transform:scale(0.95)}
@@ -1212,7 +1212,7 @@ export default function App() {
   useEffect(()=>{
     document.documentElement.setAttribute("data-theme",theme);
     const meta=document.querySelector('meta[name="theme-color"]');
-    if(meta)meta.setAttribute("content",theme==="dark"?"#16101e":"#f5f5f5");
+    if(meta)meta.setAttribute("content",theme==="dark"?"#141416":"#f5f5f5");
   },[theme]);
 
   // Shared parcel view — no auth required
