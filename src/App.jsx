@@ -169,6 +169,13 @@ const emptyForm = () => ({
   products:[{name:"",qty:1}],
 });
 
+// Neutralize spreadsheet formula injection: prefix cells that a spreadsheet
+// app could interpret as a formula (=, +, -, @, tab, CR) with an apostrophe.
+const cellSafe = (v) => {
+  const s = v==null ? "" : String(v);
+  return /^[=+\-@\t\r]/.test(s) ? "'"+s : s;
+};
+
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const STYLES = `
@@ -438,7 +445,13 @@ function GroupModal({user,onClose,onCreated,t}) {
     setBusy(true);
     const {data,error}=await supabase.from("groups").insert({name:name.trim(),created_by:user.id}).select().single();
     if(!error&&data){
-      await supabase.from("group_members").insert({group_id:data.id,user_id:user.id,role:"owner"});
+      const {error:memErr}=await supabase.from("group_members").insert({group_id:data.id,user_id:user.id,role:"owner"});
+      if(memErr){
+        // Roll back the orphan group so it doesn't linger without members
+        await supabase.from("groups").delete().eq("id",data.id);
+        setBusy(false);
+        return;
+      }
       setCreated(data);
       onCreated(data);
     }
@@ -763,7 +776,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   }
 
   function openForm(p=null){
-    setForm(p?{name:p.name,awb:p.awb,courier:p.courier,status:p.status,date:p.date,notes:p.notes||"",shop:p.shop||"",amount:p.amount||"",order_number:p.order_number||"",products:p.products||[]}:emptyForm());
+    setForm(p?{name:p.name,awb:p.awb,courier:p.courier,status:p.status,date:p.date||emptyForm().date,notes:p.notes||"",shop:p.shop||"",amount:p.amount||"",order_number:p.order_number||"",products:(p.products&&p.products.length)?p.products:[{name:p.name||"",qty:1}]}:emptyForm());
     setEditId(p?p.id:null);setFormErr("");setShowForm(true);
   }
 
@@ -861,7 +874,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
 
   function exportCSV(){
     const h=t.exportHeaders;
-    const rows=viewPkgs.map(p=>[p.name,p.order_number||"",p.awb,p.courier,t.statuses[p.status]||p.status,p.date,p.shop||"",p.amount||"",p.notes||"",(p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; ")]);
+    const rows=filtered.map(p=>[p.name,p.order_number||"",p.awb,p.courier,t.statuses[p.status]||p.status,p.date,p.shop||"",p.amount||"",p.notes||"",(p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; ")].map(cellSafe));
     const csv=[h,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
     const url=URL.createObjectURL(blob);
@@ -872,11 +885,11 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
 
   function exportXLSX(){
     const headers=t.exportHeaders;
-    const data=viewPkgs.map(p=>({
-      [headers[0]]:p.name,[headers[1]]:p.order_number||"",[headers[2]]:p.awb,
-      [headers[3]]:p.courier,[headers[4]]:t.statuses[p.status]||p.status,
-      [headers[5]]:p.date,[headers[6]]:p.shop||"",[headers[7]]:p.amount||"",[headers[8]]:p.notes||"",
-      [headers[9]]:(p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; "),
+    const data=filtered.map(p=>({
+      [headers[0]]:cellSafe(p.name),[headers[1]]:cellSafe(p.order_number||""),[headers[2]]:cellSafe(p.awb),
+      [headers[3]]:cellSafe(p.courier),[headers[4]]:cellSafe(t.statuses[p.status]||p.status),
+      [headers[5]]:cellSafe(p.date),[headers[6]]:cellSafe(p.shop||""),[headers[7]]:cellSafe(p.amount||""),[headers[8]]:cellSafe(p.notes||""),
+      [headers[9]]:cellSafe((p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; ")),
     }));
     const ws=XLSX.utils.json_to_sheet(data);
     const wb=XLSX.utils.book_new();
