@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#16101e" />
     <script>
       (function () {
-        var t = localStorage.getItem("parcel-theme") || "dark";
+        var t = localStorage.getItem("parcel-theme") || "light";
         document.documentElement.setAttribute("data-theme", t);
         var m = document.querySelector('meta[name="theme-color"]');
         if (m) m.setAttribute("content", t === "dark" ? "#16101e" : "#f5f5f5");
