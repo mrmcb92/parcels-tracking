@@ -267,6 +267,8 @@ const STYLES = `
   :focus-visible{outline:2px solid rgba(var(--accent),0.6);outline-offset:2px;border-radius:4px}
   .pkg-name{font-weight:600;font-size:15px;color:rgb(var(--ink));letter-spacing:-0.01em;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
   .pkg-content{flex:1;min-width:0;overflow:hidden}
+  .app-head{display:flex;align-items:center;gap:8px;margin-bottom:0.6rem}
+  .app-controls{display:flex;align-items:center;gap:6px;flex-shrink:0}
   .pkg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
   .pkg-actions{display:flex;gap:4px;flex-shrink:0;align-items:flex-start}
   .pkg-meta{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center}
@@ -277,6 +279,8 @@ const STYLES = `
     .pkg-actions{width:100%;justify-content:flex-end}
     .pkg-name{-webkit-line-clamp:3}
     .pkg-content{max-width:calc(100vw - 4.5rem)}
+    .app-head{flex-wrap:wrap}
+    .app-controls{width:100%;justify-content:flex-end;margin-top:2px}
   }
 `;
 
@@ -912,24 +916,26 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
 
         {/* Header */}
         <div style={{marginBottom:"1rem"}}>
-          {/* Row 1: logo + refresh + lang + signout */}
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:"0.6rem"}}>
+          {/* Row 1: logo + title + controls */}
+          <div className="app-head">
             <div className="gc" style={{padding:9,borderRadius:16,display:"flex",flexShrink:0}}>
               <Package size={20} style={{color:"rgb(var(--accent))"}}/>
             </div>
-            <div style={{flex:1,minWidth:0}}>
-              <h1 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))",letterSpacing:"-0.02em"}}>{t.appName}</h1>
+            <div className="app-title" style={{flex:1,minWidth:0}}>
+              <h1 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))",letterSpacing:"-0.02em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{t.appName}</h1>
               <p style={{fontSize:12,color:"rgba(var(--ink),0.4)",marginTop:1}}>
                 {loading?t.loading:t.parcels(viewPkgs.length)}
               </p>
             </div>
-            <button className="ib" onClick={handleRefresh} disabled={refreshing} title="Refresh">
-              <RefreshCw size={13} className={refreshing?"spin":""}/>
-            </button>
-            <ThemeToggle theme={theme} setTheme={setTheme}/><LangToggle lang={lang} setLang={setLang}/>
-            <button className="ib" onClick={()=>supabase.auth.signOut()} title={t.signOut}>
-              <LogOut size={13}/>
-            </button>
+            <div className="app-controls">
+              <button className="ib" onClick={handleRefresh} disabled={refreshing} title="Refresh">
+                <RefreshCw size={13} className={refreshing?"spin":""}/>
+              </button>
+              <ThemeToggle theme={theme} setTheme={setTheme}/><LangToggle lang={lang} setLang={setLang}/>
+              <button className="ib" onClick={()=>supabase.auth.signOut()} title={t.signOut}>
+                <LogOut size={13}/>
+              </button>
+            </div>
           </div>
           {/* Row 2: export + add */}
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
