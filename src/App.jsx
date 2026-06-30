@@ -579,7 +579,7 @@ function LoginScreen({lang,setLang,theme,setTheme}) {
           <p style={{fontSize:13,color:"rgba(var(--ink),0.4)",marginTop:6}}>{t.loginSub}</p>
         </div>
         <button onClick={loginWithGoogle} disabled={busy}
-          style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"13px 16px",background:"white",border:"none",borderRadius:14,cursor:"pointer",fontSize:15,fontWeight:500,color:"#1f1f1f",fontFamily:"'DM Sans',sans-serif",opacity:busy?0.7:1,transition:"opacity .15s"}}>
+          style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"13px 16px",background:"white",border:"none",borderRadius:14,cursor:"pointer",fontSize:15,fontWeight:500,color:"#1f1f1f",fontFamily:"'Plus Jakarta Sans','Inter',sans-serif",opacity:busy?0.7:1,transition:"opacity .15s"}}>
           {busy?<Loader size={18} style={{animation:"spin 1s linear infinite",color:"#4285f4"}}/>:(
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -620,7 +620,7 @@ function MoveModal({pkg, groups, onMove, onClose, t}) {
         <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:"1.25rem"}}>
           {options.map(o=>(
             <button key={o.id} onClick={()=>setSelected(o.id)}
-              style={{padding:"10px 14px",borderRadius:12,border:`1px solid ${selected===o.id?"rgba(var(--accent),0.5)":"rgba(var(--ink),0.1)"}`,background:selected===o.id?"rgba(var(--accent),0.18)":"rgba(var(--ink),0.04)",color:selected===o.id?"rgb(var(--accent))":"rgba(var(--ink),0.7)",cursor:"pointer",textAlign:"left",fontSize:14,fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
+              style={{padding:"10px 14px",borderRadius:12,border:`1px solid ${selected===o.id?"rgba(var(--accent),0.5)":"rgba(var(--ink),0.1)"}`,background:selected===o.id?"rgba(var(--accent),0.18)":"rgba(var(--ink),0.04)",color:selected===o.id?"rgb(var(--accent))":"rgba(var(--ink),0.7)",cursor:"pointer",textAlign:"left",fontSize:14,fontFamily:"'Plus Jakarta Sans','Inter',sans-serif",display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
               {o.id==="personal"?<Package size={13}/>:<Users size={13}/>} {o.name}
               {selected===o.id&&<Check size={13} style={{marginLeft:"auto"}}/>}
             </button>
@@ -730,7 +730,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
     const channel=supabase.channel("pkgs-rt")
       .on("postgres_changes",{event:"*",schema:"public",table:"packages"},(payload)=>{
         if(payload.eventType==="UPDATE") setPkgs(prev=>prev.map(p=>p.id===payload.new.id?{...p,...payload.new}:p));
-        else if(payload.eventType==="INSERT") setPkgs(prev=>[payload.new,...prev]);
+        else if(payload.eventType==="INSERT") setPkgs(prev=>prev.some(p=>p.id===payload.new.id)?prev:[payload.new,...prev]);
         else if(payload.eventType==="DELETE") setPkgs(prev=>prev.filter(p=>p.id!==payload.old.id));
       }).subscribe();
     return ()=>{supabase.removeChannel(channel);};
@@ -864,7 +864,9 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
     const rows=viewPkgs.map(p=>[p.name,p.order_number||"",p.awb,p.courier,t.statuses[p.status]||p.status,p.date,p.shop||"",p.amount||"",p.notes||"",(p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; ")]);
     const csv=[h,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="parcels.csv";a.click();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");a.href=url;a.download="parcels.csv";a.click();
+    URL.revokeObjectURL(url);
     setShowExp(false);
   }
 
@@ -1145,7 +1147,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                         {p.status!=="Comandat"&&p.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.awb}</span>}
                         {p.status!=="Comandat"&&p.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.courier}</span>}
                         {p.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.shop}</span>}
-                        <span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{new Date(p.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>
+                        {p.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{new Date(p.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>}
                       </div>
                       {p.notes&&<div style={{fontSize:13,color:"rgba(var(--ink),0.3)",marginTop:4}}>{p.notes}</div>}
                       {p.products&&p.products.length>1&&(
