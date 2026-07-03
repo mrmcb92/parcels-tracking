@@ -512,6 +512,7 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
   const [loading,setLoading] = useState(true);
   const [busy,setBusy]     = useState(false);
   const [done,setDone]     = useState(false);
+  const [joinErr,setJoinErr] = useState(false);
 
   useEffect(()=>{
     supabase.rpc("get_group_by_invite",{p_code:inviteCode}).then(({data})=>{
@@ -520,10 +521,11 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
   },[inviteCode]);
 
   async function join(){
-    setBusy(true);
+    setBusy(true);setJoinErr(false);
     const {error}=await supabase.rpc("join_group",{p_invite_code:inviteCode});
     setBusy(false);
     if(!error){setDone(true);setTimeout(()=>onJoined(group),1400);}
+    else setJoinErr(true);
   }
 
   return (
@@ -545,6 +547,7 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
           <>
             <h2 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))",marginBottom:6}}>{group.name}</h2>
             <p style={{fontSize:13,color:"rgba(var(--ink),0.45)",marginBottom:"1.5rem"}}>{t.joinGroup}?</p>
+            {joinErr&&<p style={{fontSize:12,color:"#ef4444",marginBottom:12}}>{t.invalidInvite}</p>}
             <div style={{display:"flex",gap:8,justifyContent:"center"}}>
               <button className="gb" onClick={onDismiss}>{t.cancel}</button>
               <button className="gb gbp" onClick={join} disabled={busy}>
@@ -801,13 +804,13 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   }
 
   async function del(id){
-    await supabase.from("packages").delete().eq("id",id);
-    setPkgs(prev=>prev.filter(p=>p.id!==id));
+    const {error}=await supabase.from("packages").delete().eq("id",id);
+    if(!error)setPkgs(prev=>prev.filter(p=>p.id!==id));
   }
 
   async function setStatus(id,status){
-    await supabase.from("packages").update({status}).eq("id",id);
-    setPkgs(prev=>prev.map(p=>p.id===id?{...p,status}:p));
+    const {error}=await supabase.from("packages").update({status}).eq("id",id);
+    if(!error)setPkgs(prev=>prev.map(p=>p.id===id?{...p,status}:p));
   }
 
   function getUrl(p){const c=COURIERS.find(c=>c.name===p.courier);return c?.url?c.url(p.awb):null;}
