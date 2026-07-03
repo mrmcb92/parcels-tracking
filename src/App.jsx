@@ -595,7 +595,7 @@ function LoginScreen({lang,setLang,theme,setTheme}) {
           <p style={{fontSize:13,color:"rgba(var(--ink),0.4)",marginTop:6}}>{t.loginSub}</p>
         </div>
         <button onClick={loginWithGoogle} disabled={busy}
-          style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"13px 16px",background:"white",border:"none",borderRadius:14,cursor:"pointer",fontSize:15,fontWeight:500,color:"#1f1f1f",fontFamily:"'Plus Jakarta Sans','Inter',sans-serif",opacity:busy?0.7:1,transition:"opacity .15s"}}>
+          style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"13px 16px",background:"white",border:"1.5px solid rgba(22,16,30,0.16)",borderRadius:14,cursor:"pointer",fontSize:15,fontWeight:600,color:"#1f1f1f",fontFamily:"'Plus Jakarta Sans','Inter',sans-serif",opacity:busy?0.7:1,transition:"opacity .15s,box-shadow .2s,transform .15s",boxShadow:"0 1px 3px rgba(0,0,0,0.08),0 6px 16px rgba(0,0,0,0.1)"}}>
           {busy?<Loader size={18} style={{animation:"spin 1s linear infinite",color:"#4285f4"}}/>:(
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
