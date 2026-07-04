@@ -3,6 +3,7 @@ import {
   Plus, Trash2, ExternalLink, X, Search, Package, Download,
   FileText, Loader, ChevronDown, LogOut, Share2, Users, Copy,
   Check, UserPlus, RefreshCw, Sun, Moon, Smartphone,
+  Archive, ArchiveRestore, BarChart3, Clock, CheckSquare, Square, UserMinus, ListChecks,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { supabase } from "./supabase.js";
@@ -35,7 +36,7 @@ const T = {
     loginSub:"Track your parcels from any device",loginBtn:"Continue with Google",
     loginConnecting:"Connecting...",loginNote:"Each user sees only their own parcels.",
     statuses:{"Comandat":"Ordered","In livrare":"In delivery","Livrat":"Delivered"},
-    exportHeaders:["Description","Order No.","AWB","Courier","Status","Date","Shop","Amount","Notes","Products"],
+    exportHeaders:["Description","Order No.","AWB","Courier","Status","Date","Shop","Amount","Notes","Products","Estimated delivery"],
     // Share
     share:"Share",shareTitle:"Share parcel",
     shareDesc:"Anyone with this link can view this parcel (read-only, no account needed).",
@@ -65,6 +66,21 @@ const T = {
     installAndroidSteps:["Open this page in Chrome.","Tap the menu (⋮) in the top-right.","Tap “Add to Home screen” (or “Install app”).","Confirm by tapping “Add” / “Install”."],
     installNote:"Once added, open the app from its icon — no browser bar, full-screen.",
     gotIt:"Got it",
+    // Sorting
+    sortNewest:"Newest first",sortOldest:"Oldest first",sortAmountDesc:"Amount: high to low",sortAmountAsc:"Amount: low to high",sortDefault:"Status",
+    // Archive
+    archive:"Archive",unarchive:"Unarchive",archivedFilter:(n)=>`Archived (${n})`,
+    // Bulk actions
+    select:"Select",selectedCount:(n)=>`${n} selected`,deleteSelected:"Delete selected",setStatusFor:"Set status:",
+    // Stats
+    stats:"Stats",statsTitle:"Overview",statsTotalParcels:"Total parcels",statsTotalSpent:"Total spent",
+    statsByStatus:"By status",statsTopShops:"Top shops",statsByMonth:"Spend by month",statsNoData:"Not enough data yet.",
+    // Estimated delivery
+    estDelivery:"Estimated delivery (optional)",overdueBy:(n)=>`Overdue by ${n} ${n===1?"day":"days"}`,arrivesToday:"Arrives today",inDays:(n)=>`In ${n} ${n===1?"day":"days"}`,
+    // Status history
+    history:"History",historyEmpty:"No status changes yet.",
+    // Group members
+    groupMembers:"Members",removeMember:"Remove from group",roleOwner:"Owner",roleMember:"Member",you:"You",
   },
   ro: {
     appName:"Parcel Tracking",appSub:"Urmărește-ți coletele de pe orice device",
@@ -91,7 +107,7 @@ const T = {
     loginSub:"Urmărește-ți coletele de pe orice device",loginBtn:"Continuă cu Google",
     loginConnecting:"Se conectează...",loginNote:"Fiecare utilizator vede doar propriile colete.",
     statuses:{"Comandat":"Comandat","In livrare":"In livrare","Livrat":"Livrat"},
-    exportHeaders:["Descriere","Nr. comandă","AWB","Curier","Status","Data","Magazin","Suma","Note","Produse"],
+    exportHeaders:["Descriere","Nr. comandă","AWB","Curier","Status","Data","Magazin","Suma","Note","Produse","Dată estimată livrare"],
     // Share
     share:"Distribuie",shareTitle:"Distribuie colet",
     shareDesc:"Oricine cu acest link poate vedea acest colet (doar citire, fără cont necesar).",
@@ -121,6 +137,21 @@ const T = {
     installAndroidSteps:["Deschide această pagină în Chrome.","Apasă meniul (⋮) din dreapta sus.","Apasă „Adaugă pe ecranul principal” (sau „Instalează aplicația”).","Confirmă apăsând „Adaugă” / „Instalează”."],
     installNote:"După adăugare, deschide aplicația din iconiță — fără bara browserului, pe tot ecranul.",
     gotIt:"Am înțeles",
+    // Sortare
+    sortNewest:"Cele mai noi",sortOldest:"Cele mai vechi",sortAmountDesc:"Sumă: descrescător",sortAmountAsc:"Sumă: crescător",sortDefault:"Status",
+    // Arhivare
+    archive:"Arhivează",unarchive:"Dezarhivează",archivedFilter:(n)=>`Arhivate (${n})`,
+    // Acțiuni în masă
+    select:"Selectează",selectedCount:(n)=>`${n} selectate`,deleteSelected:"Șterge selectate",setStatusFor:"Setează status:",
+    // Statistici
+    stats:"Statistici",statsTitle:"Prezentare generală",statsTotalParcels:"Total colete",statsTotalSpent:"Total cheltuit",
+    statsByStatus:"După status",statsTopShops:"Top magazine",statsByMonth:"Cheltuieli pe lună",statsNoData:"Nu sunt suficiente date încă.",
+    // Dată estimată
+    estDelivery:"Dată estimată livrare (opțional)",overdueBy:(n)=>`Întârziat cu ${n} ${n===1?"zi":"zile"}`,arrivesToday:"Sosește azi",inDays:(n)=>`În ${n} ${n===1?"zi":"zile"}`,
+    // Istoric status
+    history:"Istoric",historyEmpty:"Niciun status schimbat încă.",
+    // Membri grup
+    groupMembers:"Membri",removeMember:"Elimină din grup",roleOwner:"Proprietar",roleMember:"Membru",you:"Tu",
   },
 };
 
@@ -166,7 +197,7 @@ const STATUS_ORDER = {"Comandat":0,"In livrare":1,"Livrat":2};
 const emptyForm = () => ({
   name:"",awb:"",courier:"FAN Courier",status:"Comandat",
   date:new Date().toISOString().split("T")[0],notes:"",shop:"",amount:"",order_number:"",
-  products:[{name:"",qty:1}],
+  products:[{name:"",qty:1}],estimated_delivery:"",
 });
 
 // Neutralize spreadsheet formula injection: prefix cells that a spreadsheet
@@ -174,6 +205,13 @@ const emptyForm = () => ({
 const cellSafe = (v) => {
   const s = v==null ? "" : String(v);
   return /^[=+\-@\t\r]/.test(s) ? "'"+s : s;
+};
+
+// Whole days between today and a "YYYY-MM-DD" date string (negative = overdue).
+const daysUntil = (dateStr) => {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(dateStr+"T00:00:00");
+  return Math.round((target-today)/86400000);
 };
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -715,6 +753,136 @@ function InstallGuideModal({onClose, t}) {
   );
 }
 
+// ── StatsModal ────────────────────────────────────────────────────────────────
+
+function StatsModal({stats, onClose, t}) {
+  const fmt=(n)=>n.toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const maxShop=Math.max(1,...stats.topShops.map(([,v])=>v));
+  const maxMonth=Math.max(1,...stats.byMonth.map(([,v])=>v));
+  return (
+    <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:440,width:"100%",maxHeight:"85vh",overflowY:"auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
+          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
+            <BarChart3 size={15} style={{color:"rgb(var(--accent))"}}/> {t.statsTitle}
+          </h2>
+          <button className="ib" onClick={onClose}><X size={14}/></button>
+        </div>
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
+          <div className="gc" style={{padding:"12px 14px"}}>
+            <div style={{fontSize:10,color:"rgba(var(--ink),0.42)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:4}}>{t.statsTotalParcels}</div>
+            <div style={{fontSize:22,fontWeight:700,color:"rgb(var(--ink))"}}>{stats.total}</div>
+          </div>
+          <div className="gc" style={{padding:"12px 14px"}}>
+            <div style={{fontSize:10,color:"rgba(var(--ink),0.42)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:4}}>{t.statsTotalSpent}</div>
+            <div style={{fontSize:22,fontWeight:700,color:"rgb(var(--ink))"}}>{fmt(stats.totalSpent)} <span style={{fontSize:13,fontWeight:500,color:"rgba(var(--ink),0.4)"}}>RON</span></div>
+          </div>
+        </div>
+
+        {stats.total===0?(
+          <p style={{fontSize:13,color:"rgba(var(--ink),0.4)",textAlign:"center",padding:"1rem 0"}}>{t.statsNoData}</p>
+        ):(
+          <>
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:11,fontWeight:600,color:"rgba(var(--ink),0.5)",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>{t.statsByStatus}</div>
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                {stats.byStatus.map(s=>(
+                  <div key={s.status} style={{display:"flex",alignItems:"center",gap:8}}>
+                    <span style={{fontSize:13,color:"rgba(var(--ink),0.75)",width:90,flexShrink:0}}>{s.label}</span>
+                    <div style={{flex:1,height:6,borderRadius:3,background:"rgba(var(--ink),0.07)",overflow:"hidden"}}>
+                      <div style={{width:`${stats.total?(s.count/stats.total)*100:0}%`,height:"100%",background:"rgb(var(--accent))",borderRadius:3}}/>
+                    </div>
+                    <span style={{fontSize:12,color:"rgba(var(--ink),0.5)",width:20,textAlign:"right",flexShrink:0}}>{s.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {stats.topShops.length>0&&(
+              <div style={{marginBottom:20}}>
+                <div style={{fontSize:11,fontWeight:600,color:"rgba(var(--ink),0.5)",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>{t.statsTopShops}</div>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {stats.topShops.map(([shop,total])=>(
+                    <div key={shop} style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{fontSize:13,color:"rgba(var(--ink),0.75)",width:90,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{shop}</span>
+                      <div style={{flex:1,height:6,borderRadius:3,background:"rgba(var(--ink),0.07)",overflow:"hidden"}}>
+                        <div style={{width:`${(total/maxShop)*100}%`,height:"100%",background:"rgb(var(--accent))",borderRadius:3}}/>
+                      </div>
+                      <span style={{fontSize:12,color:"rgba(var(--ink),0.5)",width:60,textAlign:"right",flexShrink:0}}>{fmt(total)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {stats.byMonth.length>0&&(
+              <div>
+                <div style={{fontSize:11,fontWeight:600,color:"rgba(var(--ink),0.5)",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>{t.statsByMonth}</div>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {stats.byMonth.map(([month,total])=>(
+                    <div key={month} style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{fontSize:13,color:"rgba(var(--ink),0.75)",width:90,flexShrink:0}}>{month}</span>
+                      <div style={{flex:1,height:6,borderRadius:3,background:"rgba(var(--ink),0.07)",overflow:"hidden"}}>
+                        <div style={{width:`${(total/maxMonth)*100}%`,height:"100%",background:"rgb(var(--accent))",borderRadius:3}}/>
+                      </div>
+                      <span style={{fontSize:12,color:"rgba(var(--ink),0.5)",width:60,textAlign:"right",flexShrink:0}}>{fmt(total)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── GroupMembersModal ─────────────────────────────────────────────────────────
+
+function GroupMembersModal({group, user, isOwner, onRemove, onClose, t}) {
+  const [busyId,setBusyId]=useState(null);
+  const members=group.group_members||[];
+
+  async function handleRemove(userId){
+    setBusyId(userId);
+    await onRemove(group.id,userId);
+    setBusyId(null);
+  }
+
+  return (
+    <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:420,width:"100%",maxHeight:"80vh",overflowY:"auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
+          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
+            <Users size={15} style={{color:"rgb(var(--accent))"}}/> {t.groupMembers} · {group.name}
+          </h2>
+          <button className="ib" onClick={onClose}><X size={14}/></button>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {members.map(m=>(
+            <div key={m.user_id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",borderRadius:10,background:"rgba(var(--ink),0.04)"}}>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13,color:"rgb(var(--ink))",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                  {m.email||m.user_id}{m.user_id===user.id?` (${t.you})`:""}
+                </div>
+                <div style={{fontSize:11,color:"rgba(var(--ink),0.4)"}}>{m.role==="owner"?t.roleOwner:t.roleMember}</div>
+              </div>
+              {isOwner&&m.role!=="owner"&&m.user_id!==user.id&&(
+                <button className="ib ibx" onClick={()=>handleRemove(m.user_id)} disabled={busyId===m.user_id} title={t.removeMember}>
+                  {busyId===m.user_id?<Loader size={13} className="spin"/>:<UserMinus size={13}/>}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        <button className="gb" onClick={onClose} style={{width:"100%",justifyContent:"center",marginTop:16}}>{t.cancel}</button>
+      </div>
+    </div>
+  );
+}
+
 // ── MainApp ───────────────────────────────────────────────────────────────────
 
 function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
@@ -738,6 +906,13 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const [showInstall,setShowInstall] = useState(false);
   const isStandalone = typeof window!=="undefined" && (window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone);
   const [inviteModal,setInviteModal] = useState(pendingInvite||null);
+  const [sortBy,setSortBy]         = useState("status");
+  const [selectMode,setSelectMode] = useState(false);
+  const [selectedIds,setSelectedIds] = useState(()=>new Set());
+  const [bulkDeleteConfirm,setBulkDeleteConfirm] = useState(false);
+  const [showStats,setShowStats]   = useState(false);
+  const [historyOpenId,setHistoryOpenId] = useState(null);
+  const [membersModal,setMembersModal] = useState(null); // group object
   const exportRef = useRef(null);
 
   useEffect(()=>{loadAll();},[]);
@@ -774,12 +949,19 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
           group_members:[{user_id:user.id,role:m.role}],
         }));
       setGroups(grps);
+      // Fetch the real member list (RLS hides other members' rows on a direct
+      // select, so this goes through a security-definer RPC).
+      const withMembers=await Promise.all(grps.map(async g=>{
+        const {data:members}=await supabase.rpc("get_group_members",{p_group_id:g.id});
+        return members?.length ? {...g,group_members:members} : g;
+      }));
+      setGroups(withMembers);
     }
     setLoading(false);
   }
 
   function openForm(p=null){
-    setForm(p?{name:p.name,awb:p.awb,courier:p.courier,status:p.status,date:p.date||emptyForm().date,notes:p.notes||"",shop:p.shop||"",amount:p.amount||"",order_number:p.order_number||"",products:(p.products&&p.products.length)?p.products:[{name:p.name||"",qty:1}]}:emptyForm());
+    setForm(p?{name:p.name,awb:p.awb,courier:p.courier,status:p.status,date:p.date||emptyForm().date,notes:p.notes||"",shop:p.shop||"",amount:p.amount||"",order_number:p.order_number||"",products:(p.products&&p.products.length)?p.products:[{name:p.name||"",qty:1}],estimated_delivery:p.estimated_delivery||""}:emptyForm());
     setEditId(p?p.id:null);setFormErr("");setShowForm(true);
   }
 
@@ -790,12 +972,17 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
     const autoName=validProducts.map(p=>`${p.qty>1?p.qty+"× ":""}${p.name.trim()}`).join(", ");
     const entry={...form,name:autoName,awb:form.awb.trim(),products:validProducts};
     if(editId){
+      const prevPkg=pkgs.find(p=>p.id===editId);
+      if(prevPkg&&prevPkg.status!==entry.status){
+        entry.status_history=[...(prevPkg.status_history||[]),{status:entry.status,at:new Date().toISOString()}];
+      }
       const {error}=await supabase.from("packages").update(entry).eq("id",editId);
       if(error){setFormErr(t.saveErr+error.message);return;}
       setPkgs(prev=>prev.map(p=>p.id===editId?{...p,...entry}:p));
     } else {
       const gid=currentView!=="personal"?currentView:null;
-      const newPkg={...entry,id:Date.now().toString(),user_id:user.id,group_id:gid};
+      const status_history=[{status:entry.status,at:new Date().toISOString()}];
+      const newPkg={...entry,id:Date.now().toString(),user_id:user.id,group_id:gid,status_history,archived:false};
       const {error}=await supabase.from("packages").insert(newPkg);
       if(error){setFormErr(t.saveErr+error.message);return;}
       setPkgs(prev=>[newPkg,...prev]);
@@ -809,8 +996,51 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   }
 
   async function setStatus(id,status){
-    const {error}=await supabase.from("packages").update({status}).eq("id",id);
-    if(!error)setPkgs(prev=>prev.map(p=>p.id===id?{...p,status}:p));
+    const pkg=pkgs.find(p=>p.id===id);
+    if(pkg&&pkg.status===status)return;
+    const status_history=[...(pkg?.status_history||[]),{status,at:new Date().toISOString()}];
+    const {error}=await supabase.from("packages").update({status,status_history}).eq("id",id);
+    if(!error)setPkgs(prev=>prev.map(p=>p.id===id?{...p,status,status_history}:p));
+  }
+
+  async function setArchived(id,archived){
+    const {error}=await supabase.from("packages").update({archived}).eq("id",id);
+    if(!error)setPkgs(prev=>prev.map(p=>p.id===id?{...p,archived}:p));
+  }
+
+  // Bulk actions
+  function toggleSelect(id){
+    setSelectedIds(prev=>{
+      const next=new Set(prev);
+      next.has(id)?next.delete(id):next.add(id);
+      return next;
+    });
+  }
+  function exitSelectMode(){ setSelectMode(false); setSelectedIds(new Set()); }
+
+  async function bulkDelete(){
+    const ids=[...selectedIds];
+    const {error}=await supabase.from("packages").delete().in("id",ids);
+    if(!error)setPkgs(prev=>prev.filter(p=>!selectedIds.has(p.id)));
+    setBulkDeleteConfirm(false);
+    exitSelectMode();
+  }
+
+  async function bulkSetStatus(status){
+    const ids=[...selectedIds];
+    const at=new Date().toISOString();
+    // status_history differs per row, so each parcel needs its own request
+    // (a single batched update would briefly write a stale history and race
+    // with the realtime UPDATE event).
+    const updates=ids.map(id=>{
+      const pkg=pkgs.find(p=>p.id===id);
+      const status_history=[...(pkg?.status_history||[]),{status,at}];
+      return {id,status_history};
+    });
+    const results=await Promise.all(updates.map(u=>supabase.from("packages").update({status,status_history:u.status_history}).eq("id",u.id)));
+    const okIds=new Set(updates.filter((u,i)=>!results[i].error).map(u=>u.id));
+    setPkgs(prev=>prev.map(p=>okIds.has(p.id)?{...p,status,status_history:updates.find(u=>u.id===p.id).status_history}:p));
+    exitSelectMode();
   }
 
   function getUrl(p){const c=COURIERS.find(c=>c.name===p.courier);return c?.url?c.url(p.awb):null;}
@@ -877,7 +1107,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
 
   function exportCSV(){
     const h=t.exportHeaders;
-    const rows=filtered.map(p=>[p.name,p.order_number||"",p.awb,p.courier,t.statuses[p.status]||p.status,p.date,p.shop||"",p.amount||"",p.notes||"",(p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; ")].map(cellSafe));
+    const rows=filtered.map(p=>[p.name,p.order_number||"",p.awb,p.courier,t.statuses[p.status]||p.status,p.date,p.shop||"",p.amount||"",p.notes||"",(p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; "),p.estimated_delivery||""].map(cellSafe));
     const csv=[h,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
     const url=URL.createObjectURL(blob);
@@ -893,6 +1123,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
       [headers[3]]:cellSafe(p.courier),[headers[4]]:cellSafe(t.statuses[p.status]||p.status),
       [headers[5]]:cellSafe(p.date),[headers[6]]:cellSafe(p.shop||""),[headers[7]]:cellSafe(p.amount||""),[headers[8]]:cellSafe(p.notes||""),
       [headers[9]]:cellSafe((p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; ")),
+      [headers[10]]:cellSafe(p.estimated_delivery||""),
     }));
     const ws=XLSX.utils.json_to_sheet(data);
     const wb=XLSX.utils.book_new();
@@ -904,19 +1135,50 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const LBL=(s)=>t.statuses[s]||s;
   const currentGroup=groups.find(g=>g.id===currentView)||null;
 
+  async function removeMember(groupId,memberUserId){
+    const {error}=await supabase.rpc("remove_group_member",{p_group_id:groupId,p_user_id:memberUserId});
+    if(!error){
+      setGroups(prev=>prev.map(g=>g.id===groupId?{...g,group_members:(g.group_members||[]).filter(m=>m.user_id!==memberUserId)}:g));
+      setMembersModal(m=>m&&m.id===groupId?{...m,group_members:(m.group_members||[]).filter(mm=>mm.user_id!==memberUserId)}:m);
+    }
+    return !error;
+  }
+
   // Filter packages by current view
   const viewPkgs=currentView==="personal"
     ?pkgs.filter(p=>!p.group_id)
     :pkgs.filter(p=>p.group_id===currentView);
 
-  const counts=STATUSES.reduce((a,s)=>({...a,[s]:viewPkgs.filter(p=>p.status===s).length}),{});
+  const nonArchived=viewPkgs.filter(p=>!p.archived);
+  const archivedCount=viewPkgs.length-nonArchived.length;
+  const counts=STATUSES.reduce((a,s)=>({...a,[s]:nonArchived.filter(p=>p.status===s).length}),{});
 
-  const filtered=viewPkgs.filter(p=>{
-    const okS=filter==="Toate"||p.status===filter;
+  const SORTERS={
+    status:(a,b)=>(STATUS_ORDER[a.status]??1)-(STATUS_ORDER[b.status]??1),
+    date_desc:(a,b)=>(b.date||"").localeCompare(a.date||""),
+    date_asc:(a,b)=>(a.date||"").localeCompare(b.date||""),
+    amount_desc:(a,b)=>(Number(b.amount)||0)-(Number(a.amount)||0),
+    amount_asc:(a,b)=>(Number(a.amount)||0)-(Number(b.amount)||0),
+  };
+
+  const filtered=(filter==="Archived"?viewPkgs.filter(p=>p.archived):nonArchived).filter(p=>{
+    const okS=filter==="Toate"||filter==="Archived"||p.status===filter;
     const q=search.toLowerCase();
     const okQ=!q||p.name.toLowerCase().includes(q)||p.awb.toLowerCase().includes(q)||(p.shop||"").toLowerCase().includes(q);
     return okS&&okQ;
-  }).sort((a,b)=>(STATUS_ORDER[a.status]??1)-(STATUS_ORDER[b.status]??1));
+  }).sort(SORTERS[sortBy]||SORTERS.status);
+
+  const stats=(()=>{
+    const totalSpent=viewPkgs.reduce((sum,p)=>sum+(Number(p.amount)||0),0);
+    const byStatus=STATUSES.map(s=>({status:s,label:LBL(s),count:viewPkgs.filter(p=>p.status===s).length}));
+    const shopTotals={};
+    viewPkgs.forEach(p=>{ if(p.shop){ shopTotals[p.shop]=(shopTotals[p.shop]||0)+(Number(p.amount)||0); } });
+    const topShops=Object.entries(shopTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const monthTotals={};
+    viewPkgs.forEach(p=>{ if(p.date){ const m=p.date.slice(0,7); monthTotals[m]=(monthTotals[m]||0)+(Number(p.amount)||0); } });
+    const byMonth=Object.entries(monthTotals).sort((a,b)=>a[0].localeCompare(b[0]));
+    return {total:viewPkgs.length,totalSpent,byStatus,topShops,byMonth};
+  })();
 
   const isGroupOwner=currentGroup&&currentGroup.group_members?.some(m=>m.user_id===user.id&&m.role==="owner");
   const [refreshing,setRefreshing] = useState(false);
@@ -946,6 +1208,9 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
               </p>
             </div>
             <div className="app-controls">
+              <button className="ib" onClick={()=>setShowStats(true)} title={t.stats}>
+                <BarChart3 size={13}/>
+              </button>
               <button className="ib" onClick={handleRefresh} disabled={refreshing} title="Refresh">
                 <RefreshCw size={13} className={refreshing?"spin":""}/>
               </button>
@@ -968,6 +1233,9 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                 </div>
               )}
             </div>
+            <button className="gb" onClick={()=>selectMode?exitSelectMode():setSelectMode(true)} style={{flexShrink:0}}>
+              <ListChecks size={14}/> {t.select}
+            </button>
             <button className="gb gbp" onClick={()=>openForm()} style={{flex:1,justifyContent:"center"}}>
               <Plus size={14}/> {t.add}
             </button>
@@ -1000,7 +1268,9 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
         {currentGroup&&(
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:"0.75rem",padding:"8px 12px",background:"rgba(var(--accent),0.08)",borderRadius:12,border:"1px solid rgba(var(--accent),0.2)"}}>
             <Users size={14} style={{color:"rgb(var(--accent))",flexShrink:0}}/>
-            <span style={{fontSize:13,color:"rgba(var(--ink),0.7)",flex:1}}>{currentGroup.name} · {t.memberCount(currentGroup.group_members?.length||0)}</span>
+            <button onClick={()=>setMembersModal(currentGroup)} style={{fontSize:13,color:"rgba(var(--ink),0.7)",flex:1,textAlign:"left",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textDecoration:"underline",textDecorationColor:"rgba(var(--ink),0.25)",textUnderlineOffset:3}}>
+              {currentGroup.name} · {t.memberCount(currentGroup.group_members?.length||0)}
+            </button>
             {isGroupOwner&&(
               <button className="ib" title={t.inviteLink} onClick={()=>{
                 const BASE=`${window.location.protocol}//${window.location.host}${window.location.pathname}`;
@@ -1025,14 +1295,26 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
 
         {/* Filters */}
         {viewPkgs.length>0&&(
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:"1rem"}}>
-            <button className={`fp${filter==="Toate"?" act":""}`} onClick={()=>setFilter("Toate")}>{t.all} ({viewPkgs.length})</button>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:"1rem",alignItems:"center"}}>
+            <button className={`fp${filter==="Toate"?" act":""}`} onClick={()=>setFilter("Toate")}>{t.all} ({nonArchived.length})</button>
             {STATUSES.filter(s=>counts[s]>0).map(s=>(
               <button key={s} className={`fp${filter===s?" act":""}`} onClick={()=>setFilter(filter===s?"Toate":s)}
                 style={filter===s?{background:SC[s].bg,borderColor:SC[s].border,color:SC[s].color}:{}}>
                 {LBL(s)} ({counts[s]})
               </button>
             ))}
+            {archivedCount>0&&(
+              <button className={`fp${filter==="Archived"?" act":""}`} onClick={()=>setFilter(filter==="Archived"?"Toate":"Archived")}>
+                <Archive size={11} style={{marginRight:3,opacity:0.6}}/>{t.archivedFilter(archivedCount)}
+              </button>
+            )}
+            <select className="gi" value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{width:"auto",flexShrink:0,fontSize:12,padding:"6px 10px",marginLeft:"auto"}}>
+              <option value="status">{t.sortDefault}</option>
+              <option value="date_desc">{t.sortNewest}</option>
+              <option value="date_asc">{t.sortOldest}</option>
+              <option value="amount_desc">{t.sortAmountDesc}</option>
+              <option value="amount_asc">{t.sortAmountAsc}</option>
+            </select>
           </div>
         )}
 
@@ -1116,6 +1398,10 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                 <input type="date" className="gi" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} style={{colorScheme:"dark",maxWidth:"100%",minWidth:0}}/>
               </div>
               <div style={{gridColumn:"span 2"}}>
+                <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.estDelivery}</label>
+                <input type="date" className="gi" value={form.estimated_delivery} onChange={e=>setForm({...form,estimated_delivery:e.target.value})} style={{colorScheme:"dark",maxWidth:"100%",minWidth:0}}/>
+              </div>
+              <div style={{gridColumn:"span 2"}}>
                 <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.notes}</label>
                 <input className="gi" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder={t.notesPlaceholder}/>
               </div>
@@ -1147,9 +1433,16 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
               const cfg=SC[p.status]||SC_FB;
               const url=getUrl(p);
               const isSharing=shareLoading===p.id;
+              const dLeft=p.status!=="Livrat"&&p.estimated_delivery?daysUntil(p.estimated_delivery):null;
+              const historyOpen=historyOpenId===p.id;
               return (
                 <div key={p.id} className="pkg">
                   <div className="pkg-top">
+                    {selectMode&&(
+                      <button onClick={()=>toggleSelect(p.id)} className="ib" style={{flexShrink:0,padding:6}} aria-label="select">
+                        {selectedIds.has(p.id)?<CheckSquare size={16} style={{color:"rgb(var(--accent))"}}/>:<Square size={16}/>}
+                      </button>
+                    )}
                     <div className="pkg-content">
                       <span className="pkg-name" title={p.name}>{p.name}</span>
                       <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginTop:6}}>
@@ -1157,6 +1450,11 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                         {p.amount&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.72)",borderColor:"rgba(var(--ink),0.16)",fontSize:11}}>{Number(p.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
                         {p.products&&p.products.length>0&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.55)",borderColor:"rgba(var(--ink),0.18)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
                         {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(var(--accent),0.12)",color:"rgb(var(--accent))",borderColor:"rgba(var(--accent),0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
+                        {dLeft!=null&&(
+                          <span className="sp" style={{background:dLeft<0?"rgba(239,68,68,0.14)":"rgba(var(--ink),0.06)",color:dLeft<0?"#ef4444":"rgba(var(--ink),0.65)",borderColor:dLeft<0?"rgba(239,68,68,0.35)":"rgba(var(--ink),0.16)",fontSize:11,cursor:"default"}}>
+                            {dLeft<0?t.overdueBy(Math.abs(dLeft)):dLeft===0?t.arrivesToday:t.inDays(dLeft)}
+                          </span>
+                        )}
                       </div>
                       <div className="pkg-meta" style={{marginTop:6}}>
                         {p.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.55)",fontWeight:500}}>#{p.order_number.replace(/^#/,"")}</span>}
@@ -1176,38 +1474,93 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                         </div>
                       )}
                     </div>
-                    <div className="pkg-actions">
-                      <button className="ib" onClick={()=>shareParcel(p)} disabled={isSharing} title={t.share}>
-                        {isSharing?<Loader size={13} className="spin"/>:<Share2 size={13}/>}
-                      </button>
-                      {p.user_id===user.id&&groups.length>0&&(
-                        <button className="ib" onClick={()=>setMoveModal(p)} title={t.moveToGroup}>
-                          <Users size={13}/>
+                    {!selectMode&&(
+                      <div className="pkg-actions">
+                        <button className="ib" onClick={()=>setHistoryOpenId(historyOpen?null:p.id)} title={t.history}>
+                          <Clock size={13}/>
                         </button>
+                        <button className="ib" onClick={()=>shareParcel(p)} disabled={isSharing} title={t.share}>
+                          {isSharing?<Loader size={13} className="spin"/>:<Share2 size={13}/>}
+                        </button>
+                        {p.user_id===user.id&&groups.length>0&&(
+                          <button className="ib" onClick={()=>setMoveModal(p)} title={t.moveToGroup}>
+                            <Users size={13}/>
+                          </button>
+                        )}
+                        {url&&p.awb&&<a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={13}/></a>}
+                        {p.status==="Livrat"&&!p.archived&&(
+                          <button className="ib" onClick={()=>setArchived(p.id,true)} title={t.archive}>
+                            <Archive size={13}/>
+                          </button>
+                        )}
+                        {p.archived&&(
+                          <button className="ib" onClick={()=>setArchived(p.id,false)} title={t.unarchive}>
+                            <ArchiveRestore size={13}/>
+                          </button>
+                        )}
+                        <button className="ib" onClick={()=>openForm(p)} style={{padding:"6px 10px"}}>Edit</button>
+                        <button className="ib ibx" onClick={()=>setDeleteConfirm(p)} aria-label={t.delete}><Trash2 size={13}/></button>
+                      </div>
+                    )}
+                  </div>
+                  {historyOpen&&(
+                    <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid rgba(var(--ink),0.06)"}}>
+                      {(p.status_history&&p.status_history.length)?(
+                        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                          {p.status_history.map((h,i)=>(
+                            <div key={i} style={{display:"flex",alignItems:"center",gap:8,fontSize:12}}>
+                              <span className="sp" style={{background:(SC[h.status]||SC_FB).bg,color:(SC[h.status]||SC_FB).color,borderColor:(SC[h.status]||SC_FB).border,cursor:"default"}}>{LBL(h.status)}</span>
+                              <span style={{color:"rgba(var(--ink),0.4)"}}>{new Date(h.at).toLocaleString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ):(
+                        <p style={{fontSize:12,color:"rgba(var(--ink),0.35)"}}>{t.historyEmpty}</p>
                       )}
-                      {url&&p.awb&&<a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={13}/></a>}
-                      <button className="ib" onClick={()=>openForm(p)} style={{padding:"6px 10px"}}>Edit</button>
-                      <button className="ib ibx" onClick={()=>setDeleteConfirm(p)} aria-label={t.delete}><Trash2 size={13}/></button>
                     </div>
-                  </div>
-                  <div style={{display:"flex",gap:4,marginTop:10,paddingTop:10,borderTop:"1px solid rgba(var(--ink),0.06)",flexWrap:"wrap",alignItems:"center"}}>
-                    <span style={{fontSize:10,color:"rgba(var(--ink),0.25)",marginRight:4,letterSpacing:"0.06em",textTransform:"uppercase"}}>{t.quickStatus}</span>
-                    {STATUSES.map(s=>{const c=SC[s];const act=p.status===s;return <button key={s} className="sp" onClick={()=>setStatus(p.id,s)} style={{background:act?c.bg:"rgba(var(--ink),0.04)",color:act?c.color:"rgba(var(--ink),0.32)",borderColor:act?c.border:"rgba(var(--ink),0.07)"}}>{LBL(s)}</button>;})}
-                  </div>
+                  )}
+                  {!selectMode&&(
+                    <div style={{display:"flex",gap:4,marginTop:10,paddingTop:10,borderTop:"1px solid rgba(var(--ink),0.06)",flexWrap:"wrap",alignItems:"center"}}>
+                      <span style={{fontSize:10,color:"rgba(var(--ink),0.25)",marginRight:4,letterSpacing:"0.06em",textTransform:"uppercase"}}>{t.quickStatus}</span>
+                      {STATUSES.map(s=>{const c=SC[s];const act=p.status===s;return <button key={s} className="sp" onClick={()=>setStatus(p.id,s)} style={{background:act?c.bg:"rgba(var(--ink),0.04)",color:act?c.color:"rgba(var(--ink),0.32)",borderColor:act?c.border:"rgba(var(--ink),0.07)"}}>{LBL(s)}</button>;})}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         )}
-        <div style={{height:"2rem"}}/>
+        <div style={{height:selectMode&&selectedIds.size>0?"5rem":"2rem"}}/>
       </div>
+
+      {/* Bulk action bar */}
+      {selectMode&&selectedIds.size>0&&(
+        <div style={{position:"fixed",left:0,right:0,bottom:0,zIndex:250,display:"flex",justifyContent:"center",padding:"0 1rem 1rem"}}>
+          <div className="gc-strong" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",flexWrap:"wrap",maxWidth:800,width:"100%"}}>
+            <span style={{fontSize:13,fontWeight:600,color:"rgb(var(--ink))",flexShrink:0}}>{t.selectedCount(selectedIds.size)}</span>
+            <span style={{fontSize:11,color:"rgba(var(--ink),0.35)",flexShrink:0}}>{t.setStatusFor}</span>
+            {STATUSES.map(s=>(
+              <button key={s} className="sp" onClick={()=>bulkSetStatus(s)} style={{background:SC[s].bg,color:SC[s].color,borderColor:SC[s].border}}>{LBL(s)}</button>
+            ))}
+            <button className="ib ibx" onClick={()=>setBulkDeleteConfirm(true)} style={{marginLeft:"auto"}} title={t.deleteSelected}>
+              <Trash2 size={13}/>
+            </button>
+            <button className="ib" onClick={exitSelectMode} title={t.cancel}>
+              <X size={13}/>
+            </button>
+          </div>
+        </div>
+      )}
 
       {showInstall&&<InstallGuideModal onClose={()=>setShowInstall(false)} t={t}/>}
       {deleteConfirm&&<ConfirmDeleteModal pkg={deleteConfirm} onConfirm={()=>{del(deleteConfirm.id);setDeleteConfirm(null);}} onClose={()=>setDeleteConfirm(null)} t={t}/>}
+      {bulkDeleteConfirm&&<ConfirmDeleteModal pkg={{name:t.selectedCount(selectedIds.size)}} onConfirm={bulkDelete} onClose={()=>setBulkDeleteConfirm(false)} t={t}/>}
       {moveModal&&<MoveModal pkg={moveModal} groups={groups} onMove={moveParcel} onClose={()=>setMoveModal(null)} t={t}/>}
       {shareModal&&<ShareModal shareUrl={shareModal.shareUrl} onClose={()=>setShareModal(null)} t={t}/>}
       {showGroupModal&&<GroupModal user={user} onClose={()=>setShowGroupModal(false)} onCreated={handleGroupCreated} t={t}/>}
       {inviteModal&&<InviteModal inviteCode={inviteModal} onJoined={handleGroupJoined} onDismiss={()=>{setInviteModal(null);localStorage.removeItem("pending_invite");history.replaceState(null,"",window.location.pathname);}} t={t}/>}
+      {showStats&&<StatsModal stats={stats} onClose={()=>setShowStats(false)} t={t}/>}
+      {membersModal&&<GroupMembersModal group={membersModal} user={user} isOwner={membersModal.group_members?.some(m=>m.user_id===user.id&&m.role==="owner")} onRemove={removeMember} onClose={()=>setMembersModal(null)} t={t}/>}
     </div>
   );
 }
