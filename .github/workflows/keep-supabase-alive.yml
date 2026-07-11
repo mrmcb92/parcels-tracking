@@ -1,0 +1,30 @@
+name: Keep Supabase Awake
+
+on:
+  schedule:
+    # Runs every Monday and Thursday at 06:00 UTC — well under Supabase's
+    # ~7 day inactivity pause window, with margin for missed/delayed runs.
+    - cron: "0 6 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST endpoint
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$VITE_SUPABASE_URL/rest/v1/packages?select=id&limit=1" \
+            -H "apikey: $VITE_SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $VITE_SUPABASE_ANON_KEY")
+          echo "Supabase responded with HTTP $status"
+          # 200/206 = query ran (RLS may still return 0 rows for an
+          # unauthenticated request); 401/403 also proves the project is
+          # awake and reachable. Only fail on network/5xx/timeout.
+          if [ "$status" -ge 500 ] || [ "$status" -eq 000 ]; then
+            echo "Supabase project appears unreachable"
+            exit 1
+          fi
