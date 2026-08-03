@@ -5,329 +5,11 @@ import {
   Check, UserPlus, RefreshCw, Sun, Moon, Smartphone,
   Archive, ArchiveRestore, BarChart3, Clock, CheckSquare, Square, UserMinus, ListChecks,
 } from "lucide-react";
-import * as XLSX from "xlsx";
 import { supabase } from "./supabase.js";
-
-// ── Translations ──────────────────────────────────────────────────────────────
-
-const T = {
-  en: {
-    appName:"Parcel Tracking",appSub:"Track your parcels from any device",
-    parcels:(n)=>`${n} ${n===1?"parcel":"parcels"}`,
-    loading:"Loading...",loadingParcels:"Loading parcels...",
-    export:"Export",downloadCSV:"Download CSV",downloadExcel:"Download Excel",
-    add:"Add",signOut:"Sign out",
-    searchPlaceholder:"Search by name, AWB or shop...",all:"All",
-    newParcel:"New parcel",editParcel:"Edit parcel",
-    description:"Description / order *",
-    descPlaceholder:"e.g. Mechanical keyboard, 27 inch monitor...",
-    awbPlaceholder:"e.g. 12345678",awbRequired:"AWB Number *",
-    orderNumber:"Order number (optional)",orderNumberPlaceholder:"e.g. #123456789",
-    courier:"Courier",shop:"Shop",shopPlaceholder:"e.g. eMag, Altex, PC Garage...",
-    amount:"Amount (RON)",amountPlaceholder:"e.g. 349.99",
-    status:"Status",orderDate:"Order date",
-    notes:"Notes (optional)",notesPlaceholder:"value, product link, other details...",
-    cancel:"Cancel",save:"Save changes",addParcel:"Add parcel",
-    formErr:"Add at least one product.",formErrAwb:"Fill in the AWB number.",
-    saveErr:"Save error: ",
-    noParcelAdded:"No parcels yet",noParcelSub:'Press "Add" to get started',
-    noMatch:"No parcels match the filters.",
-    quickStatus:"Quick status:",trackExternal:"Open tracking page",delete:"Delete parcel",deleteConfirmMsg:"This action cannot be undone.",
-    loginSub:"Track your parcels from any device",loginBtn:"Continue with Google",
-    loginConnecting:"Connecting...",loginNote:"Each user sees only their own parcels.",
-    statuses:{"Comandat":"Ordered","In livrare":"In delivery","Livrat":"Delivered"},
-    exportHeaders:["Description","Order No.","AWB","Courier","Status","Date","Shop","Amount","Notes","Products","Estimated delivery"],
-    // Share
-    share:"Share",shareTitle:"Share parcel",
-    shareDesc:"Anyone with this link can view this parcel (read-only, no account needed).",
-    copyLink:"Copy link",copied:"Copied!",sharedParcel:"Shared parcel",backToApp:"Open app",
-    // Groups
-    myParcels:"My parcels",newGroup:"New group",
-    groupName:"Group name *",groupNamePlaceholder:"e.g. Family, Colleagues...",
-    createGroup:"Create group",inviteTitle:"Invite people",
-    inviteDesc:"Share this link with people you want to add to this group.",
-    inviteLink:"Invite link",copyInvite:"Copy invite link",
-    joinGroup:"Join group",joiningGroup:"Joining...",joined:"Joined!",
-    noGroupParcels:"No parcels in this group yet.",
-    addFirstGroupParcel:'Press "Add" to add the first parcel.',
-    leaveGroup:"Leave group",
-    moveToGroup:"Move to group",move:"Move",
-    invalidInvite:"Invalid or expired invite link.",memberCount:(n)=>`${n} ${n===1?"member":"members"}`,
-    // Products
-    products:"Products",addProduct:"Add product",productName:"Product name",qty:"Qty",noProductsYet:"No products added yet.",
-    productCount:(n)=>`${n} ${n===1?"product":"products"}`,
-    // Install guide
-    installApp:"Install app",
-    installTitle:"Install on your phone",
-    installIntro:"Add Parcel Tracking to your home screen for quick, full-screen access — it works offline like a native app.",
-    installIosTitle:"iPhone & iPad — Safari",
-    installAndroidTitle:"Android — Chrome",
-    installIosSteps:["Open this page in Safari.","Tap the Share button (a square with an upward arrow).","Scroll down and tap “Add to Home Screen”.","Tap “Add” in the top-right corner."],
-    installAndroidSteps:["Open this page in Chrome.","Tap the menu (⋮) in the top-right.","Tap “Add to Home screen” (or “Install app”).","Confirm by tapping “Add” / “Install”."],
-    installNote:"Once added, open the app from its icon — no browser bar, full-screen.",
-    gotIt:"Got it",
-    // Sorting
-    sortNewest:"Newest first",sortOldest:"Oldest first",sortAmountDesc:"Amount: high to low",sortAmountAsc:"Amount: low to high",sortDefault:"Status",
-    // Archive
-    archive:"Archive",unarchive:"Unarchive",archivedFilter:(n)=>`Archived (${n})`,
-    // Bulk actions
-    select:"Select",selectedCount:(n)=>`${n} selected`,deleteSelected:"Delete selected",setStatusFor:"Set status:",
-    // Stats
-    stats:"Stats",statsTitle:"Overview",statsTotalParcels:"Total parcels",statsTotalSpent:"Total spent",
-    statsByStatus:"By status",statsTopShops:"Top shops",statsByMonth:"Spend by month",statsNoData:"Not enough data yet.",
-    // Estimated delivery
-    estDelivery:"Estimated delivery (optional)",overdueBy:(n)=>`Overdue by ${n} ${n===1?"day":"days"}`,arrivesToday:"Arrives today",inDays:(n)=>`In ${n} ${n===1?"day":"days"}`,
-    // Status history
-    history:"History",historyEmpty:"No status changes yet.",
-    // Group members
-    groupMembers:"Members",removeMember:"Remove from group",roleOwner:"Owner",roleMember:"Member",you:"You",
-  },
-  ro: {
-    appName:"Parcel Tracking",appSub:"Urmărește-ți coletele de pe orice device",
-    parcels:(n)=>`${n} ${n===1?"colet":"colete"}`,
-    loading:"Se încarcă...",loadingParcels:"Se încarcă coletele...",
-    export:"Export",downloadCSV:"Descarcă CSV",downloadExcel:"Descarcă Excel",
-    add:"Adaugă",signOut:"Deconectează-te",
-    searchPlaceholder:"Caută după nume, AWB sau magazin...",all:"Toate",
-    newParcel:"Colet nou",editParcel:"Editează colet",
-    description:"Descriere / comandă *",
-    descPlaceholder:"ex. Tastatură mecanică, Monitor 27 inch...",
-    awbPlaceholder:"ex. 12345678",awbRequired:"Număr AWB *",
-    orderNumber:"Număr comandă (opțional)",orderNumberPlaceholder:"ex. #123456789",
-    courier:"Curier",shop:"Magazin",shopPlaceholder:"ex. eMag, Altex, PC Garage...",
-    amount:"Sumă (RON)",amountPlaceholder:"ex. 349.99",
-    status:"Status",orderDate:"Data comenzii",
-    notes:"Note (opțional)",notesPlaceholder:"valoare, link produs, alte detalii...",
-    cancel:"Anulează",save:"Salvează modificările",addParcel:"Adaugă colet",
-    formErr:"Adaugă cel puțin un produs.",formErrAwb:"Completează numărul AWB.",
-    saveErr:"Eroare la salvare: ",
-    noParcelAdded:"Niciun colet adăugat",noParcelSub:'Apasă „Adaugă" pentru a începe',
-    noMatch:"Niciun colet nu corespunde filtrelor.",
-    quickStatus:"Status rapid:",trackExternal:"Deschide pagina de tracking",delete:"Șterge coletul",deleteConfirmMsg:"Această acțiune nu poate fi anulată.",
-    loginSub:"Urmărește-ți coletele de pe orice device",loginBtn:"Continuă cu Google",
-    loginConnecting:"Se conectează...",loginNote:"Fiecare utilizator vede doar propriile colete.",
-    statuses:{"Comandat":"Comandat","In livrare":"In livrare","Livrat":"Livrat"},
-    exportHeaders:["Descriere","Nr. comandă","AWB","Curier","Status","Data","Magazin","Suma","Note","Produse","Dată estimată livrare"],
-    // Share
-    share:"Distribuie",shareTitle:"Distribuie colet",
-    shareDesc:"Oricine cu acest link poate vedea acest colet (doar citire, fără cont necesar).",
-    copyLink:"Copiază linkul",copied:"Copiat!",sharedParcel:"Colet distribuit",backToApp:"Deschide aplicația",
-    // Groups
-    myParcels:"Coletele mele",newGroup:"Grup nou",
-    groupName:"Numele grupului *",groupNamePlaceholder:"ex. Familie, Colegi...",
-    createGroup:"Creează grup",inviteTitle:"Invită persoane",
-    inviteDesc:"Trimite acest link persoanelor pe care vrei să le adaugi în grup.",
-    inviteLink:"Link de invitație",copyInvite:"Copiază link invitație",
-    joinGroup:"Alătură-te grupului",joiningGroup:"Se procesează...",joined:"Te-ai alăturat!",
-    noGroupParcels:"Niciun colet în acest grup.",
-    addFirstGroupParcel:'Apasă „Adaugă" pentru a adăuga primul colet.',
-    leaveGroup:"Ieși din grup",
-    moveToGroup:"Mută în grup",move:"Mută",
-    invalidInvite:"Link de invitație invalid sau expirat.",memberCount:(n)=>`${n} ${n===1?"membru":"membri"}`,
-    // Products
-    products:"Produse",addProduct:"Adaugă produs",productName:"Numele produsului",qty:"Cant.",noProductsYet:"Niciun produs adăugat.",
-    productCount:(n)=>`${n} ${n===1?"produs":"produse"}`,
-    // Ghid instalare
-    installApp:"Instalează aplicația",
-    installTitle:"Instalează pe telefon",
-    installIntro:"Adaugă Parcel Tracking pe ecranul principal pentru acces rapid, pe tot ecranul — funcționează offline ca o aplicație nativă.",
-    installIosTitle:"iPhone & iPad — Safari",
-    installAndroidTitle:"Android — Chrome",
-    installIosSteps:["Deschide această pagină în Safari.","Apasă butonul Share (un pătrat cu o săgeată în sus).","Derulează în jos și apasă „Add to Home Screen” / „Adaugă pe ecranul principal”.","Apasă „Add” / „Adaugă” în colțul din dreapta sus."],
-    installAndroidSteps:["Deschide această pagină în Chrome.","Apasă meniul (⋮) din dreapta sus.","Apasă „Adaugă pe ecranul principal” (sau „Instalează aplicația”).","Confirmă apăsând „Adaugă” / „Instalează”."],
-    installNote:"După adăugare, deschide aplicația din iconiță — fără bara browserului, pe tot ecranul.",
-    gotIt:"Am înțeles",
-    // Sortare
-    sortNewest:"Cele mai noi",sortOldest:"Cele mai vechi",sortAmountDesc:"Sumă: descrescător",sortAmountAsc:"Sumă: crescător",sortDefault:"Status",
-    // Arhivare
-    archive:"Arhivează",unarchive:"Dezarhivează",archivedFilter:(n)=>`Arhivate (${n})`,
-    // Acțiuni în masă
-    select:"Selectează",selectedCount:(n)=>`${n} selectate`,deleteSelected:"Șterge selectate",setStatusFor:"Setează status:",
-    // Statistici
-    stats:"Statistici",statsTitle:"Prezentare generală",statsTotalParcels:"Total colete",statsTotalSpent:"Total cheltuit",
-    statsByStatus:"După status",statsTopShops:"Top magazine",statsByMonth:"Cheltuieli pe lună",statsNoData:"Nu sunt suficiente date încă.",
-    // Dată estimată
-    estDelivery:"Dată estimată livrare (opțional)",overdueBy:(n)=>`Întârziat cu ${n} ${n===1?"zi":"zile"}`,arrivesToday:"Sosește azi",inDays:(n)=>`În ${n} ${n===1?"zi":"zile"}`,
-    // Istoric status
-    history:"Istoric",historyEmpty:"Niciun status schimbat încă.",
-    // Membri grup
-    groupMembers:"Membri",removeMember:"Elimină din grup",roleOwner:"Proprietar",roleMember:"Membru",you:"Tu",
-  },
-};
-
-const LANG_KEY = "parcel-lang";
-const THEME_KEY = "parcel-theme";
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const COURIERS = [
-  {name:"FAN Courier", url:(a)=>`https://www.fancourier.ro/awb-tracking/?awb=${a}`},
-  {name:"Cargus",      url:(a)=>`https://www.cargus.ro/tracking-colet/?Awb=${a}`},
-  {name:"Sameday",     url:(a)=>`https://sameday.ro/status-colet/?awb=${a}`},
-  {name:"DPD",         url:(a)=>`https://awb.woot.ro/urmarire-colet-dpd/${a}`},
-  {name:"GLS",         url:(a)=>`https://awb.woot.ro/urmarire-colet-gls/${a}`},
-  {name:"Posta Romana",url:(a)=>`https://awb.woot.ro/urmarire-colet-postaromana/${a}`},
-  {name:"DHL",         url:(a)=>`https://awb.woot.ro/urmarire-colet-dhl/${a}`},
-  {name:"FedEx",       url:(a)=>`https://awb.woot.ro/urmarire-colet-fedex/${a}`},
-  {name:"UPS",         url:(a)=>`https://awb.woot.ro/urmarire-colet-ups/${a}`},
-  {name:"Sinapseria",  url:(a)=>`https://awb.woot.ro/urmarire-colet-sinapseria/${a}`},
-  {name:"Dragon Star", url:(a)=>`https://awb.woot.ro/urmarire-colet-dragonstar/${a}`},
-  {name:"PTT Express", url:(a)=>`https://awb.woot.ro/urmarire-colet-pttexpress/${a}`},
-];
-
-const STATUSES = ["Comandat","In livrare","Livrat"];
-
-const SC_LOW = {color:"rgba(var(--ink),0.55)",bg:"rgba(var(--ink),0.07)",border:"rgba(var(--ink),0.16)"};
-const SC_MID = {color:"rgba(var(--ink),0.92)",bg:"rgba(var(--ink),0.1)",border:"rgba(var(--ink),0.26)"};
-const SC_SOLID = {color:"var(--accent-fg)",bg:"rgb(var(--accent))",border:"transparent"};
-
-const SC = {
-  "Comandat":   SC_LOW,
-  "In livrare": SC_MID,
-  "Livrat":     SC_SOLID,
-  "In procesare":SC_MID,
-  "In tranzit": SC_MID,
-  "La livrare": SC_MID,
-  "Retur":      SC_LOW,
-};
-
-const SC_FB = SC_LOW;
-const STATUS_ORDER = {"Comandat":0,"In livrare":1,"Livrat":2};
-
-const emptyForm = () => ({
-  name:"",awb:"",courier:"FAN Courier",status:"Comandat",
-  date:new Date().toISOString().split("T")[0],notes:"",shop:"",amount:"",order_number:"",
-  products:[{name:"",qty:1}],estimated_delivery:"",
-});
-
-// Neutralize spreadsheet formula injection: prefix cells that a spreadsheet
-// app could interpret as a formula (=, +, -, @, tab, CR) with an apostrophe.
-const cellSafe = (v) => {
-  const s = v==null ? "" : String(v);
-  return /^[=+\-@\t\r]/.test(s) ? "'"+s : s;
-};
-
-// Whole days between today and a "YYYY-MM-DD" date string (negative = overdue).
-const daysUntil = (dateStr) => {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const target = new Date(dateStr+"T00:00:00");
-  return Math.round((target-today)/86400000);
-};
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-
-const STYLES = `
-  *{box-sizing:border-box;margin:0;padding:0}
-  :root,[data-theme="dark"]{
-    --ink:245,245,245;
-    --accent:245,245,245;
-    --accent-fg:#161618;
-    --bg:#141416;
-    --bg-solid:#141416;
-    --glass-bg:#1d1d20;
-    --glass-bg-strong:#26262a;
-    --glass-bg-hover:#2b2b30;
-    --glass-border:rgba(245,245,245,0.1);
-    --glass-border-strong:rgba(245,245,245,0.18);
-    --pkg-bg:#1d1d20;
-    --pkg-border:rgba(245,245,245,0.08);
-    --input-bg:#0f0f11;
-    --input-border:rgba(245,245,245,0.14);
-    --btn-bg:#26262a;
-    --btn-border:rgba(245,245,245,0.11);
-    --menu-bg:#26262a;
-    --option-bg:#1d1d20;
-    --scrim:rgba(0,0,0,0.7);
-    --shadow:rgba(0,0,0,0.35);
-    --shadow-strong:rgba(0,0,0,0.5);
-    --card-shadow:0 1px 3px rgba(0,0,0,0.3),0 8px 24px rgba(0,0,0,0.36);
-    --card-shadow-strong:0 18px 50px rgba(0,0,0,0.55);
-  }
-  [data-theme="light"]{
-    --ink:22,16,30;
-    --accent:22,16,30;
-    --accent-fg:#f5f5f5;
-    --bg:#f5f5f5;
-    --bg-solid:#f5f5f5;
-    --glass-bg:#ffffff;
-    --glass-bg-strong:#ffffff;
-    --glass-bg-hover:#f3f3f5;
-    --glass-border:rgba(22,16,30,0.08);
-    --glass-border-strong:rgba(22,16,30,0.12);
-    --pkg-bg:#ffffff;
-    --pkg-border:rgba(22,16,30,0.07);
-    --input-bg:#ffffff;
-    --input-border:rgba(22,16,30,0.14);
-    --btn-bg:#ffffff;
-    --btn-border:rgba(22,16,30,0.1);
-    --menu-bg:#ffffff;
-    --option-bg:#ffffff;
-    --scrim:rgba(22,16,30,0.3);
-    --shadow:rgba(22,16,30,0.08);
-    --shadow-strong:rgba(22,16,30,0.12);
-    --card-shadow:0 1px 2px rgba(0,0,0,0.04),0 4px 10px rgba(0,0,0,0.05),0 14px 28px rgba(0,0,0,0.06);
-    --card-shadow-strong:0 14px 48px rgba(0,0,0,0.14);
-  }
-  body{font-family:'Plus Jakarta Sans','Inter',sans-serif;background:var(--bg-solid);-webkit-font-smoothing:antialiased;scroll-behavior:smooth;overflow-x:hidden;transition:background .35s ease}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .spin{animation:spin 1s linear infinite}
-  .gc{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;box-shadow:var(--card-shadow)}
-  .gc-strong{background:var(--glass-bg-strong);border:1px solid var(--glass-border-strong);border-radius:22px;box-shadow:var(--card-shadow-strong)}
-  .pkg{background:var(--pkg-bg);border:1px solid var(--pkg-border);border-radius:16px;box-shadow:var(--card-shadow);padding:1rem 1.25rem;transition:border-color .2s,transform .2s,box-shadow .2s,background .3s;overflow:hidden}
-  .pkg:hover{border-color:var(--glass-border-strong);transform:translateY(-2px);box-shadow:var(--card-shadow-strong)}
-  .gi{background:var(--input-bg);border:1px solid var(--input-border);border-radius:11px;color:rgb(var(--ink));font-size:14px;padding:10px 14px;outline:none;font-family:'Plus Jakarta Sans','Inter',sans-serif;transition:border-color .2s,box-shadow .2s,background .3s;width:100%}
-  .gi::placeholder{color:rgba(var(--ink),0.38)}
-  .gi:focus{border-color:rgba(var(--ink),0.5);box-shadow:0 0 0 3px rgba(var(--ink),0.08)}
-  .gi option{background:var(--option-bg);color:rgb(var(--ink))}
-  .gb{background:var(--btn-bg);border:1px solid var(--btn-border);border-radius:11px;color:rgba(var(--ink),0.88);cursor:pointer;font-size:14px;font-family:'Plus Jakarta Sans','Inter',sans-serif;padding:8px 16px;transition:all .2s;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--card-shadow)}
-  .gb:hover{background:var(--glass-bg-hover);transform:translateY(-1px);box-shadow:var(--card-shadow-strong)}
-  .gb:active{transform:scale(0.97) translateY(0)}
-  .gb:disabled{opacity:0.4;cursor:not-allowed;transform:none}
-  .gbp{background:rgb(var(--accent));border-color:transparent;box-shadow:var(--card-shadow);color:var(--accent-fg);font-weight:600}
-  .gbp:hover{background:rgba(var(--accent),0.9);border-color:transparent;box-shadow:var(--card-shadow-strong)}
-  .ib{background:var(--btn-bg);border:1px solid var(--btn-border);border-radius:10px;color:rgba(var(--ink),0.6);cursor:pointer;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .18s;font-family:'Plus Jakarta Sans','Inter',sans-serif;font-size:13px}
-  .ib:hover{background:var(--glass-bg-hover);color:rgb(var(--ink));transform:translateY(-1px)}
-  .ib:active{transform:scale(0.95)}
-  .ib:disabled{opacity:0.3;cursor:not-allowed;transform:none}
-  .ibx:hover{background:rgba(248,113,113,0.16);border-color:rgba(248,113,113,0.4);color:#ef4444;transform:translateY(-1px)}
-  .fp{font-size:13px;padding:6px 15px;border-radius:100px;cursor:pointer;border:1px solid var(--glass-border-strong);background:var(--glass-bg);color:rgba(var(--ink),0.7);transition:all .18s;font-family:'Plus Jakarta Sans','Inter',sans-serif;white-space:nowrap;flex-shrink:0;box-shadow:var(--card-shadow)}
-  .fp:hover{background:var(--glass-bg-hover);color:rgb(var(--ink));border-color:rgba(var(--ink),0.28)}
-  .fp.act{background:rgb(var(--accent));border-color:transparent;color:var(--accent-fg);font-weight:600;box-shadow:var(--card-shadow)}
-  .sp{font-size:12px;padding:3px 10px;border-radius:100px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:0.01em}
-  .sp:hover{opacity:0.8}
-  .sp:active{transform:scale(0.95)}
-  .em{position:absolute;top:calc(100% + 8px);right:0;background:var(--menu-bg);border:1px solid var(--glass-border);border-radius:14px;padding:6px;min-width:165px;z-index:200;box-shadow:var(--card-shadow-strong)}
-  .ei{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;cursor:pointer;color:rgba(var(--ink),0.78);font-size:14px;transition:background .15s;font-family:'Plus Jakarta Sans','Inter',sans-serif;background:none;border:none;width:100%;text-align:left}
-  .ei:hover{background:var(--glass-bg-hover);color:rgb(var(--ink))}
-  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem}
-  .lang-btn{background:var(--btn-bg);border:1px solid var(--btn-border);border-radius:10px;color:rgba(var(--ink),0.65);cursor:pointer;padding:5px 4px;display:inline-flex;align-items:center;gap:2px;font-family:'Plus Jakarta Sans','Inter',sans-serif;font-size:12px;font-weight:500;transition:all .15s;min-width:52px;justify-content:center}
-  .lang-btn:hover{background:var(--glass-bg-hover);color:rgb(var(--ink))}
-  .lang-seg{padding:3px 7px;border-radius:7px;transition:all .15s;line-height:1;display:inline-flex;align-items:center}
-  .lang-seg.active{background:rgba(var(--accent),0.28);color:rgb(var(--ink))}
-  .gnav{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:1rem;scrollbar-width:none}
-  .gnav::-webkit-scrollbar{display:none}
-  a{color:inherit;text-decoration:none}
-  ::-webkit-scrollbar{width:3px}
-  ::-webkit-scrollbar-thumb{background:rgba(var(--accent),0.22);border-radius:2px}
-  :focus-visible{outline:2px solid rgba(var(--accent),0.6);outline-offset:2px;border-radius:4px}
-  .pkg-name{font-weight:600;font-size:15px;color:rgb(var(--ink));letter-spacing:-0.01em;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
-  .pkg-content{flex:1;min-width:0;overflow:hidden}
-  .app-head{display:flex;align-items:center;gap:8px;margin-bottom:0.6rem}
-  .app-controls{display:flex;align-items:center;gap:6px;flex-shrink:0}
-  .pkg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-  .pkg-actions{display:flex;gap:4px;flex-shrink:0;align-items:flex-start}
-  .pkg-meta{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center}
-  .ptag{display:block;font-size:12px;color:rgba(var(--ink),0.5);background:rgba(var(--ink),0.06);padding:3px 9px;border-radius:6px;border:1px solid rgba(var(--ink),0.1);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  @media (max-width:520px){
-    .pkg{padding:0.875rem 1rem}
-    .pkg-top{flex-direction:column;gap:10px}
-    .pkg-actions{width:100%;justify-content:flex-end}
-    .pkg-name{-webkit-line-clamp:3}
-    .pkg-content{max-width:calc(100vw - 4.5rem)}
-    .app-head{flex-wrap:wrap}
-    .app-controls{width:100%;justify-content:flex-end;margin-top:2px}
-  }
-`;
+import { T, LANG_KEY, THEME_KEY } from "./i18n.js";
+import { COURIERS, STATUSES, SC, SC_FB, STATUS_ORDER, emptyForm } from "./constants.js";
+import { cellSafe, daysUntil, copyText, appBaseUrl } from "./utils.js";
+import { STYLES } from "./styles.js";
 
 // ── Background ────────────────────────────────────────────────────────────────
 
@@ -376,7 +58,7 @@ function SharedParcelView({token,lang,setLang,theme,setTheme}) {
     });
   },[token]);
 
-  const BASE = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+  const BASE = appBaseUrl();
   const LBL  = (s)=>t.statuses[s]||s;
 
   return (
@@ -444,8 +126,9 @@ function SharedParcelView({token,lang,setLang,theme,setTheme}) {
 
 function ShareModal({shareUrl,onClose,t}) {
   const [copied,setCopied]=useState(false);
-  function copy(){
-    navigator.clipboard.writeText(shareUrl).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);});
+  async function copy(){
+    const ok=await copyText(shareUrl);
+    if(ok){setCopied(true);setTimeout(()=>setCopied(false),2000);}
   }
   return (
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
@@ -496,11 +179,12 @@ function GroupModal({user,onClose,onCreated,t}) {
     setBusy(false);
   }
 
-  const BASE=`${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+  const BASE=appBaseUrl();
   const inviteUrl=created?`${BASE}#invite/${created.invite_code}`:"";
 
-  function copyInvite(){
-    navigator.clipboard.writeText(inviteUrl).then(()=>{setCopiedInv(true);setTimeout(()=>setCopiedInv(false),2000);});
+  async function copyInvite(){
+    const ok=await copyText(inviteUrl);
+    if(ok){setCopiedInv(true);setTimeout(()=>setCopiedInv(false),2000);}
   }
 
   return (
@@ -611,9 +295,9 @@ function LoginScreen({lang,setLang,theme,setTheme}) {
 
   async function loginWithGoogle(){
     setBusy(true);setErr("");
-    const redirectTo=window.location.hostname==="localhost"
-      ?"http://localhost:5173/parcels-tracking/"
-      :"https://mrmcb92.github.io/parcels-tracking/";
+    // Redirect back to the current app location (works for any deployment:
+    // GitHub Pages, custom domain, localhost dev server).
+    const redirectTo=`${window.location.origin}${import.meta.env.BASE_URL}`;
     const {error}=await supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo}});
     if(error){setErr(error.message);setBusy(false);}
   }
@@ -982,7 +666,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
     } else {
       const gid=currentView!=="personal"?currentView:null;
       const status_history=[{status:entry.status,at:new Date().toISOString()}];
-      const newPkg={...entry,id:Date.now().toString(),user_id:user.id,group_id:gid,status_history,archived:false};
+      const newPkg={...entry,id:crypto.randomUUID(),user_id:user.id,group_id:gid,status_history,archived:false};
       const {error}=await supabase.from("packages").insert(newPkg);
       if(error){setFormErr(t.saveErr+error.message);return;}
       setPkgs(prev=>[newPkg,...prev]);
@@ -1050,7 +734,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
     const {data,error}=await supabase.from("shared_links").insert({package_id:p.id,created_by:user.id}).select().single();
     setShareLoading(null);
     if(error||!data)return;
-    const BASE=`${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+    const BASE=appBaseUrl();
     setShareModal({shareUrl:`${BASE}#share/${data.id}`});
   }
 
@@ -1116,7 +800,10 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
     setShowExp(false);
   }
 
-  function exportXLSX(){
+  async function exportXLSX(){
+    // Lazy-load SheetJS only when the user actually exports (saves ~800KB
+    // from the initial bundle).
+    const XLSX=await import("xlsx");
     const headers=t.exportHeaders;
     const data=filtered.map(p=>({
       [headers[0]]:cellSafe(p.name),[headers[1]]:cellSafe(p.order_number||""),[headers[2]]:cellSafe(p.awb),
@@ -1188,6 +875,8 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
     await loadAll();
     setRefreshing(false);
   }
+
+  const dateScheme=theme==="dark"?"dark":"light";
 
   return (
     <div style={{minHeight:"100vh",background:"var(--bg)",position:"relative"}}>
@@ -1273,9 +962,8 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
             </button>
             {isGroupOwner&&(
               <button className="ib" title={t.inviteLink} onClick={()=>{
-                const BASE=`${window.location.protocol}//${window.location.host}${window.location.pathname}`;
-                const url=`${BASE}#invite/${currentGroup.invite_code}`;
-                navigator.clipboard.writeText(url);
+                const url=`${appBaseUrl()}#invite/${currentGroup.invite_code}`;
+                copyText(url);
               }}>
                 <Copy size={12}/> {t.copyInvite}
               </button>
@@ -1395,11 +1083,11 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
               </div>
               <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.orderDate}</label>
-                <input type="date" className="gi" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} style={{colorScheme:"dark",maxWidth:"100%",minWidth:0}}/>
+                <input type="date" className="gi" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} style={{colorScheme:dateScheme,maxWidth:"100%",minWidth:0}}/>
               </div>
               <div style={{gridColumn:"span 2"}}>
                 <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.estDelivery}</label>
-                <input type="date" className="gi" value={form.estimated_delivery} onChange={e=>setForm({...form,estimated_delivery:e.target.value})} style={{colorScheme:"dark",maxWidth:"100%",minWidth:0}}/>
+                <input type="date" className="gi" value={form.estimated_delivery} onChange={e=>setForm({...form,estimated_delivery:e.target.value})} style={{colorScheme:dateScheme,maxWidth:"100%",minWidth:0}}/>
               </div>
               <div style={{gridColumn:"span 2"}}>
                 <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.notes}</label>

@@ -1,0 +1,147 @@
+export const LANG_KEY = "parcel-lang";
+export const THEME_KEY = "parcel-theme";
+
+export const T = {
+  en: {
+    appName:"Parcel Tracking",appSub:"Track your parcels from any device",
+    parcels:(n)=>`${n} ${n===1?"parcel":"parcels"}`,
+    loading:"Loading...",loadingParcels:"Loading parcels...",
+    export:"Export",downloadCSV:"Download CSV",downloadExcel:"Download Excel",
+    add:"Add",signOut:"Sign out",
+    searchPlaceholder:"Search by name, AWB or shop...",all:"All",
+    newParcel:"New parcel",editParcel:"Edit parcel",
+    description:"Description / order *",
+    descPlaceholder:"e.g. Mechanical keyboard, 27 inch monitor...",
+    awbPlaceholder:"e.g. 12345678",awbRequired:"AWB Number *",
+    orderNumber:"Order number (optional)",orderNumberPlaceholder:"e.g. #123456789",
+    courier:"Courier",shop:"Shop",shopPlaceholder:"e.g. eMag, Altex, PC Garage...",
+    amount:"Amount (RON)",amountPlaceholder:"e.g. 349.99",
+    status:"Status",orderDate:"Order date",
+    notes:"Notes (optional)",notesPlaceholder:"value, product link, other details...",
+    cancel:"Cancel",save:"Save changes",addParcel:"Add parcel",
+    formErr:"Add at least one product.",formErrAwb:"Fill in the AWB number.",
+    saveErr:"Save error: ",
+    noParcelAdded:"No parcels yet",noParcelSub:'Press "Add" to get started',
+    noMatch:"No parcels match the filters.",
+    quickStatus:"Quick status:",trackExternal:"Open tracking page",delete:"Delete parcel",deleteConfirmMsg:"This action cannot be undone.",
+    loginSub:"Track your parcels from any device",loginBtn:"Continue with Google",
+    loginConnecting:"Connecting...",loginNote:"Each user sees only their own parcels.",
+    statuses:{"Comandat":"Ordered","In livrare":"In delivery","Livrat":"Delivered"},
+    exportHeaders:["Description","Order No.","AWB","Courier","Status","Date","Shop","Amount","Notes","Products","Estimated delivery"],
+    // Share
+    share:"Share",shareTitle:"Share parcel",
+    shareDesc:"Anyone with this link can view this parcel (read-only, no account needed).",
+    copyLink:"Copy link",copied:"Copied!",sharedParcel:"Shared parcel",backToApp:"Open app",
+    // Groups
+    myParcels:"My parcels",newGroup:"New group",
+    groupName:"Group name *",groupNamePlaceholder:"e.g. Family, Colleagues...",
+    createGroup:"Create group",inviteTitle:"Invite people",
+    inviteDesc:"Share this link with people you want to add to this group.",
+    inviteLink:"Invite link",copyInvite:"Copy invite link",
+    joinGroup:"Join group",joiningGroup:"Joining...",joined:"Joined!",
+    noGroupParcels:"No parcels in this group yet.",
+    addFirstGroupParcel:'Press "Add" to add the first parcel.',
+    leaveGroup:"Leave group",
+    moveToGroup:"Move to group",move:"Move",
+    invalidInvite:"Invalid or expired invite link.",memberCount:(n)=>`${n} ${n===1?"member":"members"}`,
+    // Products
+    products:"Products",addProduct:"Add product",productName:"Product name",qty:"Qty",noProductsYet:"No products added yet.",
+    productCount:(n)=>`${n} ${n===1?"product":"products"}`,
+    // Install guide
+    installApp:"Install app",
+    installTitle:"Install on your phone",
+    installIntro:"Add Parcel Tracking to your home screen for quick, full-screen access — it works offline like a native app.",
+    installIosTitle:"iPhone & iPad — Safari",
+    installAndroidTitle:"Android — Chrome",
+    installIosSteps:["Open this page in Safari.","Tap the Share button (a square with an upward arrow).","Scroll down and tap “Add to Home Screen”.","Tap “Add” in the top-right corner."],
+    installAndroidSteps:["Open this page in Chrome.","Tap the menu (⋮) in the top-right.","Tap “Add to Home screen” (or “Install app”).","Confirm by tapping “Add” / “Install”."],
+    installNote:"Once added, open the app from its icon — no browser bar, full-screen.",
+    gotIt:"Got it",
+    // Sorting
+    sortNewest:"Newest first",sortOldest:"Oldest first",sortAmountDesc:"Amount: high to low",sortAmountAsc:"Amount: low to high",sortDefault:"Status",
+    // Archive
+    archive:"Archive",unarchive:"Unarchive",archivedFilter:(n)=>`Archived (${n})`,
+    // Bulk actions
+    select:"Select",selectedCount:(n)=>`${n} selected`,deleteSelected:"Delete selected",setStatusFor:"Set status:",
+    // Stats
+    stats:"Stats",statsTitle:"Overview",statsTotalParcels:"Total parcels",statsTotalSpent:"Total spent",
+    statsByStatus:"By status",statsTopShops:"Top shops",statsByMonth:"Spend by month",statsNoData:"Not enough data yet.",
+    // Estimated delivery
+    estDelivery:"Estimated delivery (optional)",overdueBy:(n)=>`Overdue by ${n} ${n===1?"day":"days"}`,arrivesToday:"Arrives today",inDays:(n)=>`In ${n} ${n===1?"day":"days"}`,
+    // Status history
+    history:"History",historyEmpty:"No status changes yet.",
+    // Group members
+    groupMembers:"Members",removeMember:"Remove from group",roleOwner:"Owner",roleMember:"Member",you:"You",
+  },
+  ro: {
+    appName:"Parcel Tracking",appSub:"Urmărește-ți coletele de pe orice device",
+    parcels:(n)=>`${n} ${n===1?"colet":"colete"}`,
+    loading:"Se încarcă...",loadingParcels:"Se încarcă coletele...",
+    export:"Export",downloadCSV:"Descarcă CSV",downloadExcel:"Descarcă Excel",
+    add:"Adaugă",signOut:"Deconectează-te",
+    searchPlaceholder:"Caută după nume, AWB sau magazin...",all:"Toate",
+    newParcel:"Colet nou",editParcel:"Editează colet",
+    description:"Descriere / comandă *",
+    descPlaceholder:"ex. Tastatură mecanică, Monitor 27 inch...",
+    awbPlaceholder:"ex. 12345678",awbRequired:"Număr AWB *",
+    orderNumber:"Număr comandă (opțional)",orderNumberPlaceholder:"ex. #123456789",
+    courier:"Curier",shop:"Magazin",shopPlaceholder:"ex. eMag, Altex, PC Garage...",
+    amount:"Sumă (RON)",amountPlaceholder:"ex. 349.99",
+    status:"Status",orderDate:"Data comenzii",
+    notes:"Note (opțional)",notesPlaceholder:"valoare, link produs, alte detalii...",
+    cancel:"Anulează",save:"Salvează modificările",addParcel:"Adaugă colet",
+    formErr:"Adaugă cel puțin un produs.",formErrAwb:"Completează numărul AWB.",
+    saveErr:"Eroare la salvare: ",
+    noParcelAdded:"Niciun colet adăugat",noParcelSub:'Apasă „Adaugă" pentru a începe',
+    noMatch:"Niciun colet nu corespunde filtrelor.",
+    quickStatus:"Status rapid:",trackExternal:"Deschide pagina de tracking",delete:"Șterge coletul",deleteConfirmMsg:"Această acțiune nu poate fi anulată.",
+    loginSub:"Urmărește-ți coletele de pe orice device",loginBtn:"Continuă cu Google",
+    loginConnecting:"Se conectează...",loginNote:"Fiecare utilizator vede doar propriile colete.",
+    statuses:{"Comandat":"Comandat","In livrare":"In livrare","Livrat":"Livrat"},
+    exportHeaders:["Descriere","Nr. comandă","AWB","Curier","Status","Data","Magazin","Suma","Note","Produse","Dată estimată livrare"],
+    // Share
+    share:"Distribuie",shareTitle:"Distribuie colet",
+    shareDesc:"Oricine cu acest link poate vedea acest colet (doar citire, fără cont necesar).",
+    copyLink:"Copiază linkul",copied:"Copiat!",sharedParcel:"Colet distribuit",backToApp:"Deschide aplicația",
+    // Groups
+    myParcels:"Coletele mele",newGroup:"Grup nou",
+    groupName:"Numele grupului *",groupNamePlaceholder:"ex. Familie, Colegi...",
+    createGroup:"Creează grup",inviteTitle:"Invită persoane",
+    inviteDesc:"Trimite acest link persoanelor pe care vrei să le adaugi în grup.",
+    inviteLink:"Link de invitație",copyInvite:"Copiază link invitație",
+    joinGroup:"Alătură-te grupului",joiningGroup:"Se procesează...",joined:"Te-ai alăturat!",
+    noGroupParcels:"Niciun colet în acest grup.",
+    addFirstGroupParcel:'Apasă „Adaugă" pentru a adăuga primul colet.',
+    leaveGroup:"Ieși din grup",
+    moveToGroup:"Mută în grup",move:"Mută",
+    invalidInvite:"Link de invitație invalid sau expirat.",memberCount:(n)=>`${n} ${n===1?"membru":"membri"}`,
+    // Products
+    products:"Produse",addProduct:"Adaugă produs",productName:"Numele produsului",qty:"Cant.",noProductsYet:"Niciun produs adăugat.",
+    productCount:(n)=>`${n} ${n===1?"produs":"produse"}`,
+    // Ghid instalare
+    installApp:"Instalează aplicația",
+    installTitle:"Instalează pe telefon",
+    installIntro:"Adaugă Parcel Tracking pe ecranul principal pentru acces rapid, pe tot ecranul — funcționează offline ca o aplicație nativă.",
+    installIosTitle:"iPhone & iPad — Safari",
+    installAndroidTitle:"Android — Chrome",
+    installIosSteps:["Deschide această pagină în Safari.","Apasă butonul Share (un pătrat cu o săgeată în sus).","Derulează în jos și apasă „Add to Home Screen” / „Adaugă pe ecranul principal”.","Apasă „Add” / „Adaugă” în colțul din dreapta sus."],
+    installAndroidSteps:["Deschide această pagină în Chrome.","Apasă meniul (⋮) din dreapta sus.","Apasă „Adaugă pe ecranul principal” (sau „Instalează aplicația”).","Confirmă apăsând „Adaugă” / „Instalează”."],
+    installNote:"După adăugare, deschide aplicația din iconiță — fără bara browserului, pe tot ecranul.",
+    gotIt:"Am înțeles",
+    // Sortare
+    sortNewest:"Cele mai noi",sortOldest:"Cele mai vechi",sortAmountDesc:"Sumă: descrescător",sortAmountAsc:"Sumă: crescător",sortDefault:"Status",
+    // Arhivare
+    archive:"Arhivează",unarchive:"Dezarhivează",archivedFilter:(n)=>`Arhivate (${n})`,
+    // Acțiuni în masă
+    select:"Selectează",selectedCount:(n)=>`${n} selectate`,deleteSelected:"Șterge selectate",setStatusFor:"Setează status:",
+    // Statistici
+    stats:"Statistici",statsTitle:"Prezentare generală",statsTotalParcels:"Total colete",statsTotalSpent:"Total cheltuit",
+    statsByStatus:"După status",statsTopShops:"Top magazine",statsByMonth:"Cheltuieli pe lună",statsNoData:"Nu sunt suficiente date încă.",
+    // Dată estimată
+    estDelivery:"Dată estimată livrare (opțional)",overdueBy:(n)=>`Întârziat cu ${n} ${n===1?"zi":"zile"}`,arrivesToday:"Sosește azi",inDays:(n)=>`În ${n} ${n===1?"zi":"zile"}`,
+    // Istoric status
+    history:"Istoric",historyEmpty:"Niciun status schimbat încă.",
+    // Membri grup
+    groupMembers:"Membri",removeMember:"Elimină din grup",roleOwner:"Proprietar",roleMember:"Membru",you:"Tu",
+  },
+};
