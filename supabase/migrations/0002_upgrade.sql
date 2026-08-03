@@ -80,6 +80,9 @@ create policy "Owners can delete their shared links"
 -- ── RPC-uri ──────────────────────────────────────────────────────────────────
 
 -- Colete distribuite: doar câmpurile afișate public, fără user_id/group_id.
+-- Drop prealabil: PostgreSQL nu permite schimbarea tipului de retur cu
+-- create or replace, așa că la bazele vechi ștergem întâi funcția existentă.
+drop function if exists get_shared_package(uuid);
 create or replace function get_shared_package(p_token uuid)
 returns json language plpgsql security definer as $$
 declare result json;
@@ -103,6 +106,7 @@ end;
 $$;
 
 -- Grup după codul de invitație (fără autentificare — doar numele).
+drop function if exists get_group_by_invite(text);
 create or replace function get_group_by_invite(p_code text)
 returns json language plpgsql security definer as $$
 declare result json;
@@ -116,6 +120,7 @@ end;
 $$;
 
 -- Alătură-te unui grup prin codul de invitație.
+drop function if exists join_group(text);
 create or replace function join_group(p_invite_code text)
 returns void language plpgsql security definer as $$
 declare v_group_id uuid;
@@ -129,6 +134,7 @@ end;
 $$;
 
 -- Lista membrilor unui grup (doar pentru membrii grupului).
+drop function if exists get_group_members(uuid);
 create or replace function get_group_members(p_group_id uuid)
 returns json language plpgsql security definer as $$
 declare result json;
@@ -154,6 +160,7 @@ end;
 $$;
 
 -- Elimină un membru dintr-un grup (doar owner-ul; owner-ul nu poate fi eliminat).
+drop function if exists remove_group_member(uuid, uuid);
 create or replace function remove_group_member(p_group_id uuid, p_user_id uuid)
 returns void language plpgsql security definer as $$
 begin
