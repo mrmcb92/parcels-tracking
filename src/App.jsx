@@ -262,14 +262,14 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
           </div>
         ):done?(
           <div>
-            <div style={{fontSize:36,marginBottom:8}}>✓</div>
+            <div style={{marginBottom:8}}><Check size={36} strokeWidth={1.5}/></div>
             <p style={{color:"rgb(var(--ink))",fontSize:15,fontWeight:500}}>{t.joined}</p>
           </div>
         ):group?(
           <>
             <h2 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))",marginBottom:6}}>{group.name}</h2>
             <p style={{fontSize:13,color:"rgba(var(--ink),0.45)",marginBottom:"1.5rem"}}>{t.joinGroup}?</p>
-            {joinErr&&<p style={{fontSize:12,color:"#ef4444",marginBottom:12}}>{t.invalidInvite}</p>}
+            {joinErr&&<p style={{fontSize:12,color:"rgb(var(--ink))",fontWeight:500,marginBottom:12}}>{t.invalidInvite}</p>}
             <div style={{display:"flex",gap:8,justifyContent:"center"}}>
               <button className="gb" onClick={onDismiss}>{t.cancel}</button>
               <button className="gb gbp" onClick={join} disabled={busy}>
@@ -316,19 +316,18 @@ function LoginScreen({lang,setLang,theme,setTheme}) {
           <h1 style={{fontSize:22,fontWeight:700,color:"rgb(var(--ink))",letterSpacing:"-0.03em"}}>{t.appName}</h1>
           <p style={{fontSize:13,color:"rgba(var(--ink),0.4)",marginTop:6}}>{t.loginSub}</p>
         </div>
-        <button onClick={loginWithGoogle} disabled={busy}
-          style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"13px 16px",background:"white",border:"1.5px solid rgba(22,16,30,0.16)",borderRadius:14,cursor:"pointer",fontSize:15,fontWeight:600,color:"#1f1f1f",fontFamily:"'Plus Jakarta Sans','Inter',sans-serif",opacity:busy?0.7:1,transition:"opacity .15s,box-shadow .2s,transform .15s",boxShadow:"0 1px 3px rgba(0,0,0,0.08),0 6px 16px rgba(0,0,0,0.1)"}}>
-          {busy?<Loader size={18} style={{animation:"spin 1s linear infinite",color:"#4285f4"}}/>:(
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        <button onClick={loginWithGoogle} disabled={busy} className="gb" style={{width:"100%",justifyContent:"center",gap:10,padding:"13px 16px",fontSize:15,fontWeight:600,opacity:busy?0.7:1}}>
+          {busy?<Loader size={18} className="spin"/>:(
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden style={{color:"rgb(var(--ink))"}}>
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="currentColor"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="currentColor"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="currentColor"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="currentColor"/>
             </svg>
           )}
           {busy?t.loginConnecting:t.loginBtn}
         </button>
-        {err&&<p style={{fontSize:12,color:"#f87171",marginTop:12,textAlign:"center"}}>{err}</p>}
+        {err&&<p style={{fontSize:12,color:"rgb(var(--ink))",fontWeight:500,marginTop:12,textAlign:"center"}}>{err}</p>}
         <p style={{fontSize:11,color:"rgba(var(--ink),0.2)",textAlign:"center",marginTop:20,lineHeight:1.6}}>{t.loginNote}</p>
       </div>
     </div>
@@ -358,7 +357,7 @@ function MoveModal({pkg, groups, onMove, onClose, t}) {
         <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:"1.25rem"}}>
           {options.map(o=>(
             <button key={o.id} onClick={()=>setSelected(o.id)}
-              style={{padding:"10px 14px",borderRadius:12,border:`1px solid ${selected===o.id?"rgba(var(--accent),0.5)":"rgba(var(--ink),0.1)"}`,background:selected===o.id?"rgba(var(--accent),0.18)":"rgba(var(--ink),0.04)",color:selected===o.id?"rgb(var(--accent))":"rgba(var(--ink),0.7)",cursor:"pointer",textAlign:"left",fontSize:14,fontFamily:"'Plus Jakarta Sans','Inter',sans-serif",display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
+              style={{padding:"10px 14px",borderRadius:6,border:`1px solid ${selected===o.id?"rgba(var(--accent),0.45)":"rgba(var(--ink),0.1)"}`,background:selected===o.id?"rgba(var(--accent),0.12)":"rgba(var(--ink),0.04)",color:selected===o.id?"rgb(var(--accent))":"rgba(var(--ink),0.7)",cursor:"pointer",textAlign:"left",fontSize:14,fontFamily:"inherit",display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
               {o.id==="personal"?<Package size={13}/>:<Users size={13}/>} {o.name}
               {selected===o.id&&<Check size={13} style={{marginLeft:"auto"}}/>}
             </button>
@@ -381,16 +380,15 @@ function ConfirmDeleteModal({pkg, onConfirm, onClose, t}) {
   return (
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="gc-strong" style={{padding:"1.5rem",maxWidth:380,width:"100%",textAlign:"center"}}>
-        <div className="gc" style={{display:"inline-flex",padding:"10px",borderRadius:16,marginBottom:14}}>
-          <Trash2 size={20} style={{color:"#f87171"}}/>
+        <div className="gc" style={{display:"inline-flex",padding:"10px",borderRadius:10,marginBottom:14}}>
+          <Trash2 size={20} style={{color:"rgb(var(--ink))"}}/>
         </div>
         <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",marginBottom:6}}>{t.delete}</h2>
         <p style={{fontSize:13,color:"rgba(var(--ink),0.55)",marginBottom:4}}>{pkg.name}</p>
         <p style={{fontSize:12,color:"rgba(var(--ink),0.3)",marginBottom:"1.5rem"}}>{t.deleteConfirmMsg}</p>
         <div style={{display:"flex",gap:8,justifyContent:"center"}}>
           <button className="gb" onClick={onClose}>{t.cancel}</button>
-          <button className="gb" onClick={onConfirm}
-            style={{background:"rgba(248,113,113,0.2)",borderColor:"rgba(248,113,113,0.45)",color:"#f87171"}}>
+          <button className="gb gbp" onClick={onConfirm}>
             <Trash2 size={13}/> {t.delete}
           </button>
         </div>
@@ -1094,7 +1092,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                 <input className="gi" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder={t.notesPlaceholder}/>
               </div>
             </div>
-            {formErr&&<p style={{fontSize:12,color:"#f87171",marginTop:8}}>{formErr}</p>}
+            {formErr&&<p style={{fontSize:12,color:"rgb(var(--ink))",fontWeight:500,marginTop:8}}>{formErr}</p>}
             <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:"1.25rem"}}>
               <button className="gb" onClick={()=>{setShowForm(false);setEditId(null);}}>{t.cancel}</button>
               <button className="gb gbp" onClick={submit}>{editId?t.save:t.addParcel}</button>
@@ -1139,7 +1137,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                         {p.products&&p.products.length>0&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.55)",borderColor:"rgba(var(--ink),0.18)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
                         {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(var(--accent),0.12)",color:"rgb(var(--accent))",borderColor:"rgba(var(--accent),0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
                         {dLeft!=null&&(
-                          <span className="sp" style={{background:dLeft<0?"rgba(239,68,68,0.14)":"rgba(var(--ink),0.06)",color:dLeft<0?"#ef4444":"rgba(var(--ink),0.65)",borderColor:dLeft<0?"rgba(239,68,68,0.35)":"rgba(var(--ink),0.16)",fontSize:11,cursor:"default"}}>
+                          <span className="sp" style={{background:dLeft<0?"rgb(var(--accent))":"rgba(var(--ink),0.06)",color:dLeft<0?"var(--accent-fg)":"rgba(var(--ink),0.65)",borderColor:dLeft<0?"transparent":"rgba(var(--ink),0.16)",fontSize:11,cursor:"default"}}>
                             {dLeft<0?t.overdueBy(Math.abs(dLeft)):dLeft===0?t.arrivesToday:t.inDays(dLeft)}
                           </span>
                         )}
@@ -1277,7 +1275,7 @@ export default function App() {
   useEffect(()=>{
     document.documentElement.setAttribute("data-theme",theme);
     const meta=document.querySelector('meta[name="theme-color"]');
-    if(meta)meta.setAttribute("content",theme==="dark"?"#141416":"#f5f5f5");
+    if(meta)meta.setAttribute("content",theme==="dark"?"#000000":"#ffffff");
   },[theme]);
 
   // Shared parcel view — no auth required

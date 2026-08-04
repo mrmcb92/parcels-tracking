@@ -15,8 +15,8 @@ export const COURIERS = [
 
 export const STATUSES = ["Comandat","In livrare","Livrat"];
 
-const SC_LOW = {color:"rgba(var(--ink),0.55)",bg:"rgba(var(--ink),0.07)",border:"rgba(var(--ink),0.16)"};
-const SC_MID = {color:"rgba(var(--ink),0.92)",bg:"rgba(var(--ink),0.1)",border:"rgba(var(--ink),0.26)"};
+const SC_LOW = {color:"rgba(var(--ink),0.55)",bg:"rgba(var(--ink),0.05)",border:"rgba(var(--ink),0.12)"};
+const SC_MID = {color:"rgba(var(--ink),0.88)",bg:"rgba(var(--ink),0.10)",border:"rgba(var(--ink),0.22)"};
 const SC_SOLID = {color:"var(--accent-fg)",bg:"rgb(var(--accent))",border:"transparent"};
 
 export const SC = {
