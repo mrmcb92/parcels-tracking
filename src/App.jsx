@@ -3,11 +3,11 @@ import {
   Plus, Trash2, ExternalLink, X, Search, Package, Download,
   FileText, Loader, ChevronDown, LogOut, Share2, Users, Copy,
   Check, UserPlus, RefreshCw, Sun, Moon, Smartphone,
-  Archive, ArchiveRestore, BarChart3, Clock, CheckSquare, Square, UserMinus, ListChecks,
+  Archive, ArchiveRestore, BarChart3, Clock, CheckSquare, Square, UserMinus, ListChecks, Send,
 } from "lucide-react";
 import { supabase } from "./supabase.js";
 import { T, LANG_KEY, THEME_KEY } from "./i18n.js";
-import { COURIERS, STATUSES, SC, SC_FB, STATUS_ORDER, emptyForm } from "./constants.js";
+import { COURIERS, STATUSES, OUT_STATUSES, SC, SC_OUT, SC_FB, STATUS_ORDER, OUT_STATUS_ORDER, emptyForm } from "./constants.js";
 import { cellSafe, daysUntil, copyText, appBaseUrl } from "./utils.js";
 import { STYLES } from "./styles.js";
 
@@ -59,7 +59,10 @@ function SharedParcelView({token,lang,setLang,theme,setTheme}) {
   },[token]);
 
   const BASE = appBaseUrl();
-  const LBL  = (s)=>t.statuses[s]||s;
+  const isOut  = !!pkg && pkg.type === "out";
+  const CLBL   = (s)=> isOut ? (t.outStatuses[s]||s) : (t.statuses[s]||s);
+  const CFG    = (s)=> isOut ? (SC_OUT[s]||SC_FB) : (SC[s]||SC_FB);
+  const showAWB = !!pkg && (isOut ? (pkg.status!=="Pregatit" && pkg.status!=="Retur") : pkg.status!=="Comandat");
 
   return (
     <div style={{minHeight:"100vh",background:"var(--bg)",position:"relative"}}>
@@ -91,23 +94,23 @@ function SharedParcelView({token,lang,setLang,theme,setTheme}) {
             <p style={{color:"rgba(var(--ink),0.4)",fontSize:14}}>{t.invalidInvite}</p>
           </div>
         ) : (()=>{
-          const cfg=SC[pkg.status]||SC_FB;
+          const cfg=CFG(pkg.status);
           const courier=COURIERS.find(c=>c.name===pkg.courier);
-          const url=courier?.url?courier.url(pkg.awb):null;
+          const url=courier?.url&&pkg.awb?courier.url(pkg.awb):null;
           return (
             <div className="pkg">
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:5}}>
                     <span style={{fontWeight:500,fontSize:15,color:"rgb(var(--ink))"}}>{pkg.name}</span>
-                    <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border,cursor:"default"}}>{LBL(pkg.status)}</span>
+                    <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border,cursor:"default"}}>{CLBL(pkg.status)}</span>
                     {pkg.amount&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.72)",borderColor:"rgba(var(--ink),0.16)",fontSize:11,cursor:"default"}}>{Number(pkg.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
                   </div>
                   <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
                     {pkg.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.55)",fontWeight:500}}>#{pkg.order_number.replace(/^#/,"")}</span>}
-                    {pkg.status!=="Comandat"&&pkg.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.awb}</span>}
-                    {pkg.status!=="Comandat"&&pkg.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.courier}</span>}
-                    {pkg.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.shop}</span>}
+                    {showAWB&&pkg.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.awb}</span>}
+                    {showAWB&&pkg.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.courier}</span>}
+                    {isOut ? (pkg.client_name&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.client_name}</span>) : (pkg.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.shop}</span>)}
                     {pkg.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{new Date(pkg.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>}
                   </div>
                   {pkg.notes&&<div style={{fontSize:13,color:"rgba(var(--ink),0.3)",marginTop:4}}>{pkg.notes}</div>}
@@ -437,9 +440,9 @@ function InstallGuideModal({onClose, t}) {
 
 // ── StatsModal ────────────────────────────────────────────────────────────────
 
-function StatsModal({stats, onClose, t}) {
+function StatsModal({stats, onClose, t, out}) {
   const fmt=(n)=>n.toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2});
-  const maxShop=Math.max(1,...stats.topShops.map(([,v])=>v));
+  const maxTop=Math.max(1,...stats.topShops.map(([,v])=>v));
   const maxMonth=Math.max(1,...stats.byMonth.map(([,v])=>v));
   return (
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
@@ -483,13 +486,13 @@ function StatsModal({stats, onClose, t}) {
 
             {stats.topShops.length>0&&(
               <div style={{marginBottom:20}}>
-                <div style={{fontSize:11,fontWeight:600,color:"rgba(var(--ink),0.5)",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>{t.statsTopShops}</div>
+                <div style={{fontSize:11,fontWeight:600,color:"rgba(var(--ink),0.5)",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>{out?t.statsTopClients:t.statsTopShops}</div>
                 <div style={{display:"flex",flexDirection:"column",gap:6}}>
                   {stats.topShops.map(([shop,total])=>(
                     <div key={shop} style={{display:"flex",alignItems:"center",gap:8}}>
                       <span style={{fontSize:13,color:"rgba(var(--ink),0.75)",width:90,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{shop}</span>
                       <div style={{flex:1,height:6,borderRadius:3,background:"rgba(var(--ink),0.07)",overflow:"hidden"}}>
-                        <div style={{width:`${(total/maxShop)*100}%`,height:"100%",background:"rgb(var(--accent))",borderRadius:3}}/>
+                        <div style={{width:`${(total/maxTop)*100}%`,height:"100%",background:"rgb(var(--accent))",borderRadius:3}}/>
                       </div>
                       <span style={{fontSize:12,color:"rgba(var(--ink),0.5)",width:60,textAlign:"right",flexShrink:0}}>{fmt(total)}</span>
                     </div>
@@ -572,7 +575,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const [pkgs,setPkgs]             = useState([]);
   const [groups,setGroups]         = useState([]);
   const [loading,setLoading]       = useState(true);
-  const [currentView,setCurrentView] = useState("personal"); // "personal" | group.id
+  const [currentView,setCurrentView] = useState("personal"); // "personal" | "out" | group.id
   const [showForm,setShowForm]     = useState(false);
   const [editId,setEditId]         = useState(null);
   const [form,setForm]             = useState(emptyForm());
@@ -596,6 +599,8 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const [historyOpenId,setHistoryOpenId] = useState(null);
   const [membersModal,setMembersModal] = useState(null); // group object
   const exportRef = useRef(null);
+
+  const isOutView = currentView==="out";
 
   useEffect(()=>{loadAll();},[]);
 
@@ -643,16 +648,33 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   }
 
   function openForm(p=null){
-    setForm(p?{name:p.name,awb:p.awb,courier:p.courier,status:p.status,date:p.date||emptyForm().date,notes:p.notes||"",shop:p.shop||"",amount:p.amount||"",order_number:p.order_number||"",products:(p.products&&p.products.length)?p.products:[{name:p.name||"",qty:1}],estimated_delivery:p.estimated_delivery||""}:emptyForm());
+    setForm(p?{
+      name:p.name,awb:p.awb,courier:p.courier,status:p.status,
+      date:p.date||emptyForm().date,notes:p.notes||"",
+      shop:p.shop||"",client_name:p.client_name||"",
+      amount:p.amount||"",order_number:p.order_number||"",
+      products:(p.products&&p.products.length)?p.products:[{name:p.name||"",qty:1}],
+      estimated_delivery:p.estimated_delivery||"",
+      type:p.type||(isOutView?"out":"in"),
+    }:emptyForm({out:isOutView}));
     setEditId(p?p.id:null);setFormErr("");setShowForm(true);
   }
 
   async function submit(){
     const validProducts=form.products.filter(p=>p.name.trim());
     if(validProducts.length===0){setFormErr(t.formErr);return;}
-    if(form.status!=="Comandat"&&!form.awb.trim()){setFormErr(t.formErrAwb);return;}
+    const awbRequired = (form.type==="out") ? (form.status!=="Pregatit" && form.status!=="Retur") : form.status!=="Comandat";
+    if(awbRequired&&!form.awb.trim()){setFormErr(t.formErrAwb);return;}
     const autoName=validProducts.map(p=>`${p.qty>1?p.qty+"× ":""}${p.name.trim()}`).join(", ");
-    const entry={...form,name:autoName,awb:form.awb.trim(),products:validProducts};
+    const out = form.type==="out";
+    const entry={
+      ...form,
+      name:autoName,
+      awb:form.awb.trim(),
+      products:validProducts,
+      type:out?"out":"in",
+      // Se trimite oricum client_name; pentru coletele "in" e ignorat vizual.
+    };
     if(editId){
       const prevPkg=pkgs.find(p=>p.id===editId);
       if(prevPkg&&prevPkg.status!==entry.status){
@@ -662,7 +684,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
       if(error){setFormErr(t.saveErr+error.message);return;}
       setPkgs(prev=>prev.map(p=>p.id===editId?{...p,...entry}:p));
     } else {
-      const gid=currentView!=="personal"?currentView:null;
+      const gid=out?null:(currentView!=="personal"?currentView:null);
       const status_history=[{status:entry.status,at:new Date().toISOString()}];
       const newPkg={...entry,id:crypto.randomUUID(),user_id:user.id,group_id:gid,status_history,archived:false};
       const {error}=await supabase.from("packages").insert(newPkg);
@@ -788,12 +810,14 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   function updateProduct(i,field,value){ setForm(f=>({...f,products:f.products.map((pr,j)=>j===i?{...pr,[field]:value}:pr)})); }
 
   function exportCSV(){
-    const h=t.exportHeaders;
-    const rows=filtered.map(p=>[p.name,p.order_number||"",p.awb,p.courier,t.statuses[p.status]||p.status,p.date,p.shop||"",p.amount||"",p.notes||"",(p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; "),p.estimated_delivery||""].map(cellSafe));
+    const h=isOutView?t.outExportHeaders:t.exportHeaders;
+    const st=(p)=>isOutView?(t.outStatuses[p.status]||p.status):(t.statuses[p.status]||p.status);
+    const entity=(p)=>isOutView?(p.client_name||""):(p.shop||"");
+    const rows=filtered.map(p=>[p.name,p.order_number||"",p.awb,p.courier,st(p),p.date,entity(p),p.amount||"",p.notes||"",(p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; "),p.estimated_delivery||""].map(cellSafe));
     const csv=[h,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
     const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");a.href=url;a.download="parcels.csv";a.click();
+    const a=document.createElement("a");a.href=url;a.download=isOutView?"shipments.csv":"parcels.csv";a.click();
     URL.revokeObjectURL(url);
     setShowExp(false);
   }
@@ -802,23 +826,25 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
     // Lazy-load SheetJS only when the user actually exports (saves ~800KB
     // from the initial bundle).
     const XLSX=await import("xlsx");
-    const headers=t.exportHeaders;
+    const headers=isOutView?t.outExportHeaders:t.exportHeaders;
+    const st=(p)=>isOutView?(t.outStatuses[p.status]||p.status):(t.statuses[p.status]||p.status);
+    const entity=(p)=>isOutView?(p.client_name||""):(p.shop||"");
     const data=filtered.map(p=>({
       [headers[0]]:cellSafe(p.name),[headers[1]]:cellSafe(p.order_number||""),[headers[2]]:cellSafe(p.awb),
-      [headers[3]]:cellSafe(p.courier),[headers[4]]:cellSafe(t.statuses[p.status]||p.status),
-      [headers[5]]:cellSafe(p.date),[headers[6]]:cellSafe(p.shop||""),[headers[7]]:cellSafe(p.amount||""),[headers[8]]:cellSafe(p.notes||""),
+      [headers[3]]:cellSafe(p.courier),[headers[4]]:cellSafe(st(p)),
+      [headers[5]]:cellSafe(p.date),[headers[6]]:cellSafe(entity(p)),[headers[7]]:cellSafe(p.amount||""),[headers[8]]:cellSafe(p.notes||""),
       [headers[9]]:cellSafe((p.products||[]).map(x=>`${x.qty>1?x.qty+"× ":""}${x.name}`).join("; ")),
       [headers[10]]:cellSafe(p.estimated_delivery||""),
     }));
     const ws=XLSX.utils.json_to_sheet(data);
     const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,"Parcels");
-    XLSX.writeFile(wb,"parcels.xlsx");
+    XLSX.utils.book_append_sheet(wb,ws,isOutView?"Shipments":"Parcels");
+    XLSX.writeFile(wb,isOutView?"shipments.xlsx":"parcels.xlsx");
     setShowExp(false);
   }
 
-  const LBL=(s)=>t.statuses[s]||s;
-  const currentGroup=groups.find(g=>g.id===currentView)||null;
+  const LBL=(s)=>isOutView?(t.outStatuses[s]||s):(t.statuses[s]||s);
+  const currentGroup=!isOutView?groups.find(g=>g.id===currentView):null;
 
   async function removeMember(groupId,memberUserId){
     const {error}=await supabase.rpc("remove_group_member",{p_group_id:groupId,p_user_id:memberUserId});
@@ -829,17 +855,19 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
     return !error;
   }
 
-  // Filter packages by current view
-  const viewPkgs=currentView==="personal"
-    ?pkgs.filter(p=>!p.group_id)
-    :pkgs.filter(p=>p.group_id===currentView);
+  // Filter packages by current view ("out" = expediate la clienți)
+  const viewPkgs=isOutView
+    ?pkgs.filter(p=>p.type==="out")
+    :currentView==="personal"
+      ?pkgs.filter(p=>!p.group_id&&p.type!=="out")
+      :pkgs.filter(p=>p.group_id===currentView&&p.type!=="out");
 
   const nonArchived=viewPkgs.filter(p=>!p.archived);
   const archivedCount=viewPkgs.length-nonArchived.length;
-  const counts=STATUSES.reduce((a,s)=>({...a,[s]:nonArchived.filter(p=>p.status===s).length}),{});
+  const counts=(isOutView?OUT_STATUSES:STATUSES).reduce((a,s)=>({...a,[s]:nonArchived.filter(p=>p.status===s).length}),{});
 
   const SORTERS={
-    status:(a,b)=>(STATUS_ORDER[a.status]??1)-(STATUS_ORDER[b.status]??1),
+    status:(a,b)=>((isOutView?OUT_STATUS_ORDER:STATUS_ORDER)[a.status]??1)-((isOutView?OUT_STATUS_ORDER:STATUS_ORDER)[b.status]??1),
     date_desc:(a,b)=>(b.date||"").localeCompare(a.date||""),
     date_asc:(a,b)=>(a.date||"").localeCompare(b.date||""),
     amount_desc:(a,b)=>(Number(b.amount)||0)-(Number(a.amount)||0),
@@ -849,16 +877,17 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const filtered=(filter==="Archived"?viewPkgs.filter(p=>p.archived):nonArchived).filter(p=>{
     const okS=filter==="Toate"||filter==="Archived"||p.status===filter;
     const q=search.toLowerCase();
-    const okQ=!q||p.name.toLowerCase().includes(q)||p.awb.toLowerCase().includes(q)||(p.shop||"").toLowerCase().includes(q);
+    const extra=isOutView?(p.client_name||""):(p.shop||"");
+    const okQ=!q||p.name.toLowerCase().includes(q)||p.awb.toLowerCase().includes(q)||extra.toLowerCase().includes(q);
     return okS&&okQ;
   }).sort(SORTERS[sortBy]||SORTERS.status);
 
   const stats=(()=>{
     const totalSpent=viewPkgs.reduce((sum,p)=>sum+(Number(p.amount)||0),0);
-    const byStatus=STATUSES.map(s=>({status:s,label:LBL(s),count:viewPkgs.filter(p=>p.status===s).length}));
-    const shopTotals={};
-    viewPkgs.forEach(p=>{ if(p.shop){ shopTotals[p.shop]=(shopTotals[p.shop]||0)+(Number(p.amount)||0); } });
-    const topShops=Object.entries(shopTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const byStatus=(isOutView?OUT_STATUSES:STATUSES).map(s=>({status:s,label:LBL(s),count:viewPkgs.filter(p=>p.status===s).length}));
+    const entityTotals={};
+    viewPkgs.forEach(p=>{ const k=isOutView?(p.client_name||""):(p.shop||""); if(k){ entityTotals[k]=(entityTotals[k]||0)+(Number(p.amount)||0); } });
+    const topShops=Object.entries(entityTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);
     const monthTotals={};
     viewPkgs.forEach(p=>{ if(p.date){ const m=p.date.slice(0,7); monthTotals[m]=(monthTotals[m]||0)+(Number(p.amount)||0); } });
     const byMonth=Object.entries(monthTotals).sort((a,b)=>a[0].localeCompare(b[0]));
@@ -891,7 +920,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
             <div className="app-title" style={{flex:1,minWidth:0}}>
               <h1 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))",letterSpacing:"-0.02em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{t.appName}</h1>
               <p style={{fontSize:12,color:"rgba(var(--ink),0.4)",marginTop:1}}>
-                {loading?t.loading:t.parcels(viewPkgs.length)}
+                {loading?t.loading:(isOutView?t.outParcels:t.parcels(viewPkgs.length))}
               </p>
             </div>
             <div className="app-controls">
@@ -924,7 +953,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
               <ListChecks size={14}/> {t.select}
             </button>
             <button className="gb gbp" onClick={()=>openForm()} style={{flex:1,justifyContent:"center"}}>
-              <Plus size={14}/> {t.add}
+              <Plus size={14}/> {isOutView?t.addShipment:t.add}
             </button>
           </div>
           {/* Install app guide */}
@@ -938,11 +967,15 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
 
         {/* Groups nav */}
         <div className="gnav">
-          <button className={`fp${currentView==="personal"?" act":""}`} onClick={()=>{setCurrentView("personal");setFilter("Toate");setSearch("");}}>
+          <button className={`fp${currentView==="personal"?" act":""}`} onClick={()=>{setCurrentView("personal");setFilter("Toate");setSearch("");setSortBy("status");}}>
             {t.myParcels}
           </button>
+          <button className={`fp${currentView==="out"?" act":""}`} onClick={()=>{setCurrentView("out");setFilter("Toate");setSearch("");setSortBy("status");}}
+            style={currentView==="out"?{background:"rgba(var(--accent),0.12)",borderColor:"rgba(var(--accent),0.4)",color:"rgb(var(--accent))"}:undefined}>
+            <Send size={11} style={{opacity:0.6,verticalAlign:-1}}/> {t.outTab}
+          </button>
           {groups.map(g=>(
-            <button key={g.id} className={`fp${currentView===g.id?" act":""}`} onClick={()=>{setCurrentView(g.id);setFilter("Toate");setSearch("");}}>
+            <button key={g.id} className={`fp${currentView===g.id?" act":""}`} onClick={()=>{setCurrentView(g.id);setFilter("Toate");setSearch("");setSortBy("status");}}>
               <Users size={11} style={{opacity:0.6}}/> {g.name}
             </button>
           ))}
@@ -952,7 +985,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
         </div>
 
         {/* Group header (when viewing a group) */}
-        {currentGroup&&(
+        {!isOutView&&currentGroup&&(
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:"0.75rem",padding:"8px 12px",background:"rgba(var(--accent),0.08)",borderRadius:12,border:"1px solid rgba(var(--accent),0.2)"}}>
             <Users size={14} style={{color:"rgb(var(--accent))",flexShrink:0}}/>
             <button onClick={()=>setMembersModal(currentGroup)} style={{fontSize:13,color:"rgba(var(--ink),0.7)",flex:1,textAlign:"left",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textDecoration:"underline",textDecorationColor:"rgba(var(--ink),0.25)",textUnderlineOffset:3}}>
@@ -975,7 +1008,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
         {/* Search */}
         <div style={{position:"relative",marginBottom:"1rem"}}>
           <Search size={13} style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",color:"rgba(var(--ink),0.3)"}}/>
-          <input className="gi" value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.searchPlaceholder} style={{paddingLeft:36}}/>
+          <input className="gi" value={search} onChange={e=>setSearch(e.target.value)} placeholder={isOutView?t.searchPlaceholderOut:t.searchPlaceholder} style={{paddingLeft:36}}/>
           {search&&<button onClick={()=>setSearch("")} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"rgba(var(--ink),0.35)",display:"flex",padding:2}}><X size={13}/></button>}
         </div>
 
@@ -983,9 +1016,9 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
         {viewPkgs.length>0&&(
           <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:"1rem",alignItems:"center"}}>
             <button className={`fp${filter==="Toate"?" act":""}`} onClick={()=>setFilter("Toate")}>{t.all} ({nonArchived.length})</button>
-            {STATUSES.filter(s=>counts[s]>0).map(s=>(
+            {(isOutView?OUT_STATUSES:STATUSES).filter(s=>counts[s]>0).map(s=>(
               <button key={s} className={`fp${filter===s?" act":""}`} onClick={()=>setFilter(filter===s?"Toate":s)}
-                style={filter===s?{background:SC[s].bg,borderColor:SC[s].border,color:SC[s].color}:{}}>
+                style={filter===s?{background:(isOutView?SC_OUT:SC)[s].bg,borderColor:(isOutView?SC_OUT:SC)[s].border,color:(isOutView?SC_OUT:SC)[s].color}:{}}>
                 {LBL(s)} ({counts[s]})
               </button>
             ))}
@@ -1008,7 +1041,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
         {showForm&&(
           <div className="gc-strong" style={{padding:"1.5rem",marginBottom:"1rem"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
-              <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))"}}>{editId?t.editParcel:t.newParcel}</h2>
+              <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))"}}>{editId?(isOutView?t.outEditParcel:t.editParcel):(isOutView?t.outNewParcel:t.newParcel)}</h2>
               <button className="ib" onClick={()=>{setShowForm(false);setEditId(null);}}><X size={14}/></button>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,overflow:"hidden"}}>
@@ -1040,7 +1073,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                 <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.orderNumber}</label>
                 <input className="gi" value={form.order_number} onChange={e=>setForm({...form,order_number:e.target.value})} placeholder={t.orderNumberPlaceholder}/>
               </div>
-              {form.status!=="Comandat"?(
+              {!isOutView&&form.status!=="Comandat"?(
                 <>
                   <div style={{minWidth:0}}>
                     <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.awbRequired}</label>
@@ -1061,7 +1094,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                     <input className="gi" type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={t.amountPlaceholder}/>
                   </div>
                 </>
-              ):(
+              ):!isOutView&&form.status==="Comandat"?(
                 <>
                   <div style={{minWidth:0}}>
                     <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.shop}</label>
@@ -1072,11 +1105,36 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                     <input className="gi" type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={t.amountPlaceholder}/>
                   </div>
                 </>
+              ):(
+                <>
+                  <div style={{minWidth:0}}>
+                    <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.client}</label>
+                    <input className="gi" value={form.client_name} onChange={e=>setForm({...form,client_name:e.target.value})} placeholder={t.clientPlaceholder}/>
+                  </div>
+                  {form.status!=="Pregatit"&&form.status!=="Retur"&&(
+                    <>
+                      <div style={{minWidth:0}}>
+                        <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.awbLabel}</label>
+                        <input className="gi" value={form.awb} onChange={e=>setForm({...form,awb:e.target.value})} placeholder={t.awbPlaceholder} style={{fontFamily:"monospace"}}/>
+                      </div>
+                      <div style={{minWidth:0}}>
+                        <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.courier}</label>
+                        <select className="gi" value={form.courier} onChange={e=>setForm({...form,courier:e.target.value})}>
+                          {COURIERS.map(c=><option key={c.name}>{c.name}</option>)}
+                        </select>
+                      </div>
+                    </>
+                  )}
+                  <div style={{minWidth:0}}>
+                    <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.amount}</label>
+                    <input className="gi" type="number" min="0" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={t.amountPlaceholder}/>
+                  </div>
+                </>
               )}
               <div style={{minWidth:0}}>
                 <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:5,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.status}</label>
                 <select className="gi" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
-                  {STATUSES.map(s=><option key={s} value={s}>{LBL(s)}</option>)}
+                  {(isOutView?OUT_STATUSES:STATUSES).map(s=><option key={s} value={s}>{LBL(s)}</option>)}
                 </select>
               </div>
               <div style={{minWidth:0}}>
@@ -1095,7 +1153,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
             {formErr&&<p style={{fontSize:12,color:"rgb(var(--ink))",fontWeight:500,marginTop:8}}>{formErr}</p>}
             <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginTop:"1.25rem"}}>
               <button className="gb" onClick={()=>{setShowForm(false);setEditId(null);}}>{t.cancel}</button>
-              <button className="gb gbp" onClick={submit}>{editId?t.save:t.addParcel}</button>
+              <button className="gb gbp" onClick={submit}>{editId?t.save:(isOutView?t.addShipment:t.addParcel)}</button>
             </div>
           </div>
         )}
@@ -1108,15 +1166,18 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
         ):viewPkgs.length===0?(
           <div className="gc" style={{padding:"4rem 1rem",textAlign:"center"}}>
             <Package size={36} style={{color:"rgba(var(--ink),0.18)",marginBottom:12}}/>
-            <p style={{color:"rgba(var(--ink),0.55)",fontSize:14}}>{currentGroup?t.noGroupParcels:t.noParcelAdded}</p>
-            <p style={{color:"rgba(var(--ink),0.3)",fontSize:13,marginTop:4}}>{currentGroup?t.addFirstGroupParcel:t.noParcelSub}</p>
+            <p style={{color:"rgba(var(--ink),0.55)",fontSize:14}}>{isOutView?t.noOutParcels:(currentGroup?t.noGroupParcels:t.noParcelAdded)}</p>
+            <p style={{color:"rgba(var(--ink),0.3)",fontSize:13,marginTop:4}}>{isOutView?t.noOutParcelsSub:(currentGroup?t.addFirstGroupParcel:t.noParcelSub)}</p>
           </div>
         ):filtered.length===0?(
           <div style={{textAlign:"center",padding:"3rem",color:"rgba(var(--ink),0.35)",fontSize:13}}>{t.noMatch}</div>
         ):(
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {filtered.map(p=>{
-              const cfg=SC[p.status]||SC_FB;
+              const isOutPkg=p.type==="out";
+              const cfg=(isOutPkg?SC_OUT:SC)[p.status]||SC_FB;
+              const LBLp=isOutPkg?(t.outStatuses[p.status]||p.status):LBL(p.status);
+              const showAWB=isOutPkg?(p.status!=="Pregatit"&&p.status!=="Retur"):p.status!=="Comandat";
               const url=getUrl(p);
               const isSharing=shareLoading===p.id;
               const dLeft=p.status!=="Livrat"&&p.estimated_delivery?daysUntil(p.estimated_delivery):null;
@@ -1132,7 +1193,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                     <div className="pkg-content">
                       <span className="pkg-name" title={p.name}>{p.name}</span>
                       <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginTop:6}}>
-                        <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{LBL(p.status)}</span>
+                        <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{LBLp}</span>
                         {p.amount&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.72)",borderColor:"rgba(var(--ink),0.16)",fontSize:11}}>{Number(p.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
                         {p.products&&p.products.length>0&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.55)",borderColor:"rgba(var(--ink),0.18)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
                         {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(var(--accent),0.12)",color:"rgb(var(--accent))",borderColor:"rgba(var(--accent),0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
@@ -1144,9 +1205,9 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                       </div>
                       <div className="pkg-meta" style={{marginTop:6}}>
                         {p.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.55)",fontWeight:500}}>#{p.order_number.replace(/^#/,"")}</span>}
-                        {p.status!=="Comandat"&&p.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.awb}</span>}
-                        {p.status!=="Comandat"&&p.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.courier}</span>}
-                        {p.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.shop}</span>}
+                        {showAWB&&p.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.awb}</span>}
+                        {showAWB&&p.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.courier}</span>}
+                        {isOutPkg?(p.client_name&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.client_name}</span>):(p.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.shop}</span>)}
                         {p.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{new Date(p.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>}
                       </div>
                       {p.notes&&<div style={{fontSize:13,color:"rgba(var(--ink),0.3)",marginTop:4}}>{p.notes}</div>}
@@ -1168,7 +1229,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                         <button className="ib" onClick={()=>shareParcel(p)} disabled={isSharing} title={t.share}>
                           {isSharing?<Loader size={13} className="spin"/>:<Share2 size={13}/>}
                         </button>
-                        {p.user_id===user.id&&groups.length>0&&(
+                        {!isOutView&&p.user_id===user.id&&groups.length>0&&(
                           <button className="ib" onClick={()=>setMoveModal(p)} title={t.moveToGroup}>
                             <Users size={13}/>
                           </button>
@@ -1195,7 +1256,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                         <div style={{display:"flex",flexDirection:"column",gap:6}}>
                           {p.status_history.map((h,i)=>(
                             <div key={i} style={{display:"flex",alignItems:"center",gap:8,fontSize:12}}>
-                              <span className="sp" style={{background:(SC[h.status]||SC_FB).bg,color:(SC[h.status]||SC_FB).color,borderColor:(SC[h.status]||SC_FB).border,cursor:"default"}}>{LBL(h.status)}</span>
+                              <span className="sp" style={{background:(SC_OUT[h.status]||SC[h.status]||SC_FB).bg,color:(SC_OUT[h.status]||SC[h.status]||SC_FB).color,borderColor:(SC_OUT[h.status]||SC[h.status]||SC_FB).border,cursor:"default"}}>{LBL(h.status)}</span>
                               <span style={{color:"rgba(var(--ink),0.4)"}}>{new Date(h.at).toLocaleString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span>
                             </div>
                           ))}
@@ -1208,7 +1269,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                   {!selectMode&&(
                     <div style={{display:"flex",gap:4,marginTop:10,paddingTop:10,borderTop:"1px solid rgba(var(--ink),0.06)",flexWrap:"wrap",alignItems:"center"}}>
                       <span style={{fontSize:10,color:"rgba(var(--ink),0.25)",marginRight:4,letterSpacing:"0.06em",textTransform:"uppercase"}}>{t.quickStatus}</span>
-                      {STATUSES.map(s=>{const c=SC[s];const act=p.status===s;return <button key={s} className="sp" onClick={()=>setStatus(p.id,s)} style={{background:act?c.bg:"rgba(var(--ink),0.04)",color:act?c.color:"rgba(var(--ink),0.32)",borderColor:act?c.border:"rgba(var(--ink),0.07)"}}>{LBL(s)}</button>;})}
+                      {(isOutView?OUT_STATUSES:STATUSES).map(s=>{const c=(isOutView?SC_OUT:SC)[s];const act=p.status===s;return <button key={s} className="sp" onClick={()=>setStatus(p.id,s)} style={{background:act?c.bg:"rgba(var(--ink),0.04)",color:act?c.color:"rgba(var(--ink),0.32)",borderColor:act?c.border:"rgba(var(--ink),0.07)"}}>{LBL(s)}</button>;})}
                     </div>
                   )}
                 </div>
@@ -1225,8 +1286,8 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
           <div className="gc-strong" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",flexWrap:"wrap",maxWidth:800,width:"100%"}}>
             <span style={{fontSize:13,fontWeight:600,color:"rgb(var(--ink))",flexShrink:0}}>{t.selectedCount(selectedIds.size)}</span>
             <span style={{fontSize:11,color:"rgba(var(--ink),0.35)",flexShrink:0}}>{t.setStatusFor}</span>
-            {STATUSES.map(s=>(
-              <button key={s} className="sp" onClick={()=>bulkSetStatus(s)} style={{background:SC[s].bg,color:SC[s].color,borderColor:SC[s].border}}>{LBL(s)}</button>
+            {(isOutView?OUT_STATUSES:STATUSES).map(s=>(
+              <button key={s} className="sp" onClick={()=>bulkSetStatus(s)} style={{background:(isOutView?SC_OUT:SC)[s].bg,color:(isOutView?SC_OUT:SC)[s].color,borderColor:(isOutView?SC_OUT:SC)[s].border}}>{LBL(s)}</button>
             ))}
             <button className="ib ibx" onClick={()=>setBulkDeleteConfirm(true)} style={{marginLeft:"auto"}} title={t.deleteSelected}>
               <Trash2 size={13}/>
@@ -1245,7 +1306,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
       {shareModal&&<ShareModal shareUrl={shareModal.shareUrl} onClose={()=>setShareModal(null)} t={t}/>}
       {showGroupModal&&<GroupModal user={user} onClose={()=>setShowGroupModal(false)} onCreated={handleGroupCreated} t={t}/>}
       {inviteModal&&<InviteModal inviteCode={inviteModal} onJoined={handleGroupJoined} onDismiss={()=>{setInviteModal(null);localStorage.removeItem("pending_invite");history.replaceState(null,"",window.location.pathname);}} t={t}/>}
-      {showStats&&<StatsModal stats={stats} onClose={()=>setShowStats(false)} t={t}/>}
+      {showStats&&<StatsModal stats={stats} out={isOutView} onClose={()=>setShowStats(false)} t={t}/>}
       {membersModal&&<GroupMembersModal group={membersModal} user={user} isOwner={membersModal.group_members?.some(m=>m.user_id===user.id&&m.role==="owner")} onRemove={removeMember} onClose={()=>setMembersModal(null)} t={t}/>}
     </div>
   );

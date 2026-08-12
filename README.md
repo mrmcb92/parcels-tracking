@@ -63,6 +63,12 @@ The full schema lives in this repo:
   columns, the group RLS policies, and the `get_group_members` /
   `remove_group_member` RPCs). Run it after `0001` if you already have data.
 
+- **`supabase/migrations/0003_outgoing_parcels.sql`** — adds the
+  **Shipped to clients** section (a `type` column — `'in'` for your own
+  purchases, `'out'` for shipments to clients — plus a `client_name`
+  column and the updated public-share function). Run it after `0001` +
+  `0002` on an existing database.
+
 The migration includes:
 
 - RLS on all tables (users manage their own parcels; group members can view
@@ -232,6 +238,12 @@ Schema completă e în acest repo:
   (adaugă coloanele lipsă `status_history`, `archived`, `estimated_delivery`,
   policy-urile RLS pentru grupuri și RPC-urile `get_group_members` /
   `remove_group_member`). Rulează-l după `0001` dacă ai deja date.
+
+- **`supabase/migrations/0003_outgoing_parcels.sql`** — adaugă secțiunea
+  **Colete expediate la clienți** (coloana `type` — `'in'` pentru
+  cumpărăturile proprii, `'out'` pentru expedieri la clienți — plus coloana
+  `client_name` și versiunea actualizată a funcției de share public).
+  Rulează-l după `0001` + `0002` pe o bază de date existentă.
 
 Migrarea include:
 

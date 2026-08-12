@@ -27,6 +27,16 @@ export const T = {
     loginSub:"Track your parcels from any device",loginBtn:"Continue with Google",
     loginConnecting:"Connecting...",loginNote:"Each user sees only their own parcels.",
     statuses:{"Comandat":"Ordered","In livrare":"In delivery","Livrat":"Delivered"},
+    outStatuses:{"Pregatit":"Preparing","Expediat":"Shipped","In livrare":"In delivery","Livrat":"Delivered","Retur":"Returned"},
+    // Shipped to clients
+    outParcels:"Shipped to clients",outTab:"Shipped",
+    outNewParcel:"New shipment",outEditParcel:"Edit shipment",addShipment:"Add shipment",
+    noOutParcels:"No shipments yet",noOutParcelsSub:'Press "Add" to start shipping',
+    client:"Client",clientPlaceholder:"e.g. John Doe, Acme S.R.L.",
+    awbLabel:"AWB number",
+    searchPlaceholderOut:"Search by client, AWB or product...",
+    outExportHeaders:["Description","Order No.","AWB","Courier","Status","Date","Client","Amount","Notes","Products","Estimated delivery"],
+    statsTopClients:"Top clients",
     exportHeaders:["Description","Order No.","AWB","Courier","Status","Date","Shop","Amount","Notes","Products","Estimated delivery"],
     // Share
     share:"Share",shareTitle:"Share parcel",
@@ -98,6 +108,16 @@ export const T = {
     loginSub:"Urmărește-ți coletele de pe orice device",loginBtn:"Continuă cu Google",
     loginConnecting:"Se conectează...",loginNote:"Fiecare utilizator vede doar propriile colete.",
     statuses:{"Comandat":"Comandat","In livrare":"In livrare","Livrat":"Livrat"},
+    outStatuses:{"Pregatit":"Pregătit","Expediat":"Expediat","In livrare":"In livrare","Livrat":"Livrat","Retur":"Retur"},
+    // Colete expediate la clienți
+    outParcels:"Colete expediate la clienți",outTab:"Expediate",
+    outNewParcel:"Expediere nouă",outEditParcel:"Editează expedierea",addShipment:"Adaugă expediere",
+    noOutParcels:"Nicio expediere adăugată",noOutParcelsSub:'Apasă „Adaugă" pentru a începe',
+    client:"Client",clientPlaceholder:"ex. Ion Popescu, S.C. Exemplu S.R.L.",
+    awbLabel:"Număr AWB",
+    searchPlaceholderOut:"Caută după client, AWB sau produs...",
+    outExportHeaders:["Descriere","Nr. comandă","AWB","Curier","Status","Data","Client","Suma","Note","Produse","Dată estimată livrare"],
+    statsTopClients:"Top clienți",
     exportHeaders:["Descriere","Nr. comandă","AWB","Curier","Status","Data","Magazin","Suma","Note","Produse","Dată estimată livrare"],
     // Share
     share:"Distribuie",shareTitle:"Distribuie colet",

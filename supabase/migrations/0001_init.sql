@@ -20,6 +20,8 @@ create table public.packages (
   estimated_delivery text default '',
   archived boolean not null default false,
   group_id uuid references public.groups on delete set null,
+  type text not null default 'in',
+  client_name text not null default '',
   created_at timestamptz default now()
 );
 
@@ -163,7 +165,9 @@ begin
     'order_number', p.order_number,
     'notes', p.notes,
     'shop', p.shop,
-    'date', p.date
+    'date', p.date,
+    'type', p.type,
+    'client_name', p.client_name
   ) into result
   from public.packages p
   join public.shared_links s on s.package_id = p.id
