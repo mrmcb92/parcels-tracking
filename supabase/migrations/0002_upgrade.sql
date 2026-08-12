@@ -38,6 +38,11 @@ create policy "Group members can insert group parcels"
 drop policy if exists "Group members can update group parcels"
   on public.packages;
 
+-- Membrii pot actualiza coletele din grup. with check: noile valori sunt
+-- permise dacă coletul rămâne într-un grup din care suntem membri SAU e mutat
+-- în spațiul personal (group_id = null) — doar dacă e coletul nostru.
+-- Fără acest with check, mutarea unui colet din grup în "Coletele mele"
+-- (group_id → null) e refuzată de RLS.
 create policy "Group members can update group parcels"
   on public.packages for update
   using (
@@ -47,9 +52,13 @@ create policy "Group members can update group parcels"
     )
   )
   with check (
-    exists (
-      select 1 from public.group_members
-      where group_id = packages.group_id and user_id = auth.uid()
+    (packages.group_id is null and packages.user_id = auth.uid())
+    or (
+      packages.group_id is not null
+      and exists (
+        select 1 from public.group_members
+        where group_id = packages.group_id and user_id = auth.uid()
+      )
     )
   );
 
@@ -69,13 +78,67 @@ create policy "Group owners can update and delete"
 drop policy if exists "Anyone can read shared links"
   on public.shared_links;
 
+drop policy if exists "Owners can view their shared links"
+  on public.shared_links;
+
 create policy "Owners can view their shared links"
   on public.shared_links for select
   using (auth.uid() = created_by);
 
+-- Gaură de securitate reparată: înainte, policy-ul de insert verifica doar
+-- created_by, deci oricine putea crea un link public către ORICE colet din
+-- baza de date. Acum poți distribui doar colete la care ai acces (proprii
+-- sau din grupurile în care ești membru).
+drop policy if exists "Owners can create shared links"
+  on public.shared_links;
+
+create policy "Owners can create shared links"
+  on public.shared_links for insert
+  with check (
+    auth.uid() = created_by
+    and exists (
+      select 1 from public.packages
+      where packages.id = package_id
+        and (
+          packages.user_id = auth.uid()
+          or exists (
+            select 1 from public.group_members
+            where group_members.group_id = packages.group_id
+              and group_members.user_id = auth.uid()
+          )
+        )
+    )
+  );
+
+drop policy if exists "Owners can delete their shared links"
+  on public.shared_links;
+
 create policy "Owners can delete their shared links"
   on public.shared_links for delete
   using (auth.uid() = created_by);
+
+-- ── Realtime: publică evenimentele packages ──────────────────────────────────
+-- Fără includerea tabelului în publicația `supabase_realtime`, evenimentele
+-- postgres_changes nu sunt difuzate și sync-ul în timp real între tab-uri
+-- nu funcționează. Block-ul e idempotent (verifică apartenența), ca re-rularea
+-- migrării să nu dea eroare.
+do $$
+begin
+  if exists (
+    select 1 from pg_publication where pubname = 'supabase_realtime'
+  ) and not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'packages'
+  ) then
+    alter publication supabase_realtime add table public.packages;
+  end if;
+end $$;
+
+-- index pentru filtrarea rapidă pe tip + proprietar (idempotent)
+create index if not exists packages_type_user_idx
+  on public.packages (type, user_id);
 
 -- ── RPC-uri ──────────────────────────────────────────────────────────────────
 
@@ -96,7 +159,9 @@ begin
     'order_number', p.order_number,
     'notes', p.notes,
     'shop', p.shop,
-    'date', p.date
+    'date', p.date,
+    'type', p.type,
+    'client_name', p.client_name
   ) into result
   from public.packages p
   join public.shared_links s on s.package_id = p.id

@@ -8,7 +8,7 @@ import {
 import { supabase } from "./supabase.js";
 import { T, LANG_KEY, THEME_KEY } from "./i18n.js";
 import { COURIERS, STATUSES, OUT_STATUSES, SC, SC_OUT, SC_FB, STATUS_ORDER, OUT_STATUS_ORDER, emptyForm } from "./constants.js";
-import { cellSafe, daysUntil, copyText, appBaseUrl } from "./utils.js";
+import { cellSafe, daysUntil, copyText, appBaseUrl, uid } from "./utils.js";
 import { STYLES } from "./styles.js";
 
 // ── Background ────────────────────────────────────────────────────────────────
@@ -167,18 +167,12 @@ function GroupModal({user,onClose,onCreated,t}) {
   async function createGroup() {
     if(!name.trim())return;
     setBusy(true);
-    const {data,error}=await supabase.from("groups").insert({name:name.trim(),created_by:user.id}).select().single();
-    if(!error&&data){
-      const {error:memErr}=await supabase.from("group_members").insert({group_id:data.id,user_id:user.id,role:"owner"});
-      if(memErr){
-        // Roll back the orphan group so it doesn't linger without members
-        await supabase.from("groups").delete().eq("id",data.id);
-        setBusy(false);
-        return;
-      }
-      setCreated(data);
-      onCreated(data);
-    }
+    // Atomic create: grup + rândul de owner în group_members, într-o singură
+    // cerere. Cele două INSERT-uri separate eșuau pentru că policy-ul SELECT
+    // pe `groups` cere apartenența la grup înainte ca owner-ul să fie membru
+    // (PostgREST răspundea PGRST116, data=null și grup rămas orfan).
+    const {data,error}=await supabase.rpc("create_group_with_owner",{p_name:name.trim()});
+    if(!error&&data){setCreated(data);onCreated(data);}
     setBusy(false);
   }
 
@@ -686,7 +680,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
     } else {
       const gid=out?null:(currentView!=="personal"?currentView:null);
       const status_history=[{status:entry.status,at:new Date().toISOString()}];
-      const newPkg={...entry,id:crypto.randomUUID(),user_id:user.id,group_id:gid,status_history,archived:false};
+      const newPkg={...entry,id:uid(),user_id:user.id,group_id:gid,status_history,archived:false};
       const {error}=await supabase.from("packages").insert(newPkg);
       if(error){setFormErr(t.saveErr+error.message);return;}
       setPkgs(prev=>[newPkg,...prev]);
@@ -877,9 +871,11 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const filtered=(filter==="Archived"?viewPkgs.filter(p=>p.archived):nonArchived).filter(p=>{
     const okS=filter==="Toate"||filter==="Archived"||p.status===filter;
     const q=search.toLowerCase();
-    const extra=isOutView?(p.client_name||""):(p.shop||"");
-    const okQ=!q||p.name.toLowerCase().includes(q)||p.awb.toLowerCase().includes(q)||extra.toLowerCase().includes(q);
-    return okS&&okQ;
+    // (s||"") guard: legacy/imported rows could carry null on any field,
+    // and a null .toLowerCase() would crash the whole list.
+    const haystack=[p.name,p.awb,isOutView?(p.client_name||""):(p.shop||"")]
+      .map(s=>(s||"").toLowerCase()).join(" ");
+    return okS&&(!q||haystack.includes(q));
   }).sort(SORTERS[sortBy]||SORTERS.status);
 
   const stats=(()=>{

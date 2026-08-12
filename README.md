@@ -69,6 +69,12 @@ The full schema lives in this repo:
   column and the updated public-share function). Run it after `0001` +
   `0002` on an existing database.
 
+- **`supabase/migrations/0004_group_creation_rpc.sql`** — adds the
+  `create_group_with_owner` RPC that creates a group and its owner
+  membership atomically. Run it after `0003` on an existing database.
+  (The old two-request flow could leave an orphaned group when the
+  `SELECT` on `groups` failed before the owner was a member.)
+
 The migration includes:
 
 - RLS on all tables (users manage their own parcels; group members can view

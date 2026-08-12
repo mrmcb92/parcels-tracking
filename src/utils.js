@@ -40,3 +40,13 @@ export const copyText = async (text) => {
 // Absolute base URL of the current app location (works on any deployment).
 export const appBaseUrl = () =>
   `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+
+// Unique id. crypto.randomUUID() exists only in secure contexts (https or
+// localhost), so a fallback is needed when the app is reached over plain
+// http on a LAN IP (e.g. phone testing against the dev server).
+export const uid = () => {
+  try {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  } catch (e) { /* fall through */ }
+  return "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+};
