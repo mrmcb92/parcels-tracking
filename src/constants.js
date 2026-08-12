@@ -53,6 +53,7 @@ export const emptyForm = ({out=false}={}) => ({
   name:"",awb:"",
   courier: out?OUT_DEFAULT_COURIER:"FAN Courier",
   status: out?"Pregatit":"Comandat",
+  type: out?"out":"in",
   date:new Date().toISOString().split("T")[0],
   notes:"",shop:"",client_name:"",amount:"",order_number:"",
   products:[{name:"",qty:1}],estimated_delivery:"",
