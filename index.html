@@ -2,16 +2,19 @@
 <html lang="ro">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Parcel Tracking</title>
-    <meta name="description" content="Tracker personal pentru colete și AWB-uri" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Tracker minimalist modern pentru colete și AWB-uri" />
+    <meta name="theme-color" content="#f5f6f9" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <script>
       (function () {
         var t = localStorage.getItem("parcel-theme") || "light";
         document.documentElement.setAttribute("data-theme", t);
         var m = document.querySelector('meta[name="theme-color"]');
-        if (m) m.setAttribute("content", t === "dark" ? "#000000" : "#ffffff");
+        if (m) m.setAttribute("content", t === "dark" ? "#090b10" : "#f5f6f9");
       })();
     </script>
     <meta name="mobile-web-app-capable" content="yes" />

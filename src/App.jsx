@@ -70,18 +70,31 @@ function SharedParcelView({token,lang,setLang,theme,setTheme,onBack}) {
     if (onBack) onBack();
   };
 
+  const [sharedAwbCopied, setSharedAwbCopied] = useState(false);
+
+  async function handleSharedCopy(awb) {
+    if(!awb) return;
+    const ok = await copyText(awb);
+    if(ok) {
+      setSharedAwbCopied(true);
+      setTimeout(() => setSharedAwbCopied(false), 1800);
+    }
+  }
+
   return (
-    <div style={{minHeight:"100vh",background:"var(--bg)",position:"relative"}}>
-      <Background/>
+    <div style={{minHeight:"100vh",background:"var(--bg-mesh)",position:"relative"}}>
       <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem",maxWidth:800,margin:"0 auto"}}>
-        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:"1.5rem",flexWrap:"wrap"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,flex:1}}>
-            <div className="gc" style={{padding:9,borderRadius:16,display:"flex",flexShrink:0}}>
-              <Package size={20} style={{color:"rgb(var(--accent))"}}/>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:"1.75rem",flexWrap:"wrap"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,flex:1}}>
+            <div className="app-icon-3d">
+              <Package size={22} strokeWidth={2.2}/>
             </div>
             <div>
-              <h1 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))"}}>{t.sharedParcel}</h1>
-              <p style={{fontSize:12,color:"rgba(var(--ink),0.4)",marginTop:1}}>{t.appName}</p>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <h1 style={{fontSize:19,fontWeight:700,color:"rgb(var(--ink))",letterSpacing:"-0.02em"}}>{t.sharedParcel}</h1>
+                <span style={{fontSize:10,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",padding:"2px 8px",borderRadius:999,background:"rgba(var(--accent-brand),0.12)",color:"rgb(var(--accent-brand))",border:"1px solid rgba(var(--accent-brand),0.25)"}}>2026</span>
+              </div>
+              <p style={{fontSize:12.5,color:"rgba(var(--ink),0.5)",marginTop:2}}>{t.appName}</p>
             </div>
           </div>
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
@@ -95,9 +108,9 @@ function SharedParcelView({token,lang,setLang,theme,setTheme,onBack}) {
             <Loader size={16} className="spin"/> {t.loading}
           </div>
         ) : error||!pkg ? (
-          <div className="gc" style={{padding:"3rem",textAlign:"center"}}>
-            <Package size={32} style={{color:"rgba(var(--ink),0.15)",marginBottom:12}}/>
-            <p style={{color:"rgba(var(--ink),0.4)",fontSize:14}}>{t.invalidInvite}</p>
+          <div className="gc" style={{padding:"3.5rem 2rem",textAlign:"center"}}>
+            <Package size={36} style={{color:"rgba(var(--ink),0.2)",marginBottom:12}}/>
+            <p style={{color:"rgba(var(--ink),0.55)",fontSize:15,fontWeight:500}}>{t.invalidInvite}</p>
           </div>
         ) : (()=>{
           const cfg=CFG(pkg.status);
@@ -109,24 +122,29 @@ function SharedParcelView({token,lang,setLang,theme,setTheme,onBack}) {
             <div className="pkg">
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:5}}>
-                    <span style={{fontWeight:600,fontSize:15,color:"rgb(var(--ink))"}}>{pkg.name}</span>
+                  <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:6}}>
+                    <span className="pkg-name">{pkg.name}</span>
                     <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border,cursor:"default"}}>{CLBL(pkg.status)}</span>
-                    {parsedAmt > 0 && <span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.72)",borderColor:"rgba(var(--ink),0.16)",fontSize:11,cursor:"default"}}>{formatAmount(pkg.amount)} RON</span>}
+                    {parsedAmt > 0 && <span className="sp" style={{background:"var(--input-well)",color:"rgba(var(--ink),0.75)",borderColor:"var(--card-border)",fontSize:11.5,cursor:"default"}}>{formatAmount(pkg.amount)} RON</span>}
                     {dLeft!=null && !isNaN(dLeft) && (
-                      <span className="sp" style={{background:dLeft<0?"rgb(var(--accent))":"rgba(var(--ink),0.06)",color:dLeft<0?"var(--accent-fg)":"rgba(var(--ink),0.65)",borderColor:dLeft<0?"transparent":"rgba(var(--ink),0.16)",fontSize:11,cursor:"default"}}>
+                      <span className="sp" style={{background:dLeft<0?"rgb(var(--accent-brand))":"var(--input-well)",color:dLeft<0?"#ffffff":"rgba(var(--ink),0.7)",borderColor:dLeft<0?"transparent":"var(--card-border)",fontSize:11.5,cursor:"default"}}>
                         {dLeft<0?t.overdueBy(Math.abs(dLeft)):dLeft===0?t.arrivesToday:t.inDays(dLeft)}
                       </span>
                     )}
                   </div>
-                  <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
-                    {pkg.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.55)",fontWeight:500}}>#{pkg.order_number.replace(/^#/,"")}</span>}
-                    {showAWB&&pkg.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.awb}</span>}
-                    {showAWB&&pkg.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.courier}</span>}
-                    {isOut ? (pkg.client_name&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.client_name}</span>) : (pkg.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.shop}</span>)}
-                    {pkg.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{formatDate(pkg.date, lang)}</span>}
+                  <div className="pkg-meta" style={{marginTop:6}}>
+                    {pkg.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.6)",fontWeight:600}}>#{pkg.order_number.replace(/^#/,"")}</span>}
+                    {showAWB&&pkg.awb&&(
+                      <button type="button" onClick={()=>handleSharedCopy(pkg.awb)} className="awb-copy-btn" title="Copy AWB">
+                        <span style={{fontFamily:"'JetBrains Mono', monospace",fontWeight:600}}>{pkg.awb}</span>
+                        {sharedAwbCopied?<Check size={12} style={{color:"#10b981"}}/>:<Copy size={12}/>}
+                      </button>
+                    )}
+                    {showAWB&&pkg.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.5)"}}>{pkg.courier}</span>}
+                    {isOut ? (pkg.client_name&&<span style={{fontSize:13,color:"rgba(var(--ink),0.5)"}}>{pkg.client_name}</span>) : (pkg.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.5)"}}>{pkg.shop}</span>)}
+                    {pkg.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.4)"}}>{formatDate(pkg.date, lang)}</span>}
                   </div>
-                  {pkg.notes&&<div style={{fontSize:13,color:"rgba(var(--ink),0.3)",marginTop:4}}>{pkg.notes}</div>}
+                  {pkg.notes&&<div style={{fontSize:13,color:"rgba(var(--ink),0.4)",marginTop:6}}>{pkg.notes}</div>}
                   {pkg.products&&pkg.products.length>1&&(
                     <div style={{marginTop:8}}>
                       {pkg.products.map((prod,i)=>(
@@ -137,7 +155,7 @@ function SharedParcelView({token,lang,setLang,theme,setTheme,onBack}) {
                     </div>
                   )}
                 </div>
-                {url&&pkg.awb&&<a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={13}/></a>}
+                {url&&pkg.awb&&<a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={14}/></a>}
               </div>
             </div>
           );
@@ -157,18 +175,19 @@ function ShareModal({shareUrl,onClose,t}) {
   }
   return (
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:460,width:"100%"}}>
+      <div className="gc-strong" style={{padding:"1.6rem",maxWidth:460,width:"100%"}}>
+        <div className="sheet-handle" />
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
-          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
-            <Share2 size={15} style={{color:"rgb(var(--accent))"}}/> {t.shareTitle}
+          <h2 style={{fontSize:16,fontWeight:700,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
+            <Share2 size={16} style={{color:"rgb(var(--accent-brand))"}}/> {t.shareTitle}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
-        <p style={{fontSize:13,color:"rgba(var(--ink),0.5)",marginBottom:"1rem",lineHeight:1.6}}>{t.shareDesc}</p>
-        <div style={{display:"flex",gap:8,marginBottom:"1rem"}}>
-          <input className="gi" readOnly value={shareUrl} style={{fontFamily:"monospace",fontSize:11}} onClick={e=>e.target.select()}/>
+        <p style={{fontSize:13,color:"rgba(var(--ink),0.55)",marginBottom:"1rem",lineHeight:1.6}}>{t.shareDesc}</p>
+        <div style={{display:"flex",gap:8,marginBottom:"1.25rem"}}>
+          <input className="gi" readOnly value={shareUrl} style={{fontFamily:"monospace",fontSize:12}} onClick={e=>e.target.select()}/>
           <button className="gb gbp" onClick={copy} style={{flexShrink:0,whiteSpace:"nowrap"}}>
-            {copied?<Check size={13}/>:<Copy size={13}/>}
+            {copied?<Check size={14}/>:<Copy size={14}/>}
             {copied?t.copied:t.copyLink}
           </button>
         </div>
@@ -189,10 +208,6 @@ function GroupModal({user,onClose,onCreated,t}) {
   async function createGroup() {
     if(!name.trim())return;
     setBusy(true);
-    // Atomic create: grup + rândul de owner în group_members, într-o singură
-    // cerere. Cele două INSERT-uri separate eșuau pentru că policy-ul SELECT
-    // pe `groups` cere apartenența la grup înainte ca owner-ul să fie membru
-    // (PostgREST răspundea PGRST116, data=null și grup rămas orfan).
     const {data,error}=await supabase.rpc("create_group_with_owner",{p_name:name.trim()});
     if(!error&&data){setCreated(data);onCreated(data);}
     setBusy(false);
@@ -208,17 +223,18 @@ function GroupModal({user,onClose,onCreated,t}) {
 
   return (
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:460,width:"100%"}}>
+      <div className="gc-strong" style={{padding:"1.6rem",maxWidth:460,width:"100%"}}>
+        <div className="sheet-handle" />
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
-          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
-            <Users size={15} style={{color:"rgb(var(--accent))"}}/> {created?t.inviteTitle:t.newGroup}
+          <h2 style={{fontSize:16,fontWeight:700,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
+            <Users size={16} style={{color:"rgb(var(--accent-brand))"}}/> {created?t.inviteTitle:t.newGroup}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
         {!created?(
           <>
-            <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.groupName}</label>
-            <input className="gi" value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&createGroup()} placeholder={t.groupNamePlaceholder} autoFocus style={{marginBottom:14}}/>
+            <label style={{fontSize:10.5,fontWeight:600,color:"rgba(var(--ink),0.45)",display:"block",marginBottom:6,letterSpacing:"0.06em",textTransform:"uppercase"}}>{t.groupName}</label>
+            <input className="gi" value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&createGroup()} placeholder={t.groupNamePlaceholder} autoFocus style={{marginBottom:16}}/>
             <div style={{display:"flex",justifyContent:"flex-end",gap:8}}>
               <button className="gb" onClick={onClose}>{t.cancel}</button>
               <button className="gb gbp" onClick={createGroup} disabled={busy||!name.trim()}>
@@ -229,12 +245,12 @@ function GroupModal({user,onClose,onCreated,t}) {
           </>
         ):(
           <>
-            <p style={{fontSize:13,color:"rgba(var(--ink),0.5)",marginBottom:"1rem",lineHeight:1.6}}>{t.inviteDesc}</p>
-            <label style={{fontSize:10,color:"rgba(var(--ink),0.42)",display:"block",marginBottom:6,letterSpacing:"0.07em",textTransform:"uppercase"}}>{t.inviteLink}</label>
-            <div style={{display:"flex",gap:8,marginBottom:14}}>
-              <input className="gi" readOnly value={inviteUrl} style={{fontFamily:"monospace",fontSize:11}} onClick={e=>e.target.select()}/>
+            <p style={{fontSize:13,color:"rgba(var(--ink),0.55)",marginBottom:"1rem",lineHeight:1.6}}>{t.inviteDesc}</p>
+            <label style={{fontSize:10.5,fontWeight:600,color:"rgba(var(--ink),0.45)",display:"block",marginBottom:6,letterSpacing:"0.06em",textTransform:"uppercase"}}>{t.inviteLink}</label>
+            <div style={{display:"flex",gap:8,marginBottom:16}}>
+              <input className="gi" readOnly value={inviteUrl} style={{fontFamily:"monospace",fontSize:12}} onClick={e=>e.target.select()}/>
               <button className="gb gbp" onClick={copyInvite} style={{flexShrink:0,whiteSpace:"nowrap"}}>
-                {copiedInv?<Check size={13}/>:<Copy size={13}/>}
+                {copiedInv?<Check size={14}/>:<Copy size={14}/>}
                 {copiedInv?t.copied:t.copyInvite}
               </button>
             </div>
@@ -277,12 +293,13 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
 
   return (
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onDismiss();}}>
-      <div className="gc-strong" style={{padding:"1.75rem",maxWidth:380,width:"100%",textAlign:"center",position:"relative"}}>
-        <button className="ib" onClick={onDismiss} style={{position:"absolute",top:12,right:12}} aria-label={t.cancel}>
+      <div className="gc-strong" style={{padding:"2rem 1.75rem",maxWidth:380,width:"100%",textAlign:"center",position:"relative"}}>
+        <div className="sheet-handle" />
+        <button className="ib" onClick={onDismiss} style={{position:"absolute",top:14,right:14}} aria-label={t.cancel}>
           <X size={14}/>
         </button>
-        <div className="gc" style={{display:"inline-flex",padding:"12px",borderRadius:20,marginBottom:16}}>
-          <Users size={24} style={{color:"rgb(var(--accent))"}}/>
+        <div className="app-icon-3d" style={{margin:"0 auto 16px auto"}}>
+          <Users size={22} strokeWidth={2.2}/>
         </div>
         {loading?(
           <div style={{color:"rgba(var(--ink),0.4)",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
@@ -290,14 +307,14 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
           </div>
         ):done?(
           <div>
-            <div style={{marginBottom:8}}><Check size={36} strokeWidth={1.5}/></div>
-            <p style={{color:"rgb(var(--ink))",fontSize:15,fontWeight:500}}>{t.joined}</p>
+            <div style={{marginBottom:8,color:"#10b981"}}><Check size={38} strokeWidth={2}/></div>
+            <p style={{color:"rgb(var(--ink))",fontSize:16,fontWeight:600}}>{t.joined}</p>
           </div>
         ):group?(
           <>
-            <h2 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))",marginBottom:6}}>{group.name}</h2>
-            <p style={{fontSize:13,color:"rgba(var(--ink),0.45)",marginBottom:"1.5rem"}}>{t.joinGroup}?</p>
-            {joinErr&&<p style={{fontSize:12,color:"rgb(var(--ink))",fontWeight:500,marginBottom:12}}>{t.invalidInvite}</p>}
+            <h2 style={{fontSize:18,fontWeight:700,color:"rgb(var(--ink))",marginBottom:6}}>{group.name}</h2>
+            <p style={{fontSize:13,color:"rgba(var(--ink),0.5)",marginBottom:"1.5rem"}}>{t.joinGroup}?</p>
+            {joinErr&&<p style={{fontSize:12,color:"#ef4444",fontWeight:500,marginBottom:12}}>{t.invalidInvite}</p>}
             <div style={{display:"flex",gap:8,justifyContent:"center"}}>
               <button className="gb" onClick={onDismiss}>{t.cancel}</button>
               <button className="gb gbp" onClick={join} disabled={busy}>
@@ -326,30 +343,30 @@ function LoginScreen({lang,setLang,theme,setTheme}) {
 
   async function loginWithGoogle(){
     setBusy(true);setErr("");
-    // Redirect back to the current app location (works for any deployment:
-    // GitHub Pages, custom domain, localhost dev server).
     const redirectTo=`${window.location.origin}${import.meta.env.BASE_URL}`;
     const {error}=await supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo}});
     if(error){setErr(error.message);setBusy(false);}
   }
 
   return (
-    <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem",position:"relative"}}>
-      <Background/>
-      <div style={{position:"absolute",top:16,right:16,zIndex:10}}>
+    <div style={{minHeight:"100vh",background:"var(--bg-mesh)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1.5rem",position:"relative"}}>
+      <div style={{position:"absolute",top:18,right:18,zIndex:10,display:"flex",gap:6}}>
         <ThemeToggle theme={theme} setTheme={setTheme}/><LangToggle lang={lang} setLang={setLang}/>
       </div>
-      <div className="gc-strong" style={{maxWidth:400,width:"100%",padding:"2rem",position:"relative",zIndex:1}}>
-        <div style={{textAlign:"center",marginBottom:"2rem"}}>
-          <div className="gc" style={{display:"inline-flex",padding:"12px",borderRadius:20,marginBottom:16}}>
-            <Package size={28} style={{color:"rgb(var(--accent))"}}/>
+      <div className="gc-strong" style={{maxWidth:420,width:"100%",padding:"2.25rem 2rem",position:"relative",zIndex:1,textAlign:"center"}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",marginBottom:"2rem"}}>
+          <div className="app-icon-3d" style={{width:54,height:54,borderRadius:18,marginBottom:18,animation:"floatSlow 4s ease-in-out infinite"}}>
+            <Package size={28} strokeWidth={2.2}/>
           </div>
-          <h1 style={{fontSize:22,fontWeight:700,color:"rgb(var(--ink))",letterSpacing:"-0.03em"}}>{t.appName}</h1>
-          <p style={{fontSize:13,color:"rgba(var(--ink),0.4)",marginTop:6}}>{t.loginSub}</p>
+          <div style={{display:"flex",alignItems:"center",gap:7,justifyContent:"center"}}>
+            <h1 style={{fontSize:24,fontWeight:800,color:"rgb(var(--ink))",letterSpacing:"-0.03em"}}>{t.appName}</h1>
+            <span style={{fontSize:10,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",padding:"2px 8px",borderRadius:999,background:"rgba(var(--accent-brand),0.12)",color:"rgb(var(--accent-brand))",border:"1px solid rgba(var(--accent-brand),0.25)"}}>2026</span>
+          </div>
+          <p style={{fontSize:13.5,color:"rgba(var(--ink),0.5)",marginTop:6,lineHeight:1.5}}>{t.loginSub}</p>
         </div>
-        <button onClick={loginWithGoogle} disabled={busy} className="gb" style={{width:"100%",justifyContent:"center",gap:10,padding:"13px 16px",fontSize:15,fontWeight:600,opacity:busy?0.7:1}}>
+        <button onClick={loginWithGoogle} disabled={busy} className="gb gbp" style={{width:"100%",justifyContent:"center",gap:10,padding:"13px 18px",fontSize:15,fontWeight:600,borderRadius:12}}>
           {busy?<Loader size={18} className="spin"/>:(
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden style={{color:"rgb(var(--ink))"}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden style={{color:"var(--btn-primary-fg)"}}>
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="currentColor"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="currentColor"/>
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="currentColor"/>
@@ -358,8 +375,8 @@ function LoginScreen({lang,setLang,theme,setTheme}) {
           )}
           {busy?t.loginConnecting:t.loginBtn}
         </button>
-        {err&&<p style={{fontSize:12,color:"rgb(var(--ink))",fontWeight:500,marginTop:12,textAlign:"center"}}>{err}</p>}
-        <p style={{fontSize:11,color:"rgba(var(--ink),0.2)",textAlign:"center",marginTop:20,lineHeight:1.6}}>{t.loginNote}</p>
+        {err&&<p style={{fontSize:12,color:"#ef4444",fontWeight:500,marginTop:12,textAlign:"center"}}>{err}</p>}
+        <p style={{fontSize:11.5,color:"rgba(var(--ink),0.32)",textAlign:"center",marginTop:22,lineHeight:1.6}}>{t.loginNote}</p>
       </div>
     </div>
   );
@@ -377,20 +394,30 @@ function MoveModal({pkg, groups, onMove, onClose, t}) {
 
   return (
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:400,width:"100%"}}>
+      <div className="gc-strong" style={{padding:"1.6rem",maxWidth:400,width:"100%"}}>
+        <div className="sheet-handle" />
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
-          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
-            <Users size={15} style={{color:"rgb(var(--accent))"}}/> {t.moveToGroup}
+          <h2 style={{fontSize:16,fontWeight:700,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
+            <Users size={16} style={{color:"rgb(var(--accent-brand))"}}/> {t.moveToGroup}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
-        <p style={{fontSize:13,color:"rgba(var(--ink),0.5)",marginBottom:"1rem"}}>{pkg.name}</p>
-        <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:"1.25rem"}}>
+        <p style={{fontSize:13,color:"rgba(var(--ink),0.55)",marginBottom:"1rem",fontWeight:500}}>{pkg.name}</p>
+        <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:"1.25rem"}}>
           {options.map(o=>(
             <button key={o.id} onClick={()=>setSelected(o.id)}
-              style={{padding:"10px 14px",borderRadius:6,border:`1px solid ${selected===o.id?"rgba(var(--accent),0.45)":"rgba(var(--ink),0.1)"}`,background:selected===o.id?"rgba(var(--accent),0.12)":"rgba(var(--ink),0.04)",color:selected===o.id?"rgb(var(--accent))":"rgba(var(--ink),0.7)",cursor:"pointer",textAlign:"left",fontSize:14,fontFamily:"inherit",display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
-              {o.id==="personal"?<Package size={13}/>:<Users size={13}/>} {o.name}
-              {selected===o.id&&<Check size={13} style={{marginLeft:"auto"}}/>}
+              className="gb"
+              style={{
+                padding:"11px 14px",
+                width:"100%",
+                justifyContent:"flex-start",
+                border:`1px solid ${selected===o.id?"rgba(var(--accent-brand),0.5)":"var(--btn-border)"}`,
+                background:selected===o.id?"rgba(var(--accent-brand),0.1)":"var(--btn-bg)",
+                color:selected===o.id?"rgb(var(--accent-brand))":"rgb(var(--ink))",
+                fontWeight:selected===o.id?600:500
+              }}>
+              {o.id==="personal"?<Package size={14}/>:<Users size={14}/>} {o.name}
+              {selected===o.id&&<Check size={14} style={{marginLeft:"auto"}}/>}
             </button>
           ))}
         </div>
@@ -410,16 +437,17 @@ function MoveModal({pkg, groups, onMove, onClose, t}) {
 function ConfirmDeleteModal({pkg, onConfirm, onClose, t}) {
   return (
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:380,width:"100%",textAlign:"center"}}>
-        <div className="gc" style={{display:"inline-flex",padding:"10px",borderRadius:10,marginBottom:14}}>
-          <Trash2 size={20} style={{color:"rgb(var(--ink))"}}/>
+      <div className="gc-strong" style={{padding:"1.75rem",maxWidth:380,width:"100%",textAlign:"center"}}>
+        <div className="sheet-handle" />
+        <div className="gc" style={{display:"inline-flex",padding:"12px",borderRadius:14,marginBottom:14,boxShadow:"var(--shadow-3d-btn)"}}>
+          <Trash2 size={22} style={{color:"#ef4444"}}/>
         </div>
-        <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",marginBottom:6}}>{t.delete}</h2>
-        <p style={{fontSize:13,color:"rgba(var(--ink),0.55)",marginBottom:4}}>{pkg.name}</p>
-        <p style={{fontSize:12,color:"rgba(var(--ink),0.3)",marginBottom:"1.5rem"}}>{t.deleteConfirmMsg}</p>
+        <h2 style={{fontSize:16,fontWeight:700,color:"rgb(var(--ink))",marginBottom:6}}>{t.delete}</h2>
+        <p style={{fontSize:13.5,color:"rgb(var(--ink))",fontWeight:600,marginBottom:4}}>{pkg.name}</p>
+        <p style={{fontSize:12.5,color:"rgba(var(--ink),0.45)",marginBottom:"1.5rem"}}>{t.deleteConfirmMsg}</p>
         <div style={{display:"flex",gap:8,justifyContent:"center"}}>
           <button className="gb" onClick={onClose}>{t.cancel}</button>
-          <button className="gb gbp" onClick={onConfirm}>
+          <button className="gb gbp" onClick={onConfirm} style={{background:"#ef4444",borderColor:"transparent"}}>
             <Trash2 size={13}/> {t.delete}
           </button>
         </div>
@@ -435,13 +463,13 @@ function InstallGuideModal({onClose, t}) {
     <div style={{marginBottom:18}}>
       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
         {icon}
-        <span style={{fontSize:13,fontWeight:600,color:"rgb(var(--ink))"}}>{title}</span>
+        <span style={{fontSize:13.5,fontWeight:700,color:"rgb(var(--ink))"}}>{title}</span>
       </div>
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
         {steps.map((s,i)=>(
           <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-            <span style={{flexShrink:0,width:20,height:20,borderRadius:6,background:"rgba(var(--accent),0.16)",color:"rgb(var(--accent))",fontSize:11,fontWeight:600,display:"inline-flex",alignItems:"center",justifyContent:"center"}}>{i+1}</span>
-            <span style={{fontSize:13,color:"rgba(var(--ink),0.7)",lineHeight:1.45}}>{s}</span>
+            <span style={{flexShrink:0,width:22,height:22,borderRadius:8,background:"rgba(var(--accent-brand),0.15)",color:"rgb(var(--accent-brand))",fontSize:11.5,fontWeight:700,display:"inline-flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 2px rgba(0,0,0,0.05)"}}>{i+1}</span>
+            <span style={{fontSize:13,color:"rgba(var(--ink),0.75)",lineHeight:1.5}}>{s}</span>
           </div>
         ))}
       </div>
@@ -449,17 +477,18 @@ function InstallGuideModal({onClose, t}) {
   );
   return (
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:440,width:"100%",maxHeight:"85vh",overflowY:"auto"}}>
+      <div className="gc-strong" style={{padding:"1.6rem",maxWidth:440,width:"100%",maxHeight:"85vh",overflowY:"auto"}}>
+        <div className="sheet-handle" />
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem"}}>
-          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
-            <Smartphone size={15} style={{color:"rgb(var(--accent))"}}/> {t.installTitle}
+          <h2 style={{fontSize:16,fontWeight:700,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
+            <Smartphone size={16} style={{color:"rgb(var(--accent-brand))"}}/> {t.installTitle}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
-        <p style={{fontSize:13,color:"rgba(var(--ink),0.55)",marginBottom:"1.25rem",lineHeight:1.6}}>{t.installIntro}</p>
-        <Section icon={<Share2 size={14} style={{color:"rgb(var(--accent))"}}/>} title={t.installIosTitle} steps={t.installIosSteps}/>
-        <Section icon={<Smartphone size={14} style={{color:"rgb(var(--accent))"}}/>} title={t.installAndroidTitle} steps={t.installAndroidSteps}/>
-        <p style={{fontSize:12,color:"rgba(var(--ink),0.4)",marginBottom:"1.25rem",lineHeight:1.5}}>{t.installNote}</p>
+        <p style={{fontSize:13,color:"rgba(var(--ink),0.6)",marginBottom:"1.25rem",lineHeight:1.6}}>{t.installIntro}</p>
+        <Section icon={<Share2 size={14} style={{color:"rgb(var(--accent-brand))"}}/>} title={t.installIosTitle} steps={t.installIosSteps}/>
+        <Section icon={<Smartphone size={14} style={{color:"rgb(var(--accent-brand))"}}/>} title={t.installAndroidTitle} steps={t.installAndroidSteps}/>
+        <p style={{fontSize:12,color:"rgba(var(--ink),0.45)",marginBottom:"1.25rem",lineHeight:1.5}}>{t.installNote}</p>
         <button className="gb gbp" onClick={onClose} style={{width:"100%",justifyContent:"center"}}>{t.gotIt}</button>
       </div>
     </div>
@@ -474,55 +503,60 @@ function StatsModal({stats, onClose, t, out}) {
   const maxMonth=Math.max(1,...stats.byMonth.map(([,v])=>v));
   return (
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:440,width:"100%",maxHeight:"85vh",overflowY:"auto"}}>
+      <div className="gc-strong" style={{padding:"1.6rem",maxWidth:460,width:"100%",maxHeight:"85vh",overflowY:"auto"}}>
+        <div className="sheet-handle" />
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
-          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
-            <BarChart3 size={15} style={{color:"rgb(var(--accent))"}}/> {t.statsTitle}
+          <h2 style={{fontSize:16,fontWeight:700,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
+            <BarChart3 size={16} style={{color:"rgb(var(--accent-brand))"}}/> {t.statsTitle}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
-          <div className="gc" style={{padding:"12px 14px"}}>
-            <div style={{fontSize:10,color:"rgba(var(--ink),0.42)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:4}}>{t.statsTotalParcels}</div>
-            <div style={{fontSize:22,fontWeight:700,color:"rgb(var(--ink))"}}>{stats.total}</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
+          <div className="gc" style={{padding:"14px 16px"}}>
+            <div style={{fontSize:10.5,fontWeight:600,color:"rgba(var(--ink),0.45)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:4}}>{t.statsTotalParcels}</div>
+            <div style={{fontSize:24,fontWeight:800,color:"rgb(var(--ink))",letterSpacing:"-0.02em"}}>{stats.total}</div>
           </div>
-          <div className="gc" style={{padding:"12px 14px"}}>
-            <div style={{fontSize:10,color:"rgba(var(--ink),0.42)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:4}}>{t.statsTotalSpent}</div>
-            <div style={{fontSize:22,fontWeight:700,color:"rgb(var(--ink))"}}>{fmt(stats.totalSpent)} <span style={{fontSize:13,fontWeight:500,color:"rgba(var(--ink),0.4)"}}>RON</span></div>
+          <div className="gc" style={{padding:"14px 16px"}}>
+            <div style={{fontSize:10.5,fontWeight:600,color:"rgba(var(--ink),0.45)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:4}}>{t.statsTotalSpent}</div>
+            <div style={{fontSize:22,fontWeight:800,color:"rgb(var(--ink))",letterSpacing:"-0.02em"}}>{fmt(stats.totalSpent)} <span style={{fontSize:12,fontWeight:600,color:"rgba(var(--ink),0.45)"}}>RON</span></div>
           </div>
         </div>
 
         {stats.total===0?(
-          <p style={{fontSize:13,color:"rgba(var(--ink),0.4)",textAlign:"center",padding:"1rem 0"}}>{t.statsNoData}</p>
+          <p style={{fontSize:13,color:"rgba(var(--ink),0.45)",textAlign:"center",padding:"1.5rem 0"}}>{t.statsNoData}</p>
         ):(
           <>
-            <div style={{marginBottom:20}}>
-              <div style={{fontSize:11,fontWeight:600,color:"rgba(var(--ink),0.5)",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>{t.statsByStatus}</div>
-              <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                {stats.byStatus.map(s=>(
-                  <div key={s.status} style={{display:"flex",alignItems:"center",gap:8}}>
-                    <span style={{fontSize:13,color:"rgba(var(--ink),0.75)",width:90,flexShrink:0}}>{s.label}</span>
-                    <div style={{flex:1,height:6,borderRadius:3,background:"rgba(var(--ink),0.07)",overflow:"hidden"}}>
-                      <div style={{width:`${stats.total?(s.count/stats.total)*100:0}%`,height:"100%",background:"rgb(var(--accent))",borderRadius:3}}/>
+            <div style={{marginBottom:22}}>
+              <div style={{fontSize:11,fontWeight:700,color:"rgba(var(--ink),0.55)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:10}}>{t.statsByStatus}</div>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {stats.byStatus.map(s=>{
+                  const c = (out ? SC_OUT : SC)[s.status] || SC_FB;
+                  const pct = stats.total ? (s.count / stats.total) * 100 : 0;
+                  return (
+                    <div key={s.status} style={{display:"flex",alignItems:"center",gap:10}}>
+                      <span style={{fontSize:13,color:"rgb(var(--ink))",width:95,flexShrink:0,fontWeight:500}}>{s.label}</span>
+                      <div style={{flex:1,height:8,borderRadius:999,background:"var(--input-well)",overflow:"hidden",boxShadow:"var(--shadow-inset-well)"}}>
+                        <div style={{width:`${pct}%`,height:"100%",background:c.color,borderRadius:999,boxShadow:`0 0 8px ${c.dot}44`}}/>
+                      </div>
+                      <span style={{fontSize:12.5,fontWeight:600,color:"rgba(var(--ink),0.6)",width:26,textAlign:"right",flexShrink:0}}>{s.count}</span>
                     </div>
-                    <span style={{fontSize:12,color:"rgba(var(--ink),0.5)",width:20,textAlign:"right",flexShrink:0}}>{s.count}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
             {stats.topShops.length>0&&(
-              <div style={{marginBottom:20}}>
-                <div style={{fontSize:11,fontWeight:600,color:"rgba(var(--ink),0.5)",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>{out?t.statsTopClients:t.statsTopShops}</div>
-                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              <div style={{marginBottom:22}}>
+                <div style={{fontSize:11,fontWeight:700,color:"rgba(var(--ink),0.55)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:10}}>{out?t.statsTopClients:t.statsTopShops}</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {stats.topShops.map(([shop,total])=>(
-                    <div key={shop} style={{display:"flex",alignItems:"center",gap:8}}>
-                      <span style={{fontSize:13,color:"rgba(var(--ink),0.75)",width:90,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{shop}</span>
-                      <div style={{flex:1,height:6,borderRadius:3,background:"rgba(var(--ink),0.07)",overflow:"hidden"}}>
-                        <div style={{width:`${(total/maxTop)*100}%`,height:"100%",background:"rgb(var(--accent))",borderRadius:3}}/>
+                    <div key={shop} style={{display:"flex",alignItems:"center",gap:10}}>
+                      <span style={{fontSize:13,color:"rgb(var(--ink))",width:95,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:500}}>{shop}</span>
+                      <div style={{flex:1,height:8,borderRadius:999,background:"var(--input-well)",overflow:"hidden",boxShadow:"var(--shadow-inset-well)"}}>
+                        <div style={{width:`${(total/maxTop)*100}%`,height:"100%",background:"rgb(var(--accent-brand))",borderRadius:999}}/>
                       </div>
-                      <span style={{fontSize:12,color:"rgba(var(--ink),0.5)",width:60,textAlign:"right",flexShrink:0}}>{fmt(total)}</span>
+                      <span style={{fontSize:12.5,fontWeight:600,color:"rgba(var(--ink),0.6)",width:65,textAlign:"right",flexShrink:0}}>{fmt(total)}</span>
                     </div>
                   ))}
                 </div>
@@ -531,15 +565,15 @@ function StatsModal({stats, onClose, t, out}) {
 
             {stats.byMonth.length>0&&(
               <div>
-                <div style={{fontSize:11,fontWeight:600,color:"rgba(var(--ink),0.5)",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:8}}>{t.statsByMonth}</div>
-                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                <div style={{fontSize:11,fontWeight:700,color:"rgba(var(--ink),0.55)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:10}}>{t.statsByMonth}</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {stats.byMonth.map(([month,total])=>(
-                    <div key={month} style={{display:"flex",alignItems:"center",gap:8}}>
-                      <span style={{fontSize:13,color:"rgba(var(--ink),0.75)",width:90,flexShrink:0}}>{month}</span>
-                      <div style={{flex:1,height:6,borderRadius:3,background:"rgba(var(--ink),0.07)",overflow:"hidden"}}>
-                        <div style={{width:`${(total/maxMonth)*100}%`,height:"100%",background:"rgb(var(--accent))",borderRadius:3}}/>
+                    <div key={month} style={{display:"flex",alignItems:"center",gap:10}}>
+                      <span style={{fontSize:13,color:"rgb(var(--ink))",width:95,flexShrink:0,fontWeight:500}}>{month}</span>
+                      <div style={{flex:1,height:8,borderRadius:999,background:"var(--input-well)",overflow:"hidden",boxShadow:"var(--shadow-inset-well)"}}>
+                        <div style={{width:`${(total/maxMonth)*100}%`,height:"100%",background:"rgb(var(--accent-brand))",borderRadius:999}}/>
                       </div>
-                      <span style={{fontSize:12,color:"rgba(var(--ink),0.5)",width:60,textAlign:"right",flexShrink:0}}>{fmt(total)}</span>
+                      <span style={{fontSize:12.5,fontWeight:600,color:"rgba(var(--ink),0.6)",width:65,textAlign:"right",flexShrink:0}}>{fmt(total)}</span>
                     </div>
                   ))}
                 </div>
@@ -566,21 +600,22 @@ function GroupMembersModal({group, user, isOwner, onRemove, onClose, t}) {
 
   return (
     <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="gc-strong" style={{padding:"1.5rem",maxWidth:420,width:"100%",maxHeight:"80vh",overflowY:"auto"}}>
+      <div className="gc-strong" style={{padding:"1.6rem",maxWidth:420,width:"100%",maxHeight:"80vh",overflowY:"auto"}}>
+        <div className="sheet-handle" />
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem"}}>
-          <h2 style={{fontSize:15,fontWeight:600,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
-            <Users size={15} style={{color:"rgb(var(--accent))"}}/> {t.groupMembers} · {group.name}
+          <h2 style={{fontSize:16,fontWeight:700,color:"rgb(var(--ink))",display:"flex",alignItems:"center",gap:8}}>
+            <Users size={16} style={{color:"rgb(var(--accent-brand))"}}/> {t.groupMembers} · {group.name}
           </h2>
           <button className="ib" onClick={onClose}><X size={14}/></button>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           {members.map(m=>(
-            <div key={m.user_id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",borderRadius:10,background:"rgba(var(--ink),0.04)"}}>
+            <div key={m.user_id} className="gc" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px"}}>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:13,color:"rgb(var(--ink))",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                <div style={{fontSize:13.5,fontWeight:500,color:"rgb(var(--ink))",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                   {m.email||m.user_id}{m.user_id===user.id?` (${t.you})`:""}
                 </div>
-                <div style={{fontSize:11,color:"rgba(var(--ink),0.4)"}}>{m.role==="owner"?t.roleOwner:t.roleMember}</div>
+                <div style={{fontSize:11,fontWeight:600,color:"rgba(var(--ink),0.45)",textTransform:"uppercase",letterSpacing:"0.04em",marginTop:2}}>{m.role==="owner"?t.roleOwner:t.roleMember}</div>
               </div>
               {isOwner&&m.role!=="owner"&&m.user_id!==user.id&&(
                 <button className="ib ibx" onClick={()=>handleRemove(m.user_id)} disabled={busyId===m.user_id} title={t.removeMember}>
@@ -590,7 +625,7 @@ function GroupMembersModal({group, user, isOwner, onRemove, onClose, t}) {
             </div>
           ))}
         </div>
-        <button className="gb" onClick={onClose} style={{width:"100%",justifyContent:"center",marginTop:16}}>{t.cancel}</button>
+        <button className="gb" onClick={onClose} style={{width:"100%",justifyContent:"center",marginTop:18}}>{t.cancel}</button>
       </div>
     </div>
   );
@@ -626,7 +661,17 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const [showStats,setShowStats]   = useState(false);
   const [historyOpenId,setHistoryOpenId] = useState(null);
   const [membersModal,setMembersModal] = useState(null); // group object
+  const [copiedAwbId,setCopiedAwbId] = useState(null);
   const exportRef = useRef(null);
+
+  async function handleCopyAwb(id, awb) {
+    if (!awb) return;
+    const ok = await copyText(awb);
+    if (ok) {
+      setCopiedAwbId(id);
+      setTimeout(() => setCopiedAwbId(null), 1800);
+    }
+  }
 
   useEffect(() => {
     function handleKeyDown(e) {
@@ -969,38 +1014,40 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const dateScheme=theme==="dark"?"dark":"light";
 
   return (
-    <div style={{minHeight:"100vh",background:"var(--bg)",position:"relative"}}>
-      <Background/>
-      <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem",maxWidth:800,margin:"0 auto"}}>
+    <div style={{minHeight:"100vh",background:"var(--bg-mesh)",position:"relative"}}>
+      <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem 6.5rem 1.25rem",maxWidth:800,margin:"0 auto"}}>
 
         {/* Header */}
-        <div style={{marginBottom:"1rem"}}>
+        <div style={{marginBottom:"1.25rem"}}>
           {/* Row 1: logo + title + controls */}
           <div className="app-head">
-            <div className="gc" style={{padding:9,borderRadius:16,display:"flex",flexShrink:0}}>
-              <Package size={20} style={{color:"rgb(var(--accent))"}}/>
+            <div className="app-icon-3d">
+              <Package size={22} strokeWidth={2.2}/>
             </div>
             <div className="app-title" style={{flex:1,minWidth:0}}>
-              <h1 style={{fontSize:18,fontWeight:600,color:"rgb(var(--ink))",letterSpacing:"-0.02em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{t.appName}</h1>
-              <p style={{fontSize:12,color:"rgba(var(--ink),0.4)",marginTop:1}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <h1 style={{fontSize:19,fontWeight:700,color:"rgb(var(--ink))",letterSpacing:"-0.02em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{t.appName}</h1>
+                <span style={{fontSize:10,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",padding:"2px 7px",borderRadius:999,background:"rgba(var(--accent-brand),0.12)",color:"rgb(var(--accent-brand))",border:"1px solid rgba(var(--accent-brand),0.25)"}}>2026</span>
+              </div>
+              <p style={{fontSize:12.5,color:"rgba(var(--ink),0.45)",marginTop:1}}>
                 {loading?t.loading:(isOutView?t.outParcels:t.parcels(viewPkgs.length))}
               </p>
             </div>
             <div className="app-controls">
               <button className="ib" onClick={()=>setShowStats(true)} title={t.stats}>
-                <BarChart3 size={13}/>
+                <BarChart3 size={14}/>
               </button>
               <button className="ib" onClick={handleRefresh} disabled={refreshing} title="Refresh">
-                <RefreshCw size={13} className={refreshing?"spin":""}/>
+                <RefreshCw size={14} className={refreshing?"spin":""}/>
               </button>
               <ThemeToggle theme={theme} setTheme={setTheme}/><LangToggle lang={lang} setLang={setLang}/>
               <button className="ib" onClick={()=>supabase.auth.signOut()} title={t.signOut}>
-                <LogOut size={13}/>
+                <LogOut size={14}/>
               </button>
             </div>
           </div>
-          {/* Row 2: export + add */}
-          <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          {/* Row 2: export + select + add */}
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
             <div style={{position:"relative",flex:1}} ref={exportRef}>
               <button className="gb" onClick={()=>setShowExp(v=>!v)} style={{width:"100%",justifyContent:"center"}}>
                 <Download size={14}/> {t.export} <ChevronDown size={12}/>
@@ -1015,14 +1062,14 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
             <button className="gb" onClick={()=>selectMode?exitSelectMode():setSelectMode(true)} style={{flexShrink:0}}>
               <ListChecks size={14}/> {t.select}
             </button>
-            <button className="gb gbp" onClick={()=>openForm()} style={{flex:1,justifyContent:"center"}}>
-              <Plus size={14}/> {isOutView?t.addShipment:t.add}
+            <button className="gb gbp" onClick={()=>openForm()} style={{flex:1.2,justifyContent:"center"}}>
+              <Plus size={15} strokeWidth={2.5}/> {isOutView?t.addShipment:t.add}
             </button>
           </div>
           {/* Install app guide */}
           {!isStandalone&&(
             <button className="gb" onClick={()=>setShowInstall(true)}
-              style={{width:"100%",justifyContent:"center",marginTop:6,fontSize:13}}>
+              style={{width:"100%",justifyContent:"center",marginTop:8,fontSize:13}}>
               <Smartphone size={14}/> {t.installApp} <ChevronDown size={12} style={{transform:"rotate(-90deg)"}}/>
             </button>
           )}
@@ -1250,32 +1297,42 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                   <div className="pkg-top">
                     {selectMode&&(
                       <button onClick={()=>toggleSelect(p.id)} className="ib" style={{flexShrink:0,padding:6}} aria-label="select">
-                        {selectedIds.has(p.id)?<CheckSquare size={16} style={{color:"rgb(var(--accent))"}}/>:<Square size={16}/>}
+                        {selectedIds.has(p.id)?<CheckSquare size={16} style={{color:"rgb(var(--accent-brand))"}}/>:<Square size={16}/>}
                       </button>
                     )}
                     <div className="pkg-content">
                       <span className="pkg-name" title={p.name}>{p.name}</span>
                       <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginTop:6}}>
                         <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{LBLp}</span>
-                        {parseAmount(p.amount) > 0 && <span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.72)",borderColor:"rgba(var(--ink),0.16)",fontSize:11}}>{formatAmount(p.amount)} RON</span>}
-                        {p.products&&p.products.length>0&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.55)",borderColor:"rgba(var(--ink),0.18)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
-                        {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(var(--accent),0.12)",color:"rgb(var(--accent))",borderColor:"rgba(var(--accent),0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
+                        {parseAmount(p.amount) > 0 && <span className="sp" style={{background:"var(--input-well)",color:"rgba(var(--ink),0.75)",borderColor:"var(--card-border)",fontSize:11}}>{formatAmount(p.amount)} RON</span>}
+                        {p.products&&p.products.length>0&&<span className="sp" style={{background:"var(--input-well)",color:"rgba(var(--ink),0.6)",borderColor:"var(--card-border)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
+                        {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(var(--accent-brand),0.12)",color:"rgb(var(--accent-brand))",borderColor:"rgba(var(--accent-brand),0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
                         {dLeft!=null && !isNaN(dLeft) && (
-                          <span className="sp" style={{background:dLeft<0?"rgb(var(--accent))":"rgba(var(--ink),0.06)",color:dLeft<0?"var(--accent-fg)":"rgba(var(--ink),0.65)",borderColor:dLeft<0?"transparent":"rgba(var(--ink),0.16)",fontSize:11,cursor:"default"}}>
+                          <span className="sp" style={{background:dLeft<0?"rgb(var(--accent-brand))":"var(--input-well)",color:dLeft<0?"#ffffff":"rgba(var(--ink),0.7)",borderColor:dLeft<0?"transparent":"var(--card-border)",fontSize:11,cursor:"default"}}>
                             {dLeft<0?t.overdueBy(Math.abs(dLeft)):dLeft===0?t.arrivesToday:t.inDays(dLeft)}
                           </span>
                         )}
                       </div>
-                      <div className="pkg-meta" style={{marginTop:6}}>
-                        {p.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.55)",fontWeight:500}}>#{p.order_number.replace(/^#/,"")}</span>}
-                        {showAWB&&p.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.awb}</span>}
-                        {showAWB&&p.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.courier}</span>}
-                        {isOutPkg?(p.client_name&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.client_name}</span>):(p.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.shop}</span>)}
-                        {p.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{formatDate(p.date, lang)}</span>}
+                      <div className="pkg-meta" style={{marginTop:8}}>
+                        {p.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.65)",fontWeight:600}}>#{p.order_number.replace(/^#/,"")}</span>}
+                        {showAWB&&p.awb&&(
+                          <button
+                            type="button"
+                            onClick={()=>handleCopyAwb(p.id, p.awb)}
+                            className="awb-copy-btn"
+                            title={copiedAwbId===p.id?t.copied:"Copy AWB"}
+                          >
+                            <span style={{fontFamily:"'JetBrains Mono', monospace",fontWeight:600}}>{p.awb}</span>
+                            {copiedAwbId===p.id?<Check size={12} style={{color:"#10b981"}}/>:<Copy size={12}/>}
+                          </button>
+                        )}
+                        {showAWB&&p.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.5)"}}>{p.courier}</span>}
+                        {isOutPkg?(p.client_name&&<span style={{fontSize:13,color:"rgba(var(--ink),0.5)"}}>{p.client_name}</span>):(p.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.5)"}}>{p.shop}</span>)}
+                        {p.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.38)"}}>{formatDate(p.date, lang)}</span>}
                       </div>
-                      {p.notes&&<div style={{fontSize:13,color:"rgba(var(--ink),0.3)",marginTop:4}}>{p.notes}</div>}
+                      {p.notes&&<div style={{fontSize:13,color:"rgba(var(--ink),0.4)",marginTop:6}}>{p.notes}</div>}
                       {p.products&&p.products.length>1&&(
-                        <div style={{marginTop:6}}>
+                        <div style={{marginTop:8}}>
                           {p.products.map((prod,i)=>(
                             <span key={i} className="ptag" style={i>0?{marginTop:4}:undefined} title={`${prod.qty>1?prod.qty+"× ":""}${prod.name}`}>
                               {prod.qty>1?`${prod.qty}× `:""}{prod.name}
@@ -1308,19 +1365,19 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                             <ArchiveRestore size={13}/>
                           </button>
                         )}
-                        <button className="ib" onClick={()=>openForm(p)} style={{padding:"6px 10px"}}>Edit</button>
+                        <button className="ib" onClick={()=>openForm(p)} style={{padding:"6px 10px",fontSize:12}}>Edit</button>
                         <button className="ib ibx" onClick={()=>setDeleteConfirm(p)} aria-label={t.delete}><Trash2 size={13}/></button>
                       </div>
                     )}
                   </div>
                   {historyOpen&&(
-                    <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid rgba(var(--ink),0.06)"}}>
+                    <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid var(--card-border)"}}>
                       {(p.status_history&&p.status_history.length)?(
                         <div style={{display:"flex",flexDirection:"column",gap:6}}>
                           {p.status_history.map((h,i)=>(
                             <div key={i} style={{display:"flex",alignItems:"center",gap:8,fontSize:12}}>
                               <span className="sp" style={{background:(SC_OUT[h.status]||SC[h.status]||SC_FB).bg,color:(SC_OUT[h.status]||SC[h.status]||SC_FB).color,borderColor:(SC_OUT[h.status]||SC[h.status]||SC_FB).border,cursor:"default"}}>{LBL(h.status)}</span>
-                              <span style={{color:"rgba(var(--ink),0.4)"}}>{formatDateTime(h.at, lang)}</span>
+                              <span style={{color:"rgba(var(--ink),0.45)"}}>{formatDateTime(h.at, lang)}</span>
                             </div>
                           ))}
                         </div>
@@ -1330,9 +1387,36 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                     </div>
                   )}
                   {!selectMode&&(
-                    <div style={{display:"flex",gap:4,marginTop:10,paddingTop:10,borderTop:"1px solid rgba(var(--ink),0.06)",flexWrap:"wrap",alignItems:"center"}}>
-                      <span style={{fontSize:10,color:"rgba(var(--ink),0.25)",marginRight:4,letterSpacing:"0.06em",textTransform:"uppercase"}}>{t.quickStatus}</span>
-                      {(isOutView?OUT_STATUSES:STATUSES).map(s=>{const c=(isOutView?SC_OUT:SC)[s];const act=p.status===s;return <button key={s} className="sp" onClick={()=>setStatus(p.id,s)} style={{background:act?c.bg:"rgba(var(--ink),0.04)",color:act?c.color:"rgba(var(--ink),0.32)",borderColor:act?c.border:"rgba(var(--ink),0.07)"}}>{LBL(s)}</button>;})}
+                    <div className="pkg-pipeline">
+                      {(isOutPkg ? ["Pregatit", "Expediat", "In livrare", "Livrat"] : ["Comandat", "In livrare", "Livrat"]).map((step, idx, arr) => {
+                        const currentIdx = arr.indexOf(p.status);
+                        const isCurrent = p.status === step;
+                        const isPast = currentIdx >= 0 && idx < currentIdx;
+                        const stepCfg = (isOutPkg ? SC_OUT : SC)[step] || SC_FB;
+                        return (
+                          <button
+                            key={step}
+                            type="button"
+                            onClick={()=>setStatus(p.id, step)}
+                            className={`pipeline-node${isCurrent?" is-active":isPast?" is-past":""}`}
+                            title={`${t.quickStatus}: ${LBL(step)}`}
+                          >
+                            <span className="pipeline-dot" style={isCurrent?{background:stepCfg.color,boxShadow:`0 0 8px ${stepCfg.dot}`}:{}} />
+                            <span className="pipeline-label">{LBL(step)}</span>
+                          </button>
+                        );
+                      })}
+                      {isOutPkg&&(
+                        <button
+                          type="button"
+                          onClick={()=>setStatus(p.id, "Retur")}
+                          className={`pipeline-node${p.status==="Retur"?" is-active is-retur":""}`}
+                          title={`${t.quickStatus}: Retur`}
+                        >
+                          <span className="pipeline-dot" style={p.status==="Retur"?{background:"#f43f5e",boxShadow:"0 0 8px rgba(244,63,94,0.6)"}:{}} />
+                          <span className="pipeline-label">{LBL("Retur")}</span>
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1371,6 +1455,59 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
       {inviteModal&&<InviteModal inviteCode={inviteModal} onJoined={handleGroupJoined} onDismiss={()=>{setInviteModal(null);localStorage.removeItem("pending_invite");history.replaceState(null,"",window.location.pathname);}} t={t}/>}
       {showStats&&<StatsModal stats={stats} out={isOutView} onClose={()=>setShowStats(false)} t={t}/>}
       {membersModal&&<GroupMembersModal group={membersModal} user={user} isOwner={membersModal.group_members?.some(m=>m.user_id===user.id&&m.role==="owner")} onRemove={removeMember} onClose={()=>setMembersModal(null)} t={t}/>}
+
+      {/* 2026 PWA & Mobile Floating 3D Navigation Dock */}
+      <nav className="mobile-dock" aria-label="Mobile Navigation">
+        <button
+          type="button"
+          className={`mobile-dock-btn${currentView==="personal"?" active":""}`}
+          onClick={()=>{setCurrentView("personal");setFilter("Toate");setSearch("");}}
+        >
+          <Package size={19}/>
+          <span>{t.myParcels}</span>
+        </button>
+        <button
+          type="button"
+          className={`mobile-dock-btn${currentView==="out"?" active":""}`}
+          onClick={()=>{setCurrentView("out");setFilter("Toate");setSearch("");}}
+        >
+          <Send size={18}/>
+          <span>{t.outTab}</span>
+        </button>
+        <button
+          type="button"
+          className="mobile-dock-add"
+          onClick={()=>openForm()}
+          aria-label={isOutView?t.addShipment:t.add}
+          title={isOutView?t.addShipment:t.add}
+        >
+          <Plus size={24} strokeWidth={2.6}/>
+        </button>
+        <button
+          type="button"
+          className={`mobile-dock-btn${!isOutView&&currentView!=="personal"?" active":""}`}
+          onClick={()=>{
+            if(groups.length>0){
+              const curIdx=groups.findIndex(g=>g.id===currentView);
+              const nextG=groups[(curIdx+1)%groups.length];
+              setCurrentView(nextG.id);
+            } else {
+              setShowGroupModal(true);
+            }
+          }}
+        >
+          <Users size={19}/>
+          <span>{groups.length>0?(currentGroup?currentGroup.name:t.groups):t.newGroup}</span>
+        </button>
+        <button
+          type="button"
+          className={`mobile-dock-btn${showStats?" active":""}`}
+          onClick={()=>setShowStats(true)}
+        >
+          <BarChart3 size={19}/>
+          <span>{t.stats}</span>
+        </button>
+      </nav>
     </div>
   );
 }

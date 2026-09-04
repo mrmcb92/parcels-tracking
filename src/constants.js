@@ -20,32 +20,28 @@ export const STATUSES = ["Comandat","In livrare","Livrat"];
 // Statusuri pentru coletele expediate la clienți.
 export const OUT_STATUSES = ["Pregatit","Expediat","In livrare","Livrat","Retur"];
 
-const SC_LOW = {color:"rgba(var(--ink),0.55)",bg:"rgba(var(--ink),0.05)",border:"rgba(var(--ink),0.12)"};
-const SC_MID = {color:"rgba(var(--ink),0.88)",bg:"rgba(var(--ink),0.10)",border:"rgba(var(--ink),0.22)"};
-const SC_SOLID = {color:"var(--accent-fg)",bg:"rgb(var(--accent))",border:"transparent"};
-
 export const SC = {
-  "Comandat":   SC_LOW,
-  "In livrare": SC_MID,
-  "Livrat":     SC_SOLID,
-  "In procesare":SC_MID,
-  "In tranzit": SC_MID,
-  "La livrare": SC_MID,
-  "Retur":      SC_LOW,
+  "Comandat":    { color: "#6366f1", bg: "rgba(99, 102, 241, 0.12)", border: "rgba(99, 102, 241, 0.30)", dot: "#6366f1" },
+  "In livrare":  { color: "#f59e0b", bg: "rgba(245, 158, 11, 0.14)", border: "rgba(245, 158, 11, 0.35)", dot: "#f59e0b" },
+  "Livrat":      { color: "#10b981", bg: "rgba(16, 185, 129, 0.14)", border: "rgba(16, 185, 129, 0.35)", dot: "#10b981" },
+  "In procesare":{ color: "#0ea5e9", bg: "rgba(14, 165, 233, 0.12)", border: "rgba(14, 165, 233, 0.30)", dot: "#0ea5e9" },
+  "In tranzit":  { color: "#38bdf8", bg: "rgba(56, 189, 248, 0.12)", border: "rgba(56, 189, 248, 0.30)", dot: "#38bdf8" },
+  "La livrare":  { color: "#f97316", bg: "rgba(249, 115, 22, 0.14)", border: "rgba(249, 115, 22, 0.35)", dot: "#f97316" },
+  "Retur":       { color: "#f43f5e", bg: "rgba(244, 63, 94, 0.12)", border: "rgba(244, 63, 94, 0.30)", dot: "#f43f5e" },
 };
 
 export const SC_OUT = {
-  "Pregatit":  SC_LOW,
-  "Expediat":  SC_MID,
-  "In livrare":SC_MID,
-  "Livrat":    SC_SOLID,
-  "Retur":     SC_SOLID,
-  "In procesare":SC_MID,
-  "In tranzit": SC_MID,
-  "La livrare": SC_MID,
+  "Pregatit":   { color: "#6366f1", bg: "rgba(99, 102, 241, 0.12)", border: "rgba(99, 102, 241, 0.30)", dot: "#6366f1" },
+  "Expediat":   { color: "#0ea5e9", bg: "rgba(14, 165, 233, 0.12)", border: "rgba(14, 165, 233, 0.30)", dot: "#0ea5e9" },
+  "In livrare": { color: "#f59e0b", bg: "rgba(245, 158, 11, 0.14)", border: "rgba(245, 158, 11, 0.35)", dot: "#f59e0b" },
+  "Livrat":     { color: "#10b981", bg: "rgba(16, 185, 129, 0.14)", border: "rgba(16, 185, 129, 0.35)", dot: "#10b981" },
+  "Retur":      { color: "#f43f5e", bg: "rgba(244, 63, 94, 0.12)", border: "rgba(244, 63, 94, 0.30)", dot: "#f43f5e" },
+  "In procesare":{ color: "#0ea5e9", bg: "rgba(14, 165, 233, 0.12)", border: "rgba(14, 165, 233, 0.30)", dot: "#0ea5e9" },
+  "In tranzit": { color: "#38bdf8", bg: "rgba(56, 189, 248, 0.12)", border: "rgba(56, 189, 248, 0.30)", dot: "#38bdf8" },
+  "La livrare": { color: "#f97316", bg: "rgba(249, 115, 22, 0.14)", border: "rgba(249, 115, 22, 0.35)", dot: "#f97316" },
 };
 
-export const SC_FB = SC_LOW;
+export const SC_FB = SC["Comandat"];
 export const STATUS_ORDER = {"Comandat":0,"In livrare":1,"Livrat":2};
 export const OUT_STATUS_ORDER = {"Pregatit":0,"Expediat":1,"In livrare":2,"Livrat":3,"Retur":4};
 
