@@ -82,18 +82,15 @@ function SharedParcelView({token,lang,setLang,theme,setTheme,onBack}) {
   }
 
   return (
-    <div style={{minHeight:"100vh",background:"var(--bg-mesh)",position:"relative"}}>
-      <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem",maxWidth:800,margin:"0 auto"}}>
+    <div className="app-shell">
+      <div className="main-container">
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:"1.75rem",flexWrap:"wrap"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,flex:1}}>
             <div className="app-icon-3d">
               <Package size={22} strokeWidth={2.2}/>
             </div>
             <div>
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <h1 style={{fontSize:19,fontWeight:700,color:"rgb(var(--ink))",letterSpacing:"-0.02em"}}>{t.sharedParcel}</h1>
-                <span style={{fontSize:10,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",padding:"2px 8px",borderRadius:999,background:"rgba(var(--accent-brand),0.12)",color:"rgb(var(--accent-brand))",border:"1px solid rgba(var(--accent-brand),0.25)"}}>2026</span>
-              </div>
+              <h1 style={{fontSize:19,fontWeight:700,color:"rgb(var(--ink))",letterSpacing:"-0.02em"}}>{t.sharedParcel}</h1>
               <p style={{fontSize:12.5,color:"rgba(var(--ink),0.5)",marginTop:2}}>{t.appName}</p>
             </div>
           </div>
@@ -349,8 +346,8 @@ function LoginScreen({lang,setLang,theme,setTheme}) {
   }
 
   return (
-    <div style={{minHeight:"100vh",background:"var(--bg-mesh)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1.5rem",position:"relative"}}>
-      <div style={{position:"absolute",top:18,right:18,zIndex:10,display:"flex",gap:6}}>
+    <div className="app-shell-centered">
+      <div style={{position:"absolute",top:"max(16px, calc(var(--sat) + 12px))",right:"max(16px, calc(var(--sar) + 12px))",zIndex:10,display:"flex",gap:6}}>
         <ThemeToggle theme={theme} setTheme={setTheme}/><LangToggle lang={lang} setLang={setLang}/>
       </div>
       <div className="gc-strong" style={{maxWidth:420,width:"100%",padding:"2.25rem 2rem",position:"relative",zIndex:1,textAlign:"center"}}>
@@ -360,7 +357,6 @@ function LoginScreen({lang,setLang,theme,setTheme}) {
           </div>
           <div style={{display:"flex",alignItems:"center",gap:7,justifyContent:"center"}}>
             <h1 style={{fontSize:24,fontWeight:800,color:"rgb(var(--ink))",letterSpacing:"-0.03em"}}>{t.appName}</h1>
-            <span style={{fontSize:10,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",padding:"2px 8px",borderRadius:999,background:"rgba(var(--accent-brand),0.12)",color:"rgb(var(--accent-brand))",border:"1px solid rgba(var(--accent-brand),0.25)"}}>2026</span>
           </div>
           <p style={{fontSize:13.5,color:"rgba(var(--ink),0.5)",marginTop:6,lineHeight:1.5}}>{t.loginSub}</p>
         </div>
@@ -1014,27 +1010,26 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const dateScheme=theme==="dark"?"dark":"light";
 
   return (
-    <div style={{minHeight:"100vh",background:"var(--bg-mesh)",position:"relative"}}>
-      <div style={{position:"relative",zIndex:1,padding:"1.5rem 1.25rem 6.5rem 1.25rem",maxWidth:800,margin:"0 auto"}}>
+    <div className="app-shell">
+      <div className="main-container">
 
         {/* Header */}
         <div style={{marginBottom:"1.25rem"}}>
           {/* Row 1: logo + title + controls */}
           <div className="app-head">
-            <div className="app-icon-3d">
-              <Package size={22} strokeWidth={2.2}/>
-            </div>
-            <div className="app-title" style={{flex:1,minWidth:0}}>
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <h1 style={{fontSize:19,fontWeight:700,color:"rgb(var(--ink))",letterSpacing:"-0.02em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{t.appName}</h1>
-                <span style={{fontSize:10,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",padding:"2px 7px",borderRadius:999,background:"rgba(var(--accent-brand),0.12)",color:"rgb(var(--accent-brand))",border:"1px solid rgba(var(--accent-brand),0.25)"}}>2026</span>
+            <div className="app-title-wrap">
+              <div className="app-icon-3d">
+                <Package size={22} strokeWidth={2.2}/>
               </div>
-              <p style={{fontSize:12.5,color:"rgba(var(--ink),0.45)",marginTop:1}}>
-                {loading?t.loading:(isOutView?t.outParcels:t.parcels(viewPkgs.length))}
-              </p>
+              <div style={{flex:1,minWidth:0}}>
+                <h1 style={{fontSize:19,fontWeight:700,color:"rgb(var(--ink))",letterSpacing:"-0.02em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{t.appName}</h1>
+                <p style={{fontSize:12.5,color:"rgba(var(--ink),0.45)",marginTop:1}}>
+                  {loading?t.loading:(isOutView?t.outParcels:t.parcels(viewPkgs.length))}
+                </p>
+              </div>
             </div>
             <div className="app-controls">
-              <button className="ib" onClick={()=>setShowStats(true)} title={t.stats}>
+              <button className="ib hide-mobile-stats" onClick={()=>setShowStats(true)} title={t.stats}>
                 <BarChart3 size={14}/>
               </button>
               <button className="ib" onClick={handleRefresh} disabled={refreshing} title="Refresh">
@@ -1429,7 +1424,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
 
       {/* Bulk action bar */}
       {selectMode&&selectedIds.size>0&&(
-        <div style={{position:"fixed",left:0,right:0,bottom:0,zIndex:250,display:"flex",justifyContent:"center",padding:"0 1rem 1rem"}}>
+        <div style={{position:"fixed",left:0,right:0,bottom:0,zIndex:250,display:"flex",justifyContent:"center",padding:"0 1rem max(1rem, calc(var(--sab) + 0.5rem))"}}>
           <div className="gc-strong" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",flexWrap:"wrap",maxWidth:800,width:"100%"}}>
             <span style={{fontSize:13,fontWeight:600,color:"rgb(var(--ink))",flexShrink:0}}>{t.selectedCount(selectedIds.size)}</span>
             <span style={{fontSize:11,color:"rgba(var(--ink),0.35)",flexShrink:0}}>{t.setStatusFor}</span>
@@ -1456,7 +1451,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
       {showStats&&<StatsModal stats={stats} out={isOutView} onClose={()=>setShowStats(false)} t={t}/>}
       {membersModal&&<GroupMembersModal group={membersModal} user={user} isOwner={membersModal.group_members?.some(m=>m.user_id===user.id&&m.role==="owner")} onRemove={removeMember} onClose={()=>setMembersModal(null)} t={t}/>}
 
-      {/* 2026 PWA & Mobile Floating 3D Navigation Dock */}
+      {/* Mobile Floating Navigation Dock */}
       <nav className="mobile-dock" aria-label="Mobile Navigation">
         <button
           type="button"

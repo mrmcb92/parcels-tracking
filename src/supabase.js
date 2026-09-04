@@ -40,7 +40,7 @@ if (url && key && url.startsWith("http")) {
       shop: "eMAG",
       client_name: "",
       amount: "1499.99",
-      order_number: "2026-94812",
+      order_number: "ORD-94812",
       notes: "Livrare la adresa de birou",
       products: [{ name: "Căști wireless Sony WH-1000XM5", qty: 1 }],
       estimated_delivery: new Date(Date.now() + 86400000).toISOString().split("T")[0],

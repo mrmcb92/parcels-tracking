@@ -33,7 +33,7 @@ export const daysUntil = (dateStr) => {
   return Math.round((target - today) / 86400000);
 };
 
-// Safe date string formatter (e.g. "4 sep. 2026")
+// Safe date string formatter (e.g. "4 sep.")
 export const formatDate = (dateStr, lang = "ro") => {
   if (!dateStr) return "";
   try {

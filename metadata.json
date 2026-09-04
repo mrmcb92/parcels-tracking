@@ -1,6 +1,6 @@
 {
   "name": "Parcel Tracking",
-  "description": "Tracker minimalist modern pentru colete și AWB-uri cu design 2026, umbre și elemente 3D",
+  "description": "Tracker minimalist modern pentru colete și AWB-uri cu umbre și elemente 3D",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

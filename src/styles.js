@@ -5,6 +5,13 @@ export const STYLES = `
     padding: 0;
   }
 
+  :root {
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+  }
+
   :root, [data-theme="light"] {
     --ink: 15, 23, 42;
     --ink-muted: 100, 116, 139;
@@ -687,11 +694,48 @@ export const STYLES = `
     min-width: 0;
     overflow: hidden;
   }
+  .app-shell {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--bg-mesh);
+    position: relative;
+    padding-top: max(1.5rem, calc(var(--sat) + 1rem));
+    padding-left: max(1.25rem, calc(var(--sal) + 1.25rem));
+    padding-right: max(1.25rem, calc(var(--sar) + 1.25rem));
+    padding-bottom: max(2rem, calc(var(--sab) + 7.5rem));
+    transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .app-shell-centered {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--bg-mesh);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: max(1.5rem, calc(var(--sat) + 1.25rem)) max(1rem, calc(var(--sar) + 1rem)) max(1.5rem, calc(var(--sab) + 1.25rem)) max(1rem, calc(var(--sal) + 1rem));
+    transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .main-container {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+  }
   .app-head {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 12px;
     margin-bottom: 0.85rem;
+  }
+  .app-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
   }
   .app-controls {
     display: flex;
@@ -722,18 +766,18 @@ export const STYLES = `
   .mobile-dock {
     display: none;
     position: fixed;
-    bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    bottom: max(12px, calc(var(--sab) + 10px));
     left: 50%;
     transform: translateX(-50%);
-    width: calc(100% - 28px);
-    max-width: 440px;
+    width: calc(100% - 24px);
+    max-width: 420px;
     background: var(--dock-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--dock-border);
     box-shadow: var(--dock-shadow);
     border-radius: 999px;
-    padding: 7px 10px;
+    padding: 6px 8px;
     z-index: 240;
     align-items: center;
     justify-content: space-between;
@@ -787,6 +831,12 @@ export const STYLES = `
 
   /* Mobile Responsive Overrides */
   @media (max-width: 640px) {
+    .app-shell {
+      padding-top: max(1.1rem, calc(var(--sat) + 0.75rem));
+      padding-left: max(0.85rem, calc(var(--sal) + 0.85rem));
+      padding-right: max(0.85rem, calc(var(--sar) + 0.85rem));
+      padding-bottom: max(2rem, calc(var(--sab) + 7.5rem));
+    }
     .pkg {
       padding: 1rem 1.1rem;
       border-radius: 14px;
@@ -806,12 +856,26 @@ export const STYLES = `
       font-size: 15px;
     }
     .app-head {
-      flex-wrap: wrap;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .app-title-wrap {
+      gap: 9px;
+    }
+    .app-icon-3d {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
     }
     .app-controls {
-      width: 100%;
-      justify-content: flex-end;
-      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .hide-mobile-stats {
+      display: none !important;
     }
     .mobile-dock {
       display: flex;
@@ -829,6 +893,9 @@ export const STYLES = `
       border-right: none;
       border-bottom: none;
       box-shadow: 0 -12px 36px rgba(0,0,0,0.25);
+      max-height: calc(100dvh - var(--sat) - 1.5rem);
+      padding-bottom: max(1.5rem, calc(var(--sab) + 1.25rem)) !important;
+      overflow-y: auto;
     }
     /* Add a subtle drag indicator bar for mobile bottom sheets */
     .sheet-handle {
