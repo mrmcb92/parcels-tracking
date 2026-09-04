@@ -1,16 +1,18 @@
+const cleanAwb = (a) => encodeURIComponent(String(a || "").trim().replace(/\s+/g, ""));
+
 export const COURIERS = [
-  {name:"FAN Courier", url:(a)=>`https://www.fancourier.ro/awb-tracking/?awb=${a}`},
-  {name:"Cargus",      url:(a)=>`https://www.cargus.ro/tracking-colet/?Awb=${a}`},
-  {name:"Sameday",     url:(a)=>`https://sameday.ro/status-colet/?awb=${a}`},
-  {name:"DPD",         url:(a)=>`https://awb.woot.ro/urmarire-colet-dpd/${a}`},
-  {name:"GLS",         url:(a)=>`https://awb.woot.ro/urmarire-colet-gls/${a}`},
-  {name:"Posta Romana",url:(a)=>`https://awb.woot.ro/urmarire-colet-postaromana/${a}`},
-  {name:"DHL",         url:(a)=>`https://awb.woot.ro/urmarire-colet-dhl/${a}`},
-  {name:"FedEx",       url:(a)=>`https://awb.woot.ro/urmarire-colet-fedex/${a}`},
-  {name:"UPS",         url:(a)=>`https://awb.woot.ro/urmarire-colet-ups/${a}`},
-  {name:"Sinapseria",  url:(a)=>`https://awb.woot.ro/urmarire-colet-sinapseria/${a}`},
-  {name:"Dragon Star", url:(a)=>`https://awb.woot.ro/urmarire-colet-dragonstar/${a}`},
-  {name:"PTT Express", url:(a)=>`https://awb.woot.ro/urmarire-colet-pttexpress/${a}`},
+  {name:"FAN Courier", url:(a)=>`https://www.fancourier.ro/awb-tracking/?awb=${cleanAwb(a)}`},
+  {name:"Cargus",      url:(a)=>`https://www.cargus.ro/tracking-colet/?Awb=${cleanAwb(a)}`},
+  {name:"Sameday",     url:(a)=>`https://sameday.ro/status-colet/?awb=${cleanAwb(a)}`},
+  {name:"DPD",         url:(a)=>`https://awb.woot.ro/urmarire-colet-dpd/${cleanAwb(a)}`},
+  {name:"GLS",         url:(a)=>`https://awb.woot.ro/urmarire-colet-gls/${cleanAwb(a)}`},
+  {name:"Posta Romana",url:(a)=>`https://awb.woot.ro/urmarire-colet-postaromana/${cleanAwb(a)}`},
+  {name:"DHL",         url:(a)=>`https://awb.woot.ro/urmarire-colet-dhl/${cleanAwb(a)}`},
+  {name:"FedEx",       url:(a)=>`https://awb.woot.ro/urmarire-colet-fedex/${cleanAwb(a)}`},
+  {name:"UPS",         url:(a)=>`https://awb.woot.ro/urmarire-colet-ups/${cleanAwb(a)}`},
+  {name:"Sinapseria",  url:(a)=>`https://awb.woot.ro/urmarire-colet-sinapseria/${cleanAwb(a)}`},
+  {name:"Dragon Star", url:(a)=>`https://awb.woot.ro/urmarire-colet-dragonstar/${cleanAwb(a)}`},
+  {name:"PTT Express", url:(a)=>`https://awb.woot.ro/urmarire-colet-pttexpress/${cleanAwb(a)}`},
 ];
 
 export const STATUSES = ["Comandat","In livrare","Livrat"];

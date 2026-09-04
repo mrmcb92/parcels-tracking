@@ -8,7 +8,7 @@ import {
 import { supabase } from "./supabase.js";
 import { T, LANG_KEY, THEME_KEY } from "./i18n.js";
 import { COURIERS, STATUSES, OUT_STATUSES, SC, SC_OUT, SC_FB, STATUS_ORDER, OUT_STATUS_ORDER, emptyForm } from "./constants.js";
-import { cellSafe, daysUntil, copyText, appBaseUrl, uid } from "./utils.js";
+import { cellSafe, daysUntil, copyText, appBaseUrl, uid, parseAmount, formatAmount, formatDate, formatDateTime } from "./utils.js";
 import { STYLES } from "./styles.js";
 
 // ── Background ────────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ function ThemeToggle({theme,setTheme}) {
 
 // ── SharedParcelView ──────────────────────────────────────────────────────────
 
-function SharedParcelView({token,lang,setLang,theme,setTheme}) {
+function SharedParcelView({token,lang,setLang,theme,setTheme,onBack}) {
   const t = T[lang];
   const [pkg,setPkg]       = useState(null);
   const [loading,setLoading] = useState(true);
@@ -64,6 +64,12 @@ function SharedParcelView({token,lang,setLang,theme,setTheme}) {
   const CFG    = (s)=> isOut ? (SC_OUT[s]||SC_FB) : (SC[s]||SC_FB);
   const showAWB = !!pkg && (isOut ? (pkg.status!=="Pregatit" && pkg.status!=="Retur") : pkg.status!=="Comandat");
 
+  const handleBack = (e) => {
+    e.preventDefault();
+    window.location.hash = "";
+    if (onBack) onBack();
+  };
+
   return (
     <div style={{minHeight:"100vh",background:"var(--bg)",position:"relative"}}>
       <Background/>
@@ -80,7 +86,7 @@ function SharedParcelView({token,lang,setLang,theme,setTheme}) {
           </div>
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
             <ThemeToggle theme={theme} setTheme={setTheme}/><LangToggle lang={lang} setLang={setLang}/>
-            <a href={BASE} className="gb">{t.backToApp}</a>
+            <a href={BASE} onClick={handleBack} className="gb">{t.backToApp}</a>
           </div>
         </div>
 
@@ -97,23 +103,39 @@ function SharedParcelView({token,lang,setLang,theme,setTheme}) {
           const cfg=CFG(pkg.status);
           const courier=COURIERS.find(c=>c.name===pkg.courier);
           const url=courier?.url&&pkg.awb?courier.url(pkg.awb):null;
+          const dLeft=pkg.status!=="Livrat"&&pkg.estimated_delivery?daysUntil(pkg.estimated_delivery):null;
+          const parsedAmt=parseAmount(pkg.amount);
           return (
             <div className="pkg">
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:5}}>
-                    <span style={{fontWeight:500,fontSize:15,color:"rgb(var(--ink))"}}>{pkg.name}</span>
+                    <span style={{fontWeight:600,fontSize:15,color:"rgb(var(--ink))"}}>{pkg.name}</span>
                     <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border,cursor:"default"}}>{CLBL(pkg.status)}</span>
-                    {pkg.amount&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.72)",borderColor:"rgba(var(--ink),0.16)",fontSize:11,cursor:"default"}}>{Number(pkg.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
+                    {parsedAmt > 0 && <span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.72)",borderColor:"rgba(var(--ink),0.16)",fontSize:11,cursor:"default"}}>{formatAmount(pkg.amount)} RON</span>}
+                    {dLeft!=null && !isNaN(dLeft) && (
+                      <span className="sp" style={{background:dLeft<0?"rgb(var(--accent))":"rgba(var(--ink),0.06)",color:dLeft<0?"var(--accent-fg)":"rgba(var(--ink),0.65)",borderColor:dLeft<0?"transparent":"rgba(var(--ink),0.16)",fontSize:11,cursor:"default"}}>
+                        {dLeft<0?t.overdueBy(Math.abs(dLeft)):dLeft===0?t.arrivesToday:t.inDays(dLeft)}
+                      </span>
+                    )}
                   </div>
                   <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
                     {pkg.order_number&&<span style={{fontSize:13,color:"rgba(var(--ink),0.55)",fontWeight:500}}>#{pkg.order_number.replace(/^#/,"")}</span>}
                     {showAWB&&pkg.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.awb}</span>}
                     {showAWB&&pkg.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.courier}</span>}
                     {isOut ? (pkg.client_name&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.client_name}</span>) : (pkg.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{pkg.shop}</span>)}
-                    {pkg.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{new Date(pkg.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>}
+                    {pkg.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{formatDate(pkg.date, lang)}</span>}
                   </div>
                   {pkg.notes&&<div style={{fontSize:13,color:"rgba(var(--ink),0.3)",marginTop:4}}>{pkg.notes}</div>}
+                  {pkg.products&&pkg.products.length>1&&(
+                    <div style={{marginTop:8}}>
+                      {pkg.products.map((prod,i)=>(
+                        <span key={i} className="ptag" style={i>0?{marginTop:4}:undefined} title={`${prod.qty>1?prod.qty+"× ":""}${prod.name}`}>
+                          {prod.qty>1?`${prod.qty}× `:""}{prod.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {url&&pkg.awb&&<a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={13}/></a>}
               </div>
@@ -247,9 +269,18 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
     else setJoinErr(true);
   }
 
+  useEffect(() => {
+    const handleKeyDown = (e) => { if (e.key === "Escape") onDismiss(); };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onDismiss]);
+
   return (
-    <div className="overlay">
-      <div className="gc-strong" style={{padding:"1.75rem",maxWidth:380,width:"100%",textAlign:"center"}}>
+    <div className="overlay" onClick={e=>{if(e.target===e.currentTarget)onDismiss();}}>
+      <div className="gc-strong" style={{padding:"1.75rem",maxWidth:380,width:"100%",textAlign:"center",position:"relative"}}>
+        <button className="ib" onClick={onDismiss} style={{position:"absolute",top:12,right:12}} aria-label={t.cancel}>
+          <X size={14}/>
+        </button>
         <div className="gc" style={{display:"inline-flex",padding:"12px",borderRadius:20,marginBottom:16}}>
           <Users size={24} style={{color:"rgb(var(--accent))"}}/>
         </div>
@@ -276,7 +307,10 @@ function InviteModal({inviteCode,onJoined,onDismiss,t}) {
             </div>
           </>
         ):(
-          <p style={{color:"rgba(var(--ink),0.45)",fontSize:13}}>{t.invalidInvite}</p>
+          <>
+            <p style={{color:"rgba(var(--ink),0.55)",fontSize:14,marginBottom:16}}>{t.invalidInvite}</p>
+            <button className="gb" onClick={onDismiss} style={{margin:"0 auto"}}>{t.cancel}</button>
+          </>
         )}
       </div>
     </div>
@@ -594,6 +628,26 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const [membersModal,setMembersModal] = useState(null); // group object
   const exportRef = useRef(null);
 
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === "Escape") {
+        if (showForm) { setShowForm(false); setEditId(null); }
+        else if (deleteConfirm) setDeleteConfirm(null);
+        else if (bulkDeleteConfirm) setBulkDeleteConfirm(false);
+        else if (shareModal) setShareModal(null);
+        else if (moveModal) setMoveModal(null);
+        else if (showGroupModal) setShowGroupModal(false);
+        else if (membersModal) setMembersModal(null);
+        else if (showStats) setShowStats(false);
+        else if (showInstall) setShowInstall(false);
+        else if (inviteModal) setInviteModal(null);
+        else if (showExp) setShowExp(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showForm, deleteConfirm, bulkDeleteConfirm, shareModal, moveModal, showGroupModal, membersModal, showStats, showInstall, inviteModal, showExp]);
+
   const isOutView = currentView==="out";
 
   useEffect(()=>{loadAll();},[]);
@@ -647,7 +701,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
       date:p.date||emptyForm().date,notes:p.notes||"",
       shop:p.shop||"",client_name:p.client_name||"",
       amount:p.amount||"",order_number:p.order_number||"",
-      products:(p.products&&p.products.length)?p.products:[{name:p.name||"",qty:1}],
+      products:(p.products&&p.products.length)?p.products.map(pr=>({...pr})):[{name:p.name||"",qty:1}],
       estimated_delivery:p.estimated_delivery||"",
       type:p.type||(isOutView?"out":"in"),
     }:emptyForm({out:isOutView}));
@@ -671,12 +725,19 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
     };
     if(editId){
       const prevPkg=pkgs.find(p=>p.id===editId);
-      if(prevPkg&&prevPkg.status!==entry.status){
-        entry.status_history=[...(prevPkg.status_history||[]),{status:entry.status,at:new Date().toISOString()}];
-      }
-      const {error}=await supabase.from("packages").update(entry).eq("id",editId);
+      const status_history = (prevPkg && prevPkg.status !== entry.status)
+        ? [...(prevPkg.status_history || []), { status: entry.status, at: new Date().toISOString() }]
+        : (prevPkg?.status_history || []);
+      const updateData = {
+        ...entry,
+        status_history,
+        archived: prevPkg ? !!prevPkg.archived : false,
+        group_id: prevPkg ? prevPkg.group_id : null,
+        user_id: prevPkg ? prevPkg.user_id : user.id,
+      };
+      const {error}=await supabase.from("packages").update(updateData).eq("id",editId);
       if(error){setFormErr(t.saveErr+error.message);return;}
-      setPkgs(prev=>prev.map(p=>p.id===editId?{...p,...entry}:p));
+      setPkgs(prev=>prev.map(p=>p.id===editId?{...p,...updateData}:p));
     } else {
       const gid=out?null:(currentView!=="personal"?currentView:null);
       const status_history=[{status:entry.status,at:new Date().toISOString()}];
@@ -819,7 +880,8 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   async function exportXLSX(){
     // Lazy-load SheetJS only when the user actually exports (saves ~800KB
     // from the initial bundle).
-    const XLSX=await import("xlsx");
+    const xlsxModule = await import("xlsx");
+    const XLSX = xlsxModule.default || xlsxModule;
     const headers=isOutView?t.outExportHeaders:t.exportHeaders;
     const st=(p)=>isOutView?(t.outStatuses[p.status]||p.status):(t.statuses[p.status]||p.status);
     const entity=(p)=>isOutView?(p.client_name||""):(p.shop||"");
@@ -861,11 +923,16 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   const counts=(isOutView?OUT_STATUSES:STATUSES).reduce((a,s)=>({...a,[s]:nonArchived.filter(p=>p.status===s).length}),{});
 
   const SORTERS={
-    status:(a,b)=>((isOutView?OUT_STATUS_ORDER:STATUS_ORDER)[a.status]??1)-((isOutView?OUT_STATUS_ORDER:STATUS_ORDER)[b.status]??1),
-    date_desc:(a,b)=>(b.date||"").localeCompare(a.date||""),
-    date_asc:(a,b)=>(a.date||"").localeCompare(b.date||""),
-    amount_desc:(a,b)=>(Number(b.amount)||0)-(Number(a.amount)||0),
-    amount_asc:(a,b)=>(Number(a.amount)||0)-(Number(b.amount)||0),
+    status:(a,b)=>{
+      const order = isOutView ? OUT_STATUS_ORDER : STATUS_ORDER;
+      const diff = (order[a.status] ?? 99) - (order[b.status] ?? 99);
+      if (diff !== 0) return diff;
+      return (b.date || "").localeCompare(a.date || "") || (b.created_at || "").localeCompare(a.created_at || "");
+    },
+    date_desc:(a,b)=>(b.date||"").localeCompare(a.date||"") || (b.created_at||"").localeCompare(a.created_at||""),
+    date_asc:(a,b)=>(a.date||"").localeCompare(b.date||"") || (a.created_at||"").localeCompare(b.created_at||""),
+    amount_desc:(a,b)=>parseAmount(b.amount) - parseAmount(a.amount),
+    amount_asc:(a,b)=>parseAmount(a.amount) - parseAmount(b.amount),
   };
 
   const filtered=(filter==="Archived"?viewPkgs.filter(p=>p.archived):nonArchived).filter(p=>{
@@ -879,13 +946,13 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   }).sort(SORTERS[sortBy]||SORTERS.status);
 
   const stats=(()=>{
-    const totalSpent=viewPkgs.reduce((sum,p)=>sum+(Number(p.amount)||0),0);
+    const totalSpent=viewPkgs.reduce((sum,p)=>sum+parseAmount(p.amount),0);
     const byStatus=(isOutView?OUT_STATUSES:STATUSES).map(s=>({status:s,label:LBL(s),count:viewPkgs.filter(p=>p.status===s).length}));
     const entityTotals={};
-    viewPkgs.forEach(p=>{ const k=isOutView?(p.client_name||""):(p.shop||""); if(k){ entityTotals[k]=(entityTotals[k]||0)+(Number(p.amount)||0); } });
+    viewPkgs.forEach(p=>{ const k=isOutView?(p.client_name||""):(p.shop||""); if(k){ entityTotals[k]=(entityTotals[k]||0)+parseAmount(p.amount); } });
     const topShops=Object.entries(entityTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);
     const monthTotals={};
-    viewPkgs.forEach(p=>{ if(p.date){ const m=p.date.slice(0,7); monthTotals[m]=(monthTotals[m]||0)+(Number(p.amount)||0); } });
+    viewPkgs.forEach(p=>{ if(p.date){ const m=p.date.slice(0,7); monthTotals[m]=(monthTotals[m]||0)+parseAmount(p.amount); } });
     const byMonth=Object.entries(monthTotals).sort((a,b)=>a[0].localeCompare(b[0]));
     return {total:viewPkgs.length,totalSpent,byStatus,topShops,byMonth};
   })();
@@ -1190,10 +1257,10 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                       <span className="pkg-name" title={p.name}>{p.name}</span>
                       <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginTop:6}}>
                         <span className="sp" style={{background:cfg.bg,color:cfg.color,borderColor:cfg.border}}>{LBLp}</span>
-                        {p.amount&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.72)",borderColor:"rgba(var(--ink),0.16)",fontSize:11}}>{Number(p.amount).toLocaleString("ro-RO",{minimumFractionDigits:2,maximumFractionDigits:2})} RON</span>}
+                        {parseAmount(p.amount) > 0 && <span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.72)",borderColor:"rgba(var(--ink),0.16)",fontSize:11}}>{formatAmount(p.amount)} RON</span>}
                         {p.products&&p.products.length>0&&<span className="sp" style={{background:"rgba(var(--ink),0.06)",color:"rgba(var(--ink),0.55)",borderColor:"rgba(var(--ink),0.18)",fontSize:11,cursor:"default"}}>{t.productCount(p.products.length)}</span>}
                         {p.group_id&&currentView==="personal"&&(()=>{const g=groups.find(x=>x.id===p.group_id);return g?<span className="sp" style={{background:"rgba(var(--accent),0.12)",color:"rgb(var(--accent))",borderColor:"rgba(var(--accent),0.3)",fontSize:11,cursor:"default"}}><Users size={9}/> {g.name}</span>:null;})()}
-                        {dLeft!=null&&(
+                        {dLeft!=null && !isNaN(dLeft) && (
                           <span className="sp" style={{background:dLeft<0?"rgb(var(--accent))":"rgba(var(--ink),0.06)",color:dLeft<0?"var(--accent-fg)":"rgba(var(--ink),0.65)",borderColor:dLeft<0?"transparent":"rgba(var(--ink),0.16)",fontSize:11,cursor:"default"}}>
                             {dLeft<0?t.overdueBy(Math.abs(dLeft)):dLeft===0?t.arrivesToday:t.inDays(dLeft)}
                           </span>
@@ -1204,7 +1271,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                         {showAWB&&p.awb&&<span style={{fontFamily:"monospace",fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.awb}</span>}
                         {showAWB&&p.courier&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.courier}</span>}
                         {isOutPkg?(p.client_name&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.client_name}</span>):(p.shop&&<span style={{fontSize:13,color:"rgba(var(--ink),0.42)"}}>{p.shop}</span>)}
-                        {p.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{new Date(p.date+"T12:00:00").toLocaleDateString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",year:"numeric"})}</span>}
+                        {p.date&&<span style={{fontSize:13,color:"rgba(var(--ink),0.3)"}}>{formatDate(p.date, lang)}</span>}
                       </div>
                       {p.notes&&<div style={{fontSize:13,color:"rgba(var(--ink),0.3)",marginTop:4}}>{p.notes}</div>}
                       {p.products&&p.products.length>1&&(
@@ -1253,7 +1320,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                           {p.status_history.map((h,i)=>(
                             <div key={i} style={{display:"flex",alignItems:"center",gap:8,fontSize:12}}>
                               <span className="sp" style={{background:(SC_OUT[h.status]||SC[h.status]||SC_FB).bg,color:(SC_OUT[h.status]||SC[h.status]||SC_FB).color,borderColor:(SC_OUT[h.status]||SC[h.status]||SC_FB).border,cursor:"default"}}>{LBL(h.status)}</span>
-                              <span style={{color:"rgba(var(--ink),0.4)"}}>{new Date(h.at).toLocaleString(lang==="en"?"en-GB":"ro-RO",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span>
+                              <span style={{color:"rgba(var(--ink),0.4)"}}>{formatDateTime(h.at, lang)}</span>
                             </div>
                           ))}
                         </div>
@@ -1315,8 +1382,14 @@ export default function App() {
   const [loadingAuth,setLoadingAuth] = useState(true);
   const [lang,setLang]               = useState(()=>localStorage.getItem(LANG_KEY)||"en");
   const [theme,setTheme]             = useState(()=>localStorage.getItem(THEME_KEY)||"light");
+  const [hash,setHash]               = useState(()=>window.location.hash);
 
-  const hash        = window.location.hash;
+  useEffect(()=>{
+    const handleHash = () => setHash(window.location.hash);
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  },[]);
+
   const shareToken  = hash.startsWith("#share/")  ? hash.slice(7)  : null;
   const inviteCode  = hash.startsWith("#invite/") ? hash.slice(8)  : null;
 
@@ -1326,7 +1399,7 @@ export default function App() {
     supabase.auth.getSession().then(({data})=>{setSession(data.session);setLoadingAuth(false);});
     const {data:listener}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));
     return ()=>listener.subscription.unsubscribe();
-  },[]);
+  },[inviteCode]);
 
   // Apply theme to <html> and the mobile status-bar color
   useEffect(()=>{
@@ -1337,7 +1410,7 @@ export default function App() {
 
   // Shared parcel view — no auth required
   if(shareToken){
-    return(<><style>{STYLES}</style><SharedParcelView token={shareToken} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme}/></>);
+    return(<><style>{STYLES}</style><SharedParcelView token={shareToken} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} onBack={()=>setHash("")}/></>);
   }
 
   const pendingInvite=(!inviteCode&&localStorage.getItem("pending_invite"))||inviteCode||null;

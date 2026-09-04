@@ -102,10 +102,10 @@ export const STYLES = `
   .ptag{display:block;font-size:12px;color:rgba(var(--ink),0.5);background:rgba(var(--ink),0.05);padding:3px 9px;border-radius:6px;border:1px solid rgba(var(--ink),0.1);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   @media (max-width:520px){
     .pkg{padding:0.875rem 1rem}
-    .pkg-top{flex-direction:column;gap:10px}
+    .pkg-top{flex-wrap:wrap;gap:10px}
     .pkg-actions{width:100%;justify-content:flex-end}
     .pkg-name{-webkit-line-clamp:3}
-    .pkg-content{max-width:calc(100vw - 4.5rem)}
+    .pkg-content{flex:1;min-width:0;max-width:100%}
     .app-head{flex-wrap:wrap}
     .app-controls{width:100%;justify-content:flex-end;margin-top:2px}
   }

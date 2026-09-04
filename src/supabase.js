@@ -154,7 +154,10 @@ if (url && key && url.startsWith("http")) {
     }
 
     eq(column, value) {
-      this.filters.push((row) => row[column] === value);
+      this.filters.push((row) => {
+        if (value === null) return row[column] === null || row[column] === undefined;
+        return row[column] === value;
+      });
       return this;
     }
 
@@ -257,6 +260,13 @@ if (url && key && url.startsWith("http")) {
         const toDelete = rows.filter((row) => this.filters.every((f) => f(row)));
         rows = rows.filter((row) => !this.filters.every((f) => f(row)));
         setStorage(storageKey, rows);
+        if (this.tableName === "groups") {
+          const delIds = new Set(toDelete.map((d) => d.id));
+          const members = getStorage(STORAGE_MEMBERS, []);
+          setStorage(STORAGE_MEMBERS, members.filter((m) => !delIds.has(m.group_id)));
+          const pkgs = getStorage(STORAGE_PKGS, []);
+          setStorage(STORAGE_PKGS, pkgs.map((p) => delIds.has(p.group_id) ? { ...p, group_id: null } : p));
+        }
         toDelete.forEach((r) => broadcast(this.tableName, "DELETE", null, r));
         return { data: null, error: null };
       }
