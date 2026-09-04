@@ -8,7 +8,7 @@ import {
 import { supabase } from "./supabase.js";
 import { T, LANG_KEY, THEME_KEY } from "./i18n.js";
 import { COURIERS, STATUSES, OUT_STATUSES, SC, SC_OUT, SC_FB, STATUS_ORDER, OUT_STATUS_ORDER, emptyForm } from "./constants.js";
-import { cellSafe, daysUntil, copyText, appBaseUrl, uid, parseAmount, formatAmount, formatDate, formatDateTime } from "./utils.js";
+import { cellSafe, daysUntil, copyText, appBaseUrl, uid, parseAmount, formatAmount, formatDate, formatDateTime, normalizeStatus } from "./utils.js";
 import { STYLES } from "./styles.js";
 
 // ── Background ────────────────────────────────────────────────────────────────
@@ -60,9 +60,16 @@ function SharedParcelView({token,lang,setLang,theme,setTheme,onBack}) {
 
   const BASE = appBaseUrl();
   const isOut  = !!pkg && pkg.type === "out";
-  const CLBL   = (s)=> isOut ? (t.outStatuses[s]||s) : (t.statuses[s]||s);
-  const CFG    = (s)=> isOut ? (SC_OUT[s]||SC_FB) : (SC[s]||SC_FB);
-  const showAWB = !!pkg && (isOut ? (pkg.status!=="Pregatit" && pkg.status!=="Retur") : pkg.status!=="Comandat");
+  const stClean = normalizeStatus(pkg?.status);
+  const CLBL   = (s)=> {
+    const norm = normalizeStatus(s);
+    return isOut ? (t.outStatuses[norm]||t.outStatuses[s]||s) : (t.statuses[norm]||t.statuses[s]||s);
+  };
+  const CFG    = (s)=> {
+    const norm = normalizeStatus(s);
+    return isOut ? (SC_OUT[norm]||SC_OUT[s]||SC_FB) : (SC[norm]||SC[s]||SC_FB);
+  };
+  const showAWB = !!pkg && (isOut ? (stClean!=="Pregatit" && stClean!=="Retur") : stClean!=="Comandat");
 
   const handleBack = (e) => {
     e.preventDefault();
@@ -738,7 +745,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
 
   function openForm(p=null){
     setForm(p?{
-      name:p.name,awb:p.awb,courier:p.courier,status:p.status,
+      name:p.name,awb:p.awb,courier:p.courier,status:normalizeStatus(p.status),
       date:p.date||emptyForm().date,notes:p.notes||"",
       shop:p.shop||"",client_name:p.client_name||"",
       amount:p.amount||"",order_number:p.order_number||"",
@@ -961,12 +968,14 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
 
   const nonArchived=viewPkgs.filter(p=>!p.archived);
   const archivedCount=viewPkgs.length-nonArchived.length;
-  const counts=(isOutView?OUT_STATUSES:STATUSES).reduce((a,s)=>({...a,[s]:nonArchived.filter(p=>p.status===s).length}),{});
+  const counts=(isOutView?OUT_STATUSES:STATUSES).reduce((a,s)=>({...a,[s]:nonArchived.filter(p=>normalizeStatus(p.status)===s).length}),{});
 
   const SORTERS={
     status:(a,b)=>{
       const order = isOutView ? OUT_STATUS_ORDER : STATUS_ORDER;
-      const diff = (order[a.status] ?? 99) - (order[b.status] ?? 99);
+      const sA = normalizeStatus(a.status);
+      const sB = normalizeStatus(b.status);
+      const diff = (order[sA] ?? order[a.status] ?? 99) - (order[sB] ?? order[b.status] ?? 99);
       if (diff !== 0) return diff;
       return (b.date || "").localeCompare(a.date || "") || (b.created_at || "").localeCompare(a.created_at || "");
     },
@@ -977,7 +986,8 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
   };
 
   const filtered=(filter==="Archived"?viewPkgs.filter(p=>p.archived):nonArchived).filter(p=>{
-    const okS=filter==="Toate"||filter==="Archived"||p.status===filter;
+    const sNorm = normalizeStatus(p.status);
+    const okS=filter==="Toate"||filter==="Archived"||sNorm===filter||p.status===filter;
     const q=search.toLowerCase();
     // (s||"") guard: legacy/imported rows could carry null on any field,
     // and a null .toLowerCase() would crash the whole list.
@@ -988,7 +998,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
 
   const stats=(()=>{
     const totalSpent=viewPkgs.reduce((sum,p)=>sum+parseAmount(p.amount),0);
-    const byStatus=(isOutView?OUT_STATUSES:STATUSES).map(s=>({status:s,label:LBL(s),count:viewPkgs.filter(p=>p.status===s).length}));
+    const byStatus=(isOutView?OUT_STATUSES:STATUSES).map(s=>({status:s,label:LBL(s),count:viewPkgs.filter(p=>normalizeStatus(p.status)===s).length}));
     const entityTotals={};
     viewPkgs.forEach(p=>{ const k=isOutView?(p.client_name||""):(p.shop||""); if(k){ entityTotals[k]=(entityTotals[k]||0)+parseAmount(p.amount); } });
     const topShops=Object.entries(entityTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -1280,12 +1290,13 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {filtered.map(p=>{
               const isOutPkg=p.type==="out";
-              const cfg=(isOutPkg?SC_OUT:SC)[p.status]||SC_FB;
-              const LBLp=isOutPkg?(t.outStatuses[p.status]||p.status):LBL(p.status);
-              const showAWB=isOutPkg?(p.status!=="Pregatit"&&p.status!=="Retur"):p.status!=="Comandat";
+              const stNorm=normalizeStatus(p.status);
+              const cfg=(isOutPkg?SC_OUT:SC)[stNorm]||(isOutPkg?SC_OUT:SC)[p.status]||SC_FB;
+              const LBLp=isOutPkg?(t.outStatuses[stNorm]||t.outStatuses[p.status]||p.status):(LBL(stNorm)||LBL(p.status));
+              const showAWB=isOutPkg?(stNorm!=="Pregatit"&&stNorm!=="Retur"):stNorm!=="Comandat";
               const url=getUrl(p);
               const isSharing=shareLoading===p.id;
-              const dLeft=p.status!=="Livrat"&&p.estimated_delivery?daysUntil(p.estimated_delivery):null;
+              const dLeft=stNorm!=="Livrat"&&p.estimated_delivery?daysUntil(p.estimated_delivery):null;
               const historyOpen=historyOpenId===p.id;
               return (
                 <div key={p.id} className="pkg">
@@ -1350,7 +1361,7 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                           </button>
                         )}
                         {url&&p.awb&&<a href={url} target="_blank" rel="noreferrer" className="ib" title={t.trackExternal}><ExternalLink size={13}/></a>}
-                        {p.status==="Livrat"&&!p.archived&&(
+                        {stNorm==="Livrat"&&!p.archived&&(
                           <button className="ib" onClick={()=>setArchived(p.id,true)} title={t.archive}>
                             <Archive size={13}/>
                           </button>
@@ -1369,12 +1380,16 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                     <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid var(--card-border)"}}>
                       {(p.status_history&&p.status_history.length)?(
                         <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                          {p.status_history.map((h,i)=>(
-                            <div key={i} style={{display:"flex",alignItems:"center",gap:8,fontSize:12}}>
-                              <span className="sp" style={{background:(SC_OUT[h.status]||SC[h.status]||SC_FB).bg,color:(SC_OUT[h.status]||SC[h.status]||SC_FB).color,borderColor:(SC_OUT[h.status]||SC[h.status]||SC_FB).border,cursor:"default"}}>{LBL(h.status)}</span>
-                              <span style={{color:"rgba(var(--ink),0.45)"}}>{formatDateTime(h.at, lang)}</span>
-                            </div>
-                          ))}
+                          {p.status_history.map((h,i)=>{
+                            const hNorm = normalizeStatus(h.status);
+                            const hCfg = SC_OUT[hNorm]||SC[hNorm]||SC_FB;
+                            return (
+                              <div key={i} style={{display:"flex",alignItems:"center",gap:8,fontSize:12}}>
+                                <span className="sp" style={{background:hCfg.bg,color:hCfg.color,borderColor:hCfg.border,cursor:"default"}}>{LBL(hNorm)}</span>
+                                <span style={{color:"rgba(var(--ink),0.45)"}}>{formatDateTime(h.at, lang)}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       ):(
                         <p style={{fontSize:12,color:"rgba(var(--ink),0.35)"}}>{t.historyEmpty}</p>
@@ -1384,8 +1399,8 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                   {!selectMode&&(
                     <div className="pkg-pipeline">
                       {(isOutPkg ? ["Pregatit", "Expediat", "In livrare", "Livrat"] : ["Comandat", "In livrare", "Livrat"]).map((step, idx, arr) => {
-                        const currentIdx = arr.indexOf(p.status);
-                        const isCurrent = p.status === step;
+                        const currentIdx = arr.indexOf(stNorm);
+                        const isCurrent = stNorm === step;
                         const isPast = currentIdx >= 0 && idx < currentIdx;
                         const stepCfg = (isOutPkg ? SC_OUT : SC)[step] || SC_FB;
                         return (
@@ -1405,10 +1420,10 @@ function MainApp({user,lang,setLang,theme,setTheme,pendingInvite}) {
                         <button
                           type="button"
                           onClick={()=>setStatus(p.id, "Retur")}
-                          className={`pipeline-node${p.status==="Retur"?" is-active is-retur":""}`}
+                          className={`pipeline-node${stNorm==="Retur"?" is-active is-retur":""}`}
                           title={`${t.quickStatus}: Retur`}
                         >
-                          <span className="pipeline-dot" style={p.status==="Retur"?{background:"#f43f5e",boxShadow:"0 0 8px rgba(244,63,94,0.6)"}:{}} />
+                          <span className="pipeline-dot" style={stNorm==="Retur"?{background:"#f43f5e",boxShadow:"0 0 8px rgba(244,63,94,0.6)"}:{}} />
                           <span className="pipeline-label">{LBL("Retur")}</span>
                         </button>
                       )}

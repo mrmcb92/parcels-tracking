@@ -101,6 +101,29 @@ export const copyText = async (text) => {
 export const appBaseUrl = () =>
   `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
 
+// Normalize status strings (handling English/Romanian variants like delivery, in delivery, Livrat, etc.)
+export const normalizeStatus = (s) => {
+  if (!s) return "Comandat";
+  const lower = String(s).trim().toLowerCase();
+  if (
+    lower === "delivery" ||
+    lower === "in delivery" ||
+    lower === "în livrare" ||
+    lower === "in livrare" ||
+    lower === "la livrare" ||
+    lower === "in transit" ||
+    lower === "în tranzit" ||
+    lower === "in tranzit" ||
+    lower === "out for delivery"
+  ) return "In livrare";
+  if (lower === "delivered" || lower === "livrat") return "Livrat";
+  if (lower === "ordered" || lower === "comandat") return "Comandat";
+  if (lower === "shipped" || lower === "expediat") return "Expediat";
+  if (lower === "preparing" || lower === "pregatit" || lower === "pregătit") return "Pregatit";
+  if (lower === "retur" || lower === "returned" || lower === "returnat") return "Retur";
+  return s;
+};
+
 // Unique id generator with cryptographic fallback.
 export const uid = () => {
   try {

@@ -128,17 +128,43 @@ export const STYLES = `
                    inset 0 1px 0 rgba(255, 255, 255, 0.12);
   }
 
+  html {
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
     background: var(--bg-mesh);
     color: rgb(var(--ink));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    scroll-behavior: smooth;
     overflow-x: hidden;
-    min-height: 100vh;
+    overflow-y: auto;
+    width: 100%;
+    min-height: 100%;
     min-height: 100dvh;
+    overscroll-behavior: none;
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
     transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    position: relative;
   }
 
   @keyframes spin {
@@ -361,7 +387,7 @@ export const STYLES = `
   /* 3D Status Pill */
   .sp {
     font-size: 11.5px;
-    padding: 4px 11px;
+    padding: 4px 10px;
     border-radius: 999px;
     font-weight: 600;
     cursor: pointer;
@@ -377,6 +403,12 @@ export const STYLES = `
     gap: 5px;
     line-height: 1.3;
     user-select: none;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
   }
   .sp:hover {
     transform: translateY(-1px);
@@ -520,6 +552,8 @@ export const STYLES = `
     display: flex;
     gap: 8px;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
     padding: 4px 2px 10px 2px;
     margin-bottom: 1rem;
     scrollbar-width: none;
@@ -605,28 +639,26 @@ export const STYLES = `
   /* 3D Delivery Pipeline Stepper */
   .pkg-pipeline {
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    flex-wrap: wrap;
     gap: 6px;
-    margin-top: 14px;
+    margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid var(--card-border);
     position: relative;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 2px;
-  }
-  .pkg-pipeline::-webkit-scrollbar {
-    display: none;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
   }
   .pipeline-node {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     background: var(--btn-bg);
     border: 1px solid var(--btn-border);
     border-radius: 999px;
-    padding: 5px 12px;
+    padding: 6px 10px;
     cursor: pointer;
     box-shadow: var(--shadow-3d-btn);
     transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
@@ -634,6 +666,10 @@ export const STYLES = `
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     font-family: inherit;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .pipeline-node:hover {
     transform: translateY(-1px);
@@ -668,6 +704,10 @@ export const STYLES = `
     font-weight: 600;
     color: rgba(var(--ink), 0.65);
     transition: color 0.16s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
   }
   .pipeline-node.is-active .pipeline-label {
     color: rgb(var(--ink));
@@ -690,13 +730,18 @@ export const STYLES = `
     overflow-wrap: anywhere;
   }
   .pkg-content {
-    flex: 1;
+    flex: 1 1 200px;
     min-width: 0;
+    max-width: 100%;
     overflow: hidden;
   }
   .app-shell {
     min-height: 100vh;
     min-height: 100dvh;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    overscroll-behavior: none;
     background: var(--bg-mesh);
     position: relative;
     padding-top: max(1.5rem, calc(var(--sat) + 1rem));
@@ -722,6 +767,7 @@ export const STYLES = `
     max-width: 800px;
     margin: 0 auto;
     width: 100%;
+    overflow-x: hidden;
   }
   .app-head {
     display: flex;
@@ -748,6 +794,8 @@ export const STYLES = `
     justify-content: space-between;
     align-items: flex-start;
     gap: 12px;
+    width: 100%;
+    flex-wrap: wrap;
   }
   .pkg-actions {
     display: flex;
@@ -905,6 +953,20 @@ export const STYLES = `
       background: rgba(var(--ink), 0.2);
       border-radius: 2px;
       margin: 0 auto 12px auto;
+    }
+    .gi {
+      font-size: 16px; /* Prevents unwanted iOS auto-zoom on input focus */
+    }
+    .pkg-pipeline {
+      gap: 5px;
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+    .pipeline-node {
+      padding: 5px 8px;
+    }
+    .pipeline-label {
+      font-size: 11px;
     }
   }
 

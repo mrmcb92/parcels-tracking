@@ -26,8 +26,8 @@ export const T = {
     quickStatus:"Quick status:",trackExternal:"Open tracking page",delete:"Delete parcel",deleteConfirmMsg:"This action cannot be undone.",
     loginSub:"Track your parcels from any device",loginBtn:"Continue with Google",
     loginConnecting:"Connecting...",loginNote:"Each user sees only their own parcels.",
-    statuses:{"Comandat":"Ordered","In livrare":"In delivery","Livrat":"Delivered"},
-    outStatuses:{"Pregatit":"Preparing","Expediat":"Shipped","In livrare":"In delivery","Livrat":"Delivered","Retur":"Returned"},
+    statuses:{"Comandat":"Ordered","Ordered":"Ordered","In livrare":"In delivery","În livrare":"In delivery","In delivery":"In delivery","delivery":"In delivery","Delivery":"In delivery","Livrat":"Delivered","Delivered":"Delivered"},
+    outStatuses:{"Pregatit":"Preparing","Pregătit":"Preparing","Preparing":"Preparing","Expediat":"Shipped","Shipped":"Shipped","In livrare":"In delivery","În livrare":"In delivery","In delivery":"In delivery","delivery":"In delivery","Delivery":"In delivery","Livrat":"Delivered","Delivered":"Delivered","Retur":"Returned","Returned":"Returned"},
     // Shipped to clients
     outParcels:"Shipped to clients",outTab:"Shipped",
     outNewParcel:"New shipment",outEditParcel:"Edit shipment",addShipment:"Add shipment",
@@ -107,8 +107,8 @@ export const T = {
     quickStatus:"Status rapid:",trackExternal:"Deschide pagina de tracking",delete:"Șterge coletul",deleteConfirmMsg:"Această acțiune nu poate fi anulată.",
     loginSub:"Urmărește-ți coletele de pe orice device",loginBtn:"Continuă cu Google",
     loginConnecting:"Se conectează...",loginNote:"Fiecare utilizator vede doar propriile colete.",
-    statuses:{"Comandat":"Comandat","In livrare":"In livrare","Livrat":"Livrat"},
-    outStatuses:{"Pregatit":"Pregătit","Expediat":"Expediat","In livrare":"In livrare","Livrat":"Livrat","Retur":"Retur"},
+    statuses:{"Comandat":"Comandat","Ordered":"Comandat","In livrare":"În livrare","În livrare":"În livrare","In delivery":"În livrare","delivery":"În livrare","Delivery":"În livrare","Livrat":"Livrat","Delivered":"Livrat"},
+    outStatuses:{"Pregatit":"Pregătit","Pregătit":"Pregătit","Preparing":"Pregătit","Expediat":"Expediat","Shipped":"Expediat","In livrare":"În livrare","În livrare":"În livrare","In delivery":"În livrare","delivery":"În livrare","Delivery":"În livrare","Livrat":"Livrat","Delivered":"Livrat","Retur":"Retur","Returned":"Retur"},
     // Colete expediate la clienți
     outParcels:"Colete expediate la clienți",outTab:"Expediate",
     outNewParcel:"Expediere nouă",outEditParcel:"Editează expedierea",addShipment:"Adaugă expediere",
